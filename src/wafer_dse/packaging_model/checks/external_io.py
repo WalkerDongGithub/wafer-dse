@@ -24,11 +24,12 @@ class ExternalIOCheck(PackagingCheck):
         cfg: dict,
         req: Requirement,
         net: NetworkPotential,
-        lanes_per_target_port: int,
+        ext_lanes_per_port: int,
+        int_lanes_per_port: int,
         port_count: int,
     ) -> CheckResult:
-        required_external = port_count * lanes_per_target_port
-        external_budget = cfg["max_external_lanes"] / lanes_per_target_port
+        required_external = port_count * ext_lanes_per_port
+        external_budget = cfg["max_external_lanes"] / ext_lanes_per_port
         passed = port_count <= external_budget
 
         return CheckResult(

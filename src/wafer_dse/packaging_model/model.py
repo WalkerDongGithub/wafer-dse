@@ -45,29 +45,33 @@ class PackagingModel:
             2. 依次运行 ALL_CHECKS 中的每个检查单元
             3. 聚合 values 并汇总通过/失败标志
         """
-        # —— 第 1 步：lane 数换算 ——
-        lanes_per_port = math.ceil(
-            req.target_nonblocking_gbps_per_port / self.cfg["lane_rate_gbps"]
+        # —— 第 1 步：lane 数换算（外部与内部使用不同速率） ——
+        ext_lanes_per_port = math.ceil(
+            req.target_nonblocking_gbps_per_port / self.cfg["ext_lane_rate_gbps"]
+        )
+        int_lanes_per_port = math.ceil(
+            req.target_nonblocking_gbps_per_port / self.cfg["int_lane_rate_gbps"]
         )
         port_count = req.port_count or net.terminal_count
 
         # —— 第 2 步：运行所有检查单元 ——
         results = [
-            check.run(self.cfg, req, net, lanes_per_port, port_count)
+            check.run(self.cfg, req, net, ext_lanes_per_port, int_lanes_per_port, port_count)
             for check in ALL_CHECKS
         ]
 
         # —— 第 3 步：聚合 ——
         merged: dict[str, float] = {
-            "lanes_per_target_port": float(lanes_per_port),
+            "ext_lanes_per_target_port": float(ext_lanes_per_port),
+            "int_lanes_per_target_port": float(int_lanes_per_port),
         }
         passed_map: dict[str, bool] = {}
         for r in results:
             merged.update(r.values)
             passed_map[r.check_name] = r.passed
 
-        external_budget = self.cfg["max_external_lanes"] / lanes_per_port
-        internal_budget = self.cfg["max_internal_lanes"] / lanes_per_port
+        external_budget = self.cfg["max_external_lanes"] / ext_lanes_per_port
+        internal_budget = self.cfg["max_internal_lanes"] / int_lanes_per_port
 
         return PackagingEstimate(
             die_area_mm2=merged.get("die_area_mm2", 0.0),

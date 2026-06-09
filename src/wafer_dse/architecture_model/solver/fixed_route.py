@@ -13,12 +13,12 @@ from __future__ import annotations
 
 import itertools
 
-from wafer_dse.architecture_model.solver.algorithm import (
-    max_weight_derangement,
-)
 from wafer_dse.architecture_model.solver.interface import (
     Solver,
     SolverResult,
+)
+from wafer_dse.architecture_model.solver.rust_backend import (
+    batch_derangement,
 )
 from wafer_dse.architecture_model.topology import Topology
 
@@ -139,16 +139,24 @@ class FixedRouteSolver(Solver):
     def _find_worst_link(
         link_weights: dict[tuple[int, int], list[list[float]]],
     ) -> tuple[float, tuple[int, int] | None, list[int]]:
-        """对所有链路并行求解 max-weight derangement，返回全局最坏值。"""
+        """对所有链路求 max-weight derangement，返回全局最坏值。
+
+        优先使用 Rust 批量求解（一次子进程调用处理所有链路），
+        Rust 不可用时降级到纯 Python 逐链路求解。
+        """
+        links = list(link_weights.keys())
+        matrices = [link_weights[link] for link in links]
+
+        results = batch_derangement(matrices)
+
         worst_load: float = -1.0
         worst_link: tuple[int, int] | None = None
         worst_assignment: list[int] = []
 
-        for link, weight in link_weights.items():
-            load, assignment = max_weight_derangement(weight)
+        for i, (load, assignment) in enumerate(results):
             if load > worst_load:
                 worst_load = load
-                worst_link = link
+                worst_link = links[i]
                 worst_assignment = assignment
 
         return worst_load, worst_link, worst_assignment

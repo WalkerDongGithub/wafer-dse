@@ -89,3 +89,135 @@ class FeasibilityReport:
     feasible_potential: bool
     fail_reasons: tuple[str, ...]
     recommendation: str
+
+
+# ===========================================================================
+# 层次化 DSE 数据结构
+# ===========================================================================
+
+
+@dataclass(frozen=True)
+class DieEstimate:
+    """单 die 物理估计。
+
+    将一个特定规模的 crossbar + 外部 SerDes + D2D PHY
+    放在一个 reticle-limited die 上的面积/功耗账单。
+    """
+
+    crossbar_ports: int
+    """crossbar 端口总数 = r×p + (r-1) + (K-1) + r×h。"""
+
+    crossbar_area_mm2: float
+    """O(N²) 交叉开关矩阵面积。"""
+
+    buffer_area_mm2: float
+    """O(N) buffer 面积（SRAM）。"""
+
+    router_total_area_mm2: float
+    """crossbar + buffer。"""
+
+    ext_serdes_count: int
+    """本 die 上的外部 800G 端口数。"""
+
+    ext_serdes_area_mm2: float
+
+    ext_serdes_power_w: float
+
+    d2d_link_count: int
+    """本 die 上跨 die 的 D2D 链路数。"""
+
+    d2d_lane_count: int
+    """d2d_link_count × int_lanes_per_port。"""
+
+    d2d_area_mm2: float
+
+    d2d_power_w: float
+
+    die_area_mm2: float
+    """总面积 = base + router + ext_serdes + d2d。"""
+
+    die_power_w: float
+
+    area_ok: bool
+    """die_area ≤ reticle limit。"""
+
+    d2d_edge_ok: bool
+    """D2D lane 数 ≤ die 边沿可供应 lane 数。"""
+
+
+@dataclass(frozen=True)
+class PartitionPlan:
+    """一种 group 的物理分割方案：用 K 个 die 实现同一组 logical routers。"""
+
+    die_count: int
+    """K = 1..a。"""
+
+    routers_per_die: int
+    """每个 die 上承载的 logical router 数 r = a/K。"""
+
+    dies: tuple[DieEstimate, ...]
+    """每个 die 的物理账单（K 个元素）。"""
+
+    total_area_mm2: float
+
+    total_power_w: float
+
+    feasible: bool
+    """所有 die 的 area_ok 和 d2d_edge_ok 都为 True。"""
+
+
+@dataclass(frozen=True)
+class GroupPlan:
+    """一个 Dragonfly group 的完整 DSE 结果。
+
+    包含逻辑拓扑的网络性能评估，以及所有可行的物理分割方案。
+    """
+
+    a: int
+    p: int
+    h: int
+
+    total_terminals: int
+    """a × p。"""
+
+    network: NetworkPotential
+    """体系结构评估结果（组内全互联 + 全局出口）。"""
+
+    partitions: tuple[PartitionPlan, ...]
+    """按 die_count 升序排列的所有可行分割方案。"""
+
+    best_partition: PartitionPlan | None
+    """die_count 最小（面积效率最高）的可行方案。"""
+
+
+@dataclass(frozen=True)
+class WaferPlan:
+    """晶圆级汇总：多个 group + 组间互连的完整物理方案。"""
+
+    group_count: int
+    """g 个 group。"""
+
+    group_config: str
+    """"(a,p,h)" 字符串。"""
+
+    groups: tuple[GroupPlan, ...]
+
+    inter_group_topo: str
+    """组间拓扑："full_mesh" | "dragonfly_L2"。"""
+
+    inter_group_link_count: int
+    """组间链路总数。"""
+
+    inter_group_lane_count: int
+    """组间 lane 总数（走 package 基板）。"""
+
+    total_terminals: int
+
+    total_dies: int
+
+    total_area_mm2: float
+
+    total_power_w: float
+
+    feasible: bool
+    """所有 group 可行 AND 组间互连在 package 预算内。"""

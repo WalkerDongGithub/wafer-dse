@@ -26,11 +26,12 @@ class PowerCheck(PackagingCheck):
         cfg: dict,
         req: Requirement,
         net: NetworkPotential,
-        lanes_per_target_port: int,
+        ext_lanes_per_port: int,
+        int_lanes_per_port: int,
         port_count: int,
     ) -> CheckResult:
-        required_external = port_count * lanes_per_target_port
-        required_internal = net.required_internal_800g_links * lanes_per_target_port
+        required_external = port_count * ext_lanes_per_port
+        required_internal = net.required_internal_800g_links * int_lanes_per_port
 
         router_power = net.terminal_count * cfg["router_power_w"]
         external_power = required_external * cfg["power_per_external_lane_w"]

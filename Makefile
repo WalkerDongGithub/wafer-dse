@@ -1,8 +1,11 @@
 .PHONY: test test-quiet test-one test-hungarian test-derangement test-topology \
-        test-solver test-model run clean lint
+        test-solver test-model run clean lint \
+        rust-build rust-build-debug rust-test rust-clean test-rust-backend test-all ci
 
 PYTHON = python
 PYTHONPATH = PYTHONPATH=src
+
+CARGO = cargo
 
 # ------------------------------------------------------------------
 # 测试
@@ -38,6 +41,32 @@ test-slow:
 
 run:
 	$(PYTHONPATH) $(PYTHON) -m wafer_dse --config configs/example_user_request.yaml
+
+# ------------------------------------------------------------------
+# Rust solver backend
+# ------------------------------------------------------------------
+
+rust-build:
+	cd rust-solvers && $(CARGO) build --release
+
+rust-build-debug:
+	cd rust-solvers && $(CARGO) build
+
+rust-test:
+	cd rust-solvers && $(CARGO) test
+
+rust-clean:
+	cd rust-solvers && $(CARGO) clean
+
+test-rust-backend:
+	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_rust_backend.py -v
+
+test-all: rust-build test-rust-backend
+	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v
+
+ci: rust-build rust-test
+	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v
+	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_rust_backend.py -v
 
 # ------------------------------------------------------------------
 # 元操作

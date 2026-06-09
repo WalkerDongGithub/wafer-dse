@@ -45,7 +45,8 @@ class PackagingCheck(ABC):
         cfg: dict,
         req: Requirement,
         net: NetworkPotential,
-        lanes_per_target_port: int,
+        ext_lanes_per_port: int,
+        int_lanes_per_port: int,
         port_count: int,
     ) -> CheckResult:
         """执行检查。
@@ -54,7 +55,8 @@ class PackagingCheck(ABC):
             cfg: 封装工艺配置 dict（cfg["packaging"]）。
             req: 用户需求。
             net: 体系结构级输出。
-            lanes_per_target_port: 每目标端口所需 lane 数。
+            ext_lanes_per_port: 每外部端口所需 lane 数（SerDes 速率）。
+            int_lanes_per_port: 每内部 800G-equivalent 链路所需 lane 数（D2D 速率）。
             port_count: 实际端口数。
 
         Returns:

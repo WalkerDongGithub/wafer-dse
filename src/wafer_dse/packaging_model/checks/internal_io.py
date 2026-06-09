@@ -24,11 +24,12 @@ class InternalIOCheck(PackagingCheck):
         cfg: dict,
         req: Requirement,
         net: NetworkPotential,
-        lanes_per_target_port: int,
+        ext_lanes_per_port: int,
+        int_lanes_per_port: int,
         port_count: int,
     ) -> CheckResult:
-        required_internal = net.required_internal_800g_links * lanes_per_target_port
-        internal_budget = cfg["max_internal_lanes"] / lanes_per_target_port
+        required_internal = net.required_internal_800g_links * int_lanes_per_port
+        internal_budget = cfg["max_internal_lanes"] / int_lanes_per_port
         passed = net.required_internal_800g_links <= internal_budget
 
         return CheckResult(
