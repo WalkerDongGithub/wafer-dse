@@ -1,0 +1,57 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "wafer-dse"
+version = "0.1.0"
+description = "晶圆级交换机（Wafer-Scale Switch）设计空间探索工具"
+readme = "README.md"
+requires-python = ">=3.9"
+license = { text = "MIT" }
+authors = [
+    { name = "Walker Dong" },
+]
+keywords = [
+    "wafer-scale",
+    "design-space-exploration",
+    "network-topology",
+    "dragonfly",
+    "interconnect",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
+]
+
+# 核心：零外部 Python 依赖（仅标准库）
+dependencies = []
+
+[project.optional-dependencies]
+test = ["pytest>=7"]
+dev = ["pytest>=7", "flake8>=5"]
+
+[project.scripts]
+wafer-dse = "wafer_dse.__main__:main"
+
+[project.urls]
+Homepage = "https://github.com/WalkerDongGithub/wafer-dse"
+Repository = "https://github.com/WalkerDongGithub/wafer-dse.git"
+Issues = "https://github.com/WalkerDongGithub/wafer-dse/issues"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.flake8]
+max-line-length = 120

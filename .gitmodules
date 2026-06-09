@@ -1,0 +1,4 @@
+[submodule "vendor/congestion"]
+	path = vendor/congestion
+	url = https://github.com/WalkerDongGithub/congestion.git
+	branch = v2

@@ -126,10 +126,21 @@ Python 端在 [rust_backend.py](src/wafer_dse/architecture_model/solver/rust_bac
 ### 安装
 
 ```bash
-pip install -e .        # 开发模式安装，或直接 PYTHONPATH=src 使用
+# 克隆项目（含子模块）
+git clone --recurse-submodules https://github.com/WalkerDongGithub/wafer-dse.git
+cd wafer-dse
+
+# 开发模式安装
+pip install -e .
+
+# 编译 Rust 加速后端（可选）
+make rust-build
+
+# 编译拥塞仿真器（可选）
+cd vendor/congestion && cargo build --release
 ```
 
-无外部依赖，核心求解器仅使用 Python 标准库。测试依赖 `pytest`。
+核心求解器仅使用 Python 标准库，零外部依赖。测试依赖 `pytest`。
 
 ### 命令行
 
@@ -241,9 +252,20 @@ make ci                 # CI 流水线（构建 + 测试）
 
 ## 依赖
 
-- Python 3.9+
-- 核心：零外部依赖（仅标准库）
-- 测试：`pytest`
+| 层 | 依赖 | 说明 |
+|---|---|---|
+| **Python** | 标准库（零外部依赖） | Python 3.9+ |
+| **Python 测试** | `pytest` ≥7 | `pip install -e ".[test]"` |
+| **Rust 加速（可选）** | [rust-solvers/](rust-solvers/) | Cargo workspace，编译后约 10–50× 加速 |
+| **拥塞仿真（可选）** | [vendor/congestion](vendor/congestion) | Git submodule，网络拥塞仿真器 |
+
+```bash
+# 首次克隆
+git clone --recurse-submodules https://github.com/WalkerDongGithub/wafer-dse.git
+
+# 如果已克隆，拉取子模块
+git submodule update --init --recursive
+```
 
 ## 许可
 
