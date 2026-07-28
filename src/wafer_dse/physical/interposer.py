@@ -1,19 +1,16 @@
 """
-Interposer 物理模型。
+Interposer 物理模型 — 统一端口 + 面积 bump。
 
-一个 interposer 容纳 ~6 个 die (取决于 reticle 面积和 die 尺寸)。
-Interposer 内走线: μbump → interposer 铜线 → μbump (或 → C4 出 substrate)。
+一个 interposer 容纳多颗 die，提供 interposer 内 D2D 布线。
+所有 off-die 端口统一处理：每条链路 e 消耗 L_e × B / R_e 条 lane。
 
-职责:
-  1. 判断一组 die 能否放进 interposer (面积)
-  2. 判断组内 D2D 能否 route (距离 → UCIe 标准选择)
-  3. 为每条 intra-group edge 选出最佳可行 UCIe 标准
-  4. 计算每个 die 的 μbump 消耗
+核心约束（per die）：
+    Σ L_e · B/R_e  +  P_die / (V_dd · I_bump)  ≤  η · ρ · A_die
 
 使用方式:
-    interposer = Interposer(dies=[...], area_mm2=858, bump=UBUMP_45UM)
+    interposer = Interposer(dies=[...], area_mm2=858)
     result = interposer.route_intra(edges, bandwidth_gbps=800)
-    print(result.feasible, result.profile_name, result.total_power_w)
+    print(result.feasible, result.total_power_w)
 """
 
 from __future__ import annotations
@@ -21,31 +18,28 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Optional
 
-from wafer_dse.physical.bump.bump import BumpSpec, DieBumpBudget, UBUMP_45UM
+from wafer_dse.physical.bump.bump import DieBumpBudget, UBUMP_25UM
 from wafer_dse.physical.interconnect import get_profile, list_profiles
 from wafer_dse.physical.interconnect.base import InterconnectProfile
 
 
 # ============================================================================
-# Interposer 级布线结果
+# 布线结果
 # ============================================================================
 
 
 @dataclass(frozen=True)
-class IntraRouteResult:
-    """一组 intra-group 边在 interposer 内的布线方案。"""
+class RouteResult:
+    """一组边在 interposer 内的布线方案。"""
 
-    chosen_standard: str               # 选用的标准, 如 "UCIe-32G-Advanced"
+    chosen_standard: str
     feasible: bool
     fail_reason: str = ""
 
-    # 每条边的记账
-    lanes_per_edge: int = 0           # 每条 UCIe-D2D 链路消耗的 lane 数
+    lanes_per_edge: int = 0
     power_per_edge_w: float = 0.0
     total_power_w: float = 0.0
-
-    # 每个 die 的 bump 消耗
-    die_bump_usage: tuple[int, ...] = ()   # 每个 die 消耗的 μbump 数
+    die_lane_usage: tuple[int, ...] = ()   # 每个 die 消耗的 lane 数
 
     @property
     def success(self) -> bool:
@@ -59,19 +53,12 @@ class IntraRouteResult:
 
 @dataclass
 class Interposer:
-    """一个 reticle 大小的硅中介层。
+    """一个 reticle 大小的硅中介层。"""
 
-    容纳多颗 die，提供 interposer 内 D2D 布线能力。
-    """
-
-    label: str                          # "Interposer_0"
-    dies: list[DieBumpBudget]           # 该 interposer 上的 die 列表
+    label: str
+    dies: list[DieBumpBudget]
     area_mm2: float = 858.0             # reticle 面积 (~26×33mm)
-    bump: BumpSpec = field(default=UBUMP_45UM)  # μbump 工艺
-
-    # 内部缓存: 最大 die 距离 (2×2 compact 布局的近似)
-    # 简化: 假设 die 紧密排成 2×2/3×2 网格
-    _max_die_distance_mm: float = 2.0   # 对角线 ~1.4mm, 加 detour margin → 2mm
+    _max_die_distance_mm: float = 2.0   # 紧密布局下相邻 die 的 PHY-to-PHY 距离
 
     @property
     def die_count(self) -> int:
@@ -79,42 +66,37 @@ class Interposer:
 
     @property
     def max_dies(self) -> int:
-        """该 interposer 最多能放多少颗 die (面积约束)。"""
+        """面积约束：最多能放多少颗 die。"""
         if not self.dies:
             return 999
         die_area = self.dies[0].width_mm * self.dies[0].height_mm
-        # 扣除 routing overhead (~30%)
         return int(self.area_mm2 * 0.7 / die_area)
 
-    def can_fit(self, group_size: int) -> bool:
-        """a 个 die 能否放进这个 interposer。"""
-        return group_size <= self.max_dies
+    def can_fit(self, n_dies: int) -> bool:
+        return n_dies <= self.max_dies
 
     # ------------------------------------------------------------------
-    # 核心: intra-group 布线检查
+    # 核心：布线检查（统一约束）
     # ------------------------------------------------------------------
 
-    def route_intra(
+    def route(
         self,
-        intra_edge_count: int,      # 组内 D2D 边数 (e.g. a(a-1)/2)
+        edges: list[tuple[int, int, float]],  # [(src_die_idx, dst_die_idx, L_e), ...]
         bandwidth_gbps: float = 800.0,
-    ) -> IntraRouteResult:
-        """为组内全互联选最优 UCIe 标准。
+    ) -> RouteResult:
+        """为所有边选最优物理标准，检查 per-die bump 预算。
 
-        策略: 遍历所有 UCIe-Advanced 标准，选第一个满足条件的最优解。
-        优先条件: 距离够 → bump 够 → 功耗最低。
+        edges: [(src, dst, L_e), ...] — L_e 为归一化负载（来自性能 LP）。
         """
-        ucie_advanced = [
-            n for n in list_profiles()
-            if n.startswith("UCIe-") and "Advanced" in n
-        ]
-        # 按速率降序 (高速 = 更少 lane → 省 bump, 优先试)
-        ucie_advanced.sort(key=lambda n: get_profile(n).lane_rate_gbps, reverse=True)
+        # 遍历所有可用标准，按 lane 速率降序
+        candidates = sorted(
+            [get_profile(n) for n in list_profiles()
+             if n.startswith("UCIe-") and "Advanced" in n],
+            key=lambda s: s.lane_rate_gbps,
+            reverse=True,
+        )
 
-        for name in ucie_advanced:
-            std = get_profile(name)
-
-            # 距离检查
+        for std in candidates:
             bill = std.compute(
                 length_mm=self._max_die_distance_mm,
                 bandwidth_gbps=bandwidth_gbps,
@@ -122,42 +104,75 @@ class Interposer:
             if not bill.feasible:
                 continue
 
-            # Bump 检查: 每个 die 的 degree = intra_edge_count × lanes_per_edge / a
-            # 简化: 全互联, 每个 die 度 = a-1, 每条边消耗 bill.lanes
-            lanes_per_edge = bill.lanes
-            # 每个 die 需要: (a-1) 条 D2D 链路
-            per_die_lanes = (len(self.dies) - 1) * lanes_per_edge if self.dies else 0
+            # lane 速率为 R_e，每条边的 lane 消耗 = L_e × B / R_e
+            # （简化：当前假设所有边用同一标准）
+            R = std.lane_rate_gbps
+            lanes_per_unit = bandwidth_gbps / R
 
+            # 统计每个 die 的总 lane 消耗
+            die_lanes = [0] * len(self.dies)
+            for src, dst, L_e in edges:
+                lanes = L_e * lanes_per_unit
+                die_lanes[src] += lanes
+                die_lanes[dst] += lanes
+
+            # 检查 per-die 约束：Σ L_e × B/R_e ≤ N_sig
+            # N_sig = N_total - N_pwr（bump 类已内置）
             all_ok = True
-            for die in self.dies:
-                if per_die_lanes > die.available:
+            for i, die in enumerate(self.dies):
+                if die_lanes[i] > die.available:
                     all_ok = False
                     break
 
             if not all_ok:
                 continue
 
-            # 通过!
-            return IntraRouteResult(
-                chosen_standard=name,
+            # 通过
+            total_lanes = sum(die_lanes) // 2  # 每条边数了两次
+            return RouteResult(
+                chosen_standard=std.name,
                 feasible=True,
-                lanes_per_edge=lanes_per_edge,
+                lanes_per_edge=int(lanes_per_unit),
                 power_per_edge_w=bill.power_w,
-                total_power_w=bill.power_w * intra_edge_count,
-                die_bump_usage=tuple(per_die_lanes for _ in self.dies),
+                total_power_w=bill.power_w * len(edges),
+                die_lane_usage=tuple(die_lanes),
             )
 
-        return IntraRouteResult(
+        return RouteResult(
             chosen_standard="",
             feasible=False,
             fail_reason=(
                 f"无 UCIe Advanced 标准能同时满足距离≤{self._max_die_distance_mm}mm "
-                f"和每个 die 的 μbump 预算"
+                f"和所有 die 的 bump 预算"
             ),
         )
+
+    # ------------------------------------------------------------------
+    # 便捷方法
+    # ------------------------------------------------------------------
+
+    def route_intra(
+        self,
+        intra_edge_count: int,
+        bandwidth_gbps: float = 800.0,
+    ) -> RouteResult:
+        """简化接口：组内全互联（所有 L_e = 1，即专用端口假设）。"""
+        n = len(self.dies)
+        if n < 2 or intra_edge_count <= 0:
+            return RouteResult(
+                chosen_standard="", feasible=False,
+                fail_reason=f"invalid: {n} dies, {intra_edge_count} edges",
+            )
+        # 生成恰好 intra_edge_count 条边，循环分配 die 对
+        edges: list[tuple[int, int, float]] = []
+        for k in range(intra_edge_count):
+            src = k % n
+            dst = (k // n + 1 + src) % n  # 错开不同邻接
+            edges.append((src, dst, 1.0))
+        return self.route(edges, bandwidth_gbps)
 
     def summary(self) -> str:
         return (
             f"{self.label}: {self.die_count} dies, {self.area_mm2:.0f}mm², "
-            f"μbump={self.bump.name}, max_dies={self.max_dies}"
+            f"max_dies={self.max_dies}"
         )

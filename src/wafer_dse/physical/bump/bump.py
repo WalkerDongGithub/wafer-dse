@@ -1,21 +1,17 @@
 """
-μbump 和 C4 bump 的物理约束。
-
-这是整个 DSE 物理模型的最底层 — 不依赖任何其他模块。
-Bump 先于互连标准: 工艺决定 bump → bump 数决定可选标准。
+μbump 和 C4 bump 的物理约束 — 统一面积阵列模型。
 
 模型
 ====
-μbump (die → interposer 上界面, 按周长计算):
-  N_total   = 2(w + h) / pitch
+μbump (die → interposer, 面阵列):
+  N_total   = η · A_die / pitch²
   I_die     = P_die / V_dd
   N_power   = I_die / I_per_bump
-  N_test    = N_total × 0.03
-  N_signal  = N_total - N_power - N_test
+  N_signal + N_power ≤ N_total    (核心方程: 信号+电源竞争总预算)
 
-C4 bump (interposer → substrate 下界面, 按面积计算):
-  N_total   = A / pitch²
-  (C4 的 P_die 是 interposer 上所有 die 功耗之和 + interposer 漏电)
+C4 bump (interposer → substrate, 面阵列):
+  N_total   = η · A_interposer / pitch²
+  同上结构。
 """
 
 from __future__ import annotations
@@ -53,21 +49,20 @@ class BumpSpec:
 
 
 # ============================================================================
-# 常用规格预设
+# 预设
 # ============================================================================
 
-# μbump (die → interposer)
-#   电流参考: 45μm Cu pillar → ~75mA, 25μm → ~40mA
-UBUMP_45UM = BumpSpec("μbump-45μm",  pitch_um=45,  current_per_bump_ma=75)
-UBUMP_25UM = BumpSpec("μbump-25μm",  pitch_um=25,  current_per_bump_ma=40)
+# μbump (die → interposer, 面阵列): 25μm pitch, ~40mA/bump
+UBUMP_25UM = BumpSpec("μbump-25μm", pitch_um=25, current_per_bump_ma=40)
+UBUMP_45UM = BumpSpec("μbump-45μm", pitch_um=45, current_per_bump_ma=75)
 
-# C4 bump (interposer → substrate): SnAg solder → ~300mA
+# C4 (interposer → substrate, 面阵列): 130μm pitch, ~300mA/bump
 C4_130UM = BumpSpec("C4-130μm", pitch_um=130, current_per_bump_ma=300)
 
-# Hybrid bond (3D stacking): Cu-Cu → ~50μA (几乎不载流，纯信号)
-HYBRID_9UM  = BumpSpec("Hybrid-9μm",  pitch_um=9,  current_per_bump_ma=0.05)
-HYBRID_5UM  = BumpSpec("Hybrid-5μm",  pitch_um=5,  current_per_bump_ma=0.05)
-HYBRID_1UM  = BumpSpec("Hybrid-1μm",  pitch_um=1,  current_per_bump_ma=0.05)
+# Hybrid bond (3D): 纯信号
+HYBRID_9UM = BumpSpec("Hybrid-9μm", pitch_um=9, current_per_bump_ma=0.05)
+HYBRID_5UM = BumpSpec("Hybrid-5μm", pitch_um=5, current_per_bump_ma=0.05)
+HYBRID_1UM = BumpSpec("Hybrid-1μm", pitch_um=1, current_per_bump_ma=0.05)
 
 
 # ============================================================================
@@ -77,10 +72,9 @@ HYBRID_1UM  = BumpSpec("Hybrid-1μm",  pitch_um=1,  current_per_bump_ma=0.05)
 
 @dataclass(frozen=True)
 class DieBumpBudget:
-    """一个 die 的 μbump 信号池。
+    """一个 die 的 μbump 信号池 — 面积阵列模型。
 
-    由 die 尺寸、bump 工艺、和 die 功耗共同决定。
-    功耗越高 → 电源 bump 占比越大 → 信号 bump 越少。
+    总 bump 数由 die 面积决定。信号和电源竞争同一总预算。
     """
 
     die_label: str
@@ -89,16 +83,16 @@ class DieBumpBudget:
     height_mm: float
     power_w: float = 50.0          # die 功耗 [W] — 来自 DieEstimator
     vdd_v: float = 0.8             # 供电电压 [V]
-    test_fraction: float = 0.03    # 测试/DFT bump 占比
+    utilization: float = 0.7       # 面积利用率 η（含 test/DFT）
 
     @property
-    def perimeter_mm(self) -> float:
-        return 2 * (self.width_mm + self.height_mm)
+    def area_mm2(self) -> float:
+        return self.width_mm * self.height_mm
 
     @property
     def total_bumps(self) -> int:
-        """总 bump 数 (含电源+信号+测试)。"""
-        return int(self.perimeter_mm * self.spec.density_per_mm)
+        """总 bump 数（面积阵列）。"""
+        return int(self.area_mm2 * self.spec.density_per_mm2 * self.utilization)
 
     @property
     def power_bumps(self) -> int:
@@ -107,29 +101,26 @@ class DieBumpBudget:
         return max(1, int(__import__('math').ceil(amps * 1000 / self.spec.current_per_bump_ma)))
 
     @property
-    def test_bumps(self) -> int:
-        return max(1, int(self.total_bumps * self.test_fraction))
-
-    @property
     def available(self) -> int:
-        """可用信号 bump 数 = 总量 - 电源 - 测试。"""
-        return max(0, self.total_bumps - self.power_bumps - self.test_bumps)
+        """信号 bump 可用量 = 总量 - 电源。"""
+        return max(0, self.total_bumps - self.power_bumps)
 
     @property
-    def utilization(self) -> float:
-        """实际信号 bump 占比 (推导值, 非输入)。"""
+    def budget_frac(self) -> float:
+        """信号 bump 占比。"""
         return self.available / self.total_bumps if self.total_bumps > 0 else 0.0
 
     def can_support(self, required_lanes: int) -> bool:
+        """信号 bump 是否够。"""
         return required_lanes <= self.available
 
     def summary(self) -> str:
         return (
             f"{self.die_label}: {self.width_mm:.0f}×{self.height_mm:.0f}mm, "
-            f"perimeter={self.perimeter_mm:.0f}mm, P={self.power_w:.0f}W, "
+            f"area={self.area_mm2:.0f}mm², P={self.power_w:.0f}W, "
             f"{self.spec.name} → {self.total_bumps} total "
-            f"(-{self.power_bumps}PWR -{self.test_bumps}TST) = {self.available} signal "
-            f"(η={self.utilization:.1%})"
+            f"(-{self.power_bumps}PWR) = {self.available} signal "
+            f"(η={self.utilization:.0%}, budget={self.budget_frac:.1%})"
         )
 
 
@@ -140,21 +131,17 @@ class DieBumpBudget:
 
 @dataclass(frozen=True)
 class C4Budget:
-    """一片 interposer 的 C4 信号池 (下界面 → substrate)。
-
-    按面积 + 总功耗计算。interposer 上所有 die 的功耗之和
-    决定需要多少 C4 电源 bump。
-    """
+    """一片 interposer 的 C4 信号池 — 面积阵列模型。"""
 
     spec: BumpSpec                 # C4 工艺 (通常 130μm)
     area_mm2: float                # interposer 面积 [mm²]
-    total_power_w: float = 300.0   # interposer 上所有 die 总功耗 + 漏电 [W]
+    total_power_w: float = 300.0   # interposer 上总功耗 [W]
     vdd_v: float = 0.8
-    test_fraction: float = 0.03
+    utilization: float = 0.7       # 面积利用率 η
 
     @property
     def total_bumps(self) -> int:
-        return int(self.area_mm2 * self.spec.density_per_mm2)
+        return int(self.area_mm2 * self.spec.density_per_mm2 * self.utilization)
 
     @property
     def power_bumps(self) -> int:
@@ -162,16 +149,11 @@ class C4Budget:
         return max(1, int(__import__('math').ceil(amps * 1000 / self.spec.current_per_bump_ma)))
 
     @property
-    def test_bumps(self) -> int:
-        return max(1, int(self.total_bumps * self.test_fraction))
-
-    @property
     def available(self) -> int:
-        return max(0, self.total_bumps - self.power_bumps - self.test_bumps)
+        return max(0, self.total_bumps - self.power_bumps)
 
     def summary(self) -> str:
         return (
             f"C4 {self.spec.name}: {self.area_mm2:.0f}mm², P={self.total_power_w:.0f}W, "
-            f"{self.total_bumps} total "
-            f"(-{self.power_bumps}PWR -{self.test_bumps}TST) = {self.available} signal"
+            f"{self.total_bumps} total (-{self.power_bumps}PWR) = {self.available} signal"
         )

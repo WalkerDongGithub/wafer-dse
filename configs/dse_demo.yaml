@@ -1,0 +1,42 @@
+# wafer-dse DSE 演示配置
+# 所有物理参数可配置，适配不同工艺节点和封装方案
+
+# ── 工艺 ──
+bump:
+  ubump: "25μm"              # 25μm | 45μm
+  c4:    "130μm"             # 130μm
+
+# ── Die ──
+die:
+  width_mm: 12.0
+  height_mm: 12.0
+  power_w: 50.0              # 单 die 功耗 (含 crossbar + SerDes + 漏电)
+  vdd_v: 0.8                 # 供电电压
+
+# ── Interposer ──
+interposer:
+  count: 16                  # wafer 上 interposer 数量
+  dies_per: 6                # 每 interposer 上 die 数量
+  area_mm2: 858.0            # 单 interposer 面积 (≈ reticle limit)
+
+# ── Substrate ──
+substrate:
+  grid_rows: 4
+  grid_cols: 4
+
+# ── 需求 ──
+requirement:
+  target_bw_gbps: 800.0      # 每端口目标无阻塞带宽
+  cooling: "Liquid"          # Air | Liquid | Immersion | Microfluidic
+
+# ── 搜索空间 ──
+search:
+  a_min: 2                   # 每组 router 数 (下限)
+  a_max: 8                   # 每组 router 数 (上限)
+  p_min: 2                   # 每 router terminal 数 (下限)
+  p_max: 4                   # 每 router terminal 数 (上限)
+  h_values: [1, 2, 4]        # 每 router 全局端口数
+
+# ── 性能模型 ──
+performance:
+  use_fast: true             # true = 分析近似, false = Hungarian 精确

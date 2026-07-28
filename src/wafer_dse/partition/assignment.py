@@ -299,24 +299,3 @@ class GreedyRouter:
                 routed.append(best)
 
         return RoutingPlan(problem=self._problem, edges=tuple(routed))
-                            budget=bill,
-                            feasible=True,
-                        )
-
-            if best is None:
-                routed.append(RoutedEdge(
-                    edge=edge, profile_name="", grade_name="",
-                    path=(src_zone, dst_zone),
-                    budget=LinkBudget(
-                        profile_name="", grade_name="",
-                        length_mm=length, bandwidth_gbps=edge.bandwidth_gbps,
-                        lanes=0, power_w=0, loss_db=0, width_mm=0, ber=0,
-                        feasible=False,
-                    ),
-                    feasible=False,
-                    fail_reason=f"无标准可覆盖 {length:.1f}mm @{edge.bandwidth_gbps}Gbps",
-                ))
-            else:
-                routed.append(best)
-
-        return RoutingPlan(problem=self._problem, edges=tuple(routed))

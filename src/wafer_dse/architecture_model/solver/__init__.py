@@ -25,6 +25,7 @@ from wafer_dse.architecture_model.solver.algorithm import (
     max_weight_derangement,
 )
 from wafer_dse.architecture_model.solver.fixed_route import FixedRouteSolver
+from wafer_dse.architecture_model.solver._potential import _PotentialSolver
 from wafer_dse.architecture_model.solver.interface import (
     Solver,
     SolverResult,
@@ -36,11 +37,8 @@ from wafer_dse.architecture_model.solver.interface import (
 
 # 按优先级排列的求解器类列表。create_solver 按顺序尝试匹配。
 _SOLVER_CLASSES: list[type[Solver]] = [
-    FixedRouteSolver,
-    # 未来扩展：
-    # AdaptiveLPSolver,
-    # MonteCarloSolver,
-    # CuttingPlaneSolver,
+    FixedRouteSolver,    # det, val — Hungarian 精确最坏情况
+    _PotentialSolver,      # opt — 范数极值 / 拓扑潜能评估 (广义无阻塞早筛)
 ]
 
 
