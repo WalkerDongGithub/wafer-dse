@@ -24,7 +24,26 @@ from ._cooling import (
     MICROFLUIDIC,
 )
 from ._config import ThermalConfig, ThermalResult
-from ._solver import ThermalSolver, create_solver
+
+# 求解器延迟导入 — MFIT 需要 numpy/scipy/c 库，不是所有环境都有
+_ThermalSolver = None
+_create_solver = None
+
+
+def __getattr__(name):
+    global _ThermalSolver, _create_solver
+    if name == "ThermalSolver":
+        if _ThermalSolver is None:
+            from ._solver import ThermalSolver as TS
+            _ThermalSolver = TS
+        return _ThermalSolver
+    if name == "create_solver":
+        if _create_solver is None:
+            from ._solver import create_solver as cs
+            _create_solver = cs
+        return _create_solver
+    raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+
 
 __all__ = [
     "CoolingSolution", "AIR_COOLING", "LIQUID_COOLING", "IMMERSION", "MICROFLUIDIC",

@@ -130,17 +130,14 @@ Python 端在 [rust_backend.py](src/wafer_dse/architecture_model/solver/rust_bac
 git clone --recurse-submodules https://github.com/WalkerDongGithub/wafer-dse.git
 cd wafer-dse
 
-# 开发模式安装
-pip install -e .
+# 开发模式安装（含 Valiant LP 支持）
+pip install -e ".[lp,test]"
 
-# 编译 Rust 加速后端（可选）
+# 编译 Rust 加速后端（可选，10-50× 加速）
 make rust-build
-
-# 编译拥塞仿真器（可选）
-cd vendor/congestion && cargo build --release
 ```
 
-核心求解器仅使用 Python 标准库，零外部依赖。测试依赖 `pytest`。
+核心依赖：`numpy`、`pyyaml`。Valiant LP 路径需要 `cvxpy`。
 
 ### 命令行
 
@@ -254,7 +251,8 @@ make ci                 # CI 流水线（构建 + 测试）
 
 | 层 | 依赖 | 说明 |
 |---|---|---|
-| **Python** | 标准库（零外部依赖） | Python 3.9+ |
+| **Python** | `numpy`, `pyyaml` | 数值计算 + 配置解析 |
+| **Python LP** | `cvxpy` ≥1.3 | Valiant 路由完整 LP (可选) |
 | **Python 测试** | `pytest` ≥7 | `pip install -e ".[test]"` |
 | **Rust 加速（可选）** | [rust-solvers/](rust-solvers/) | Cargo workspace，编译后约 10–50× 加速 |
 | **拥塞仿真（可选）** | [vendor/congestion](vendor/congestion) | Git submodule，网络拥塞仿真器 |

@@ -31,12 +31,16 @@ classifiers = [
     "Topic :: Scientific/Engineering :: Electronic Design Automation (EDA)",
 ]
 
-# 核心：零外部 Python 依赖（仅标准库）
-dependencies = []
+# 核心依赖
+dependencies = [
+    "numpy>=1.20",
+    "pyyaml>=6.0",
+]
 
 [project.optional-dependencies]
 test = ["pytest>=7"]
-dev = ["pytest>=7", "flake8>=5"]
+dev = ["pytest>=7", "ruff>=0.1"]
+lp = ["cvxpy>=1.3"]
 
 [project.scripts]
 wafer-dse = "wafer_dse.__main__:main"
