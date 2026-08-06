@@ -1,0 +1,40 @@
+% 讨论与展望
+\chapter{讨论与展望}\label{chap:discussion}
+
+\section{规模限制与缓解}
+
+当前Valiant LP的实用上限约为$N=30$。对于$N > 100$，三种策略保持框架属性：
+\begin{itemize}
+    \item \textbf{混合精度}：$(0,0,0)$在O(1)淘汰大多数候选，仅少数通过初筛的进入$(1,1,1)$
+    \item \textbf{分解求解}：Benders分解分离性能约束（复杂多面体）与物理约束（简单线性不等式）
+    \item \textbf{拓扑特定分解}：利用Dragonfly层次结构（group内+group间）分解LP
+\end{itemize}
+
+\section{物理建模的扩展}
+
+\textbf{布线约束}：纳入L2不改变框架——$\mathbf{A}(p) \cdot \mathbf{L} \le \mathbf{c}$与$\mathbf{M} \cdot \mathbf{L} \le \mathbf{b}$同构。
+需placement数据和grid容量标定。
+
+\textbf{3D堆叠}：Hybrid bond提供更高信号密度（$N_v^{\text{sig}}$增大）但垂直散热路径更长（$g_{\text{vert}}$减小）。
+两者都是参数更新，不改变约束形式。
+
+\textbf{非线性来源的界定}：本文框架的线性性建立在"物理量对$\mathbf{L}$的依赖是线性的"这一事实上。
+功耗建模的非线性（如漏电对温度的指数依赖）影响的是$P_{\text{lane}}$的数值精度，
+而非框架结构。我们取TDP作为最坏情况处理这种不确定性——正线性单调性保证如果TDP通过，所有次坏情况都通过。
+
+\section{在完整设计流程中的定位}
+
+统一LP定位为初筛工具，位于完整设计流程的最前端。
+下游包括：cycle-accurate仿真（验证性能）、详细布线（验证可布线性）、3D热仿真（验证温度分布）。
+统一LP的角色：在昂贵步骤之前快速淘汰不可行候选，为进入详细仿真的设计点提供理论保证和瓶颈预判。
+
+确保从LP到详细仿真的过渡是保守的——LP的$t^* \le 1$是无阻塞的\textbf{必要条件}（假设完美流控），
+实际系统需乘实现效率$\eta_{\text{impl}} \approx 0.8$。这一乘性松弛不改变约束的线性结构。
+
+\section{与现有方法的根本区别}
+
+FPIA专注于chiplet级布线，Switch-Less Dragonfly为特定拓扑设计路由，
+TickTock为LLM训练做协同设计——这些工作各自解决了DSE拼图的一部分。
+本文的核心贡献不在于提出新拓扑、新路由或新封装——
+而在于证明\textbf{这些看似无关的设计维度可以通过$\mathbf{L}$统一到一个LP中}。
+这一数学统一性使得跨维度耦合从"需要专门处理的工程问题"变成了"LP中的一行约束"。

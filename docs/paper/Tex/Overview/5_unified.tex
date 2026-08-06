@@ -1,0 +1,60 @@
+% 殊途同归
+\section{殊途同归：一个变量，三族约束，全线性的可行集}
+
+现在回看三类约束的分析结果：
+
+\begin{itemize}
+    \item \textbf{性能}：二分带宽（$\sum_{e \in C} L_e \ge N/4$）或Valiant LP（$\min t$ s.t. $L_e \le t$）——
+    两者都是关于$L_e$的线性约束。
+    \item \textbf{几何}：全局bump池、per-die竞争、布局感知布线——
+    三者都是$\mathbf{M} \cdot \mathbf{L} \le \mathbf{b}$，只是$\mathbf{M}$的行数不同。
+    \item \textbf{功耗}：全局功率密度、RC热网络+温差——
+    两者都是$\mathbf{C} \cdot \mathbf{L} \le \mathbf{d}$，因为热传导方程是线性的。
+\end{itemize}
+
+\textbf{这不是巧合。}
+流量、lane数、功耗、温度——这些物理量对链路负载$L_e$的依赖，天然是线性的。
+物理学给了我们一个礼物：所有约束都是$\mathbf{L}$上的线性不等式。
+因此，给定一个技术选型（外层固定所有系数矩阵），内层的可行性判断就是一个线性规划：
+
+\begin{equation}\label{eq:unified}
+    \boxed{
+    \begin{aligned}
+    \min_{t, \mathbf{L}} \quad & t \\[4pt]
+    \text{s.t.} \quad & \mathcal{L}_{\text{perf}}(\mathbf{L}) \le t \cdot \mathbf{1} \\
+    & \mathbf{M} \cdot \mathbf{L} \le \mathbf{b} \\
+    & \mathbf{C} \cdot \mathbf{L} \le \mathbf{d}
+    \end{aligned}
+    }
+\end{equation}
+
+\subsection{梯度配置：精度作为可选项}
+
+三类约束各自支持多种精度级别——性能(k=0,1)、几何(m=0,1,2)、功耗(n=0,1)。
+三个维度的精度\textbf{独立可选}。
+
+\textbf{这不是软件工程的接口设计。这是物理的必然结果。}
+因为所有精度级别都是$\mathbf{L}$上的线性不等式，
+升级一个维度的精度只是替换对应系数矩阵——不需要重建模型、不需要改变求解器、不需要重新推导约束形式。
+
+这一性质使框架支持一种"渐进诊断"使用模式：
+\begin{itemize}
+    \item 对大规模初筛，使用$(k=0, m=0, n=0)$——三条线性不等式，O(1)淘汰不可行候选。
+    \item 对通过初筛的候选，使用$(k=1, m=1, n=1)$——完整Valiant LP + per-die bump + RC热网络。
+    \item 仅当slack低于安全阈值时，才升级对应维度的精度。
+\end{itemize}
+
+\textbf{精度升级是数据驱动的决策，而非方法论绑定。}
+梯度配置使框架在"速度"和"精度"之间提供了一系列连续可选的配置点，
+而不是两个极端（要么全粗、要么全细）。
+
+\subsection{本章的论证逻辑回顾}
+
+本章的结构本身反映了框架的核心argument：
+我们不是从"$\mathbf{L}$是桥梁"出发，而是从三类约束各自的物理本质出发，
+逐一展示从简到繁的分析路径，最终让读者自己发现——
+\textbf{三类约束在最粗糙和最精细的极限下，都是$\mathbf{L}$上的线性不等式。}
+
+这一统一性不是因为我们设计了统一的接口，
+而是因为物理量对链路负载的依赖天然是线性的。
+认识到这一点，晶圆级交换机DSE就从"并行运行多个独立检查工具"变成了"构建并求解一个统一线性规划"。

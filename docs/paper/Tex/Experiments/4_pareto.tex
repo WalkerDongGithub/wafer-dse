@@ -1,0 +1,26 @@
+% DSE 扫描与 Pareto 前沿
+\section{实验三：设计空间长什么样？}\label{sec:pareto}
+
+\textbf{论证目标}：展示框架在批量DSE扫描中的实用价值——在多个设计点上运行LP，揭示Pareto前沿结构，给出设计指导。
+
+\textbf{实验设计}：
+固定端口带宽$B = 800$ Gbps，在Dragonfly参数空间$(a,p,h)$中枚举8个配置（$a \le 3, p \le 5$），
+每个配置求解Eq.~\ref{eq:valiant-lp} + 几何L1 + 功耗L1。
+在$N$--面积平面上绘制Pareto前沿，标注支配关系和总功耗。
+
+\textbf{预期发现}：
+\begin{itemize}
+    \item Pareto前沿上只有两个支配点：DF(1,1,1)（$N=2$, 288mm$^2$）和DF(2,5,1)（$N=30$, 432mm$^2$）
+    \item 在固定面积下，增加每路由器终端数$p$是提升$N$的最有效策略——
+    DF(2,2,1)到DF(2,5,1)，面积不变，$N$从12到30
+    \item 增加$h$或$a$增加裸片数量和总面积，效率低于增大$p$
+\end{itemize}
+
+\textbf{设计指导}：优先增大$p$，再考虑增大$a$或$h$。
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.8\textwidth]{pareto.pdf}
+    \caption{Dragonfly设计空间的Pareto前沿（$N$ vs 面积，$B=800$Gbps，Valiant路由）。星标为Pareto前沿点，气泡大小表示总功耗。}
+    \label{fig:pareto}
+\end{figure}

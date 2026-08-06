@@ -1,0 +1,40 @@
+% Related Work
+\chapter{相关Work}\label{chap:related-work}
+
+现有相关work可以分为三类：晶圆级系统、DSE方法论、以及两者的交叉。
+
+\section{晶圆级系统}
+
+Tesla Dojo~\cite{tesla2022dojo}和Cerebras WSE系列~\cite{cerebras2022wse2}展示了晶圆级集成的工业可行性。
+在晶圆级交换机方向，Chen等人~\cite{chen2024waferscale}首次系统量化了晶圆级交换机的radix缩放潜力，
+指出晶圆级平台可提供32倍于传统芯片级交换机的端口密度。
+Feng和Ma~\cite{feng2024switchless}提出了"无交换机Dragonfly"架构，
+利用晶圆级高密度互联替代传统高radix物理交换机，将交换功能分布到计算裸片中。
+Wan等人~\cite{wan2024architectural}在2D Mesh上叠加Butterfly Fat-Tree逻辑拓扑，
+通过软件定义端口实现灵活的逻辑-物理映射。
+ISCA 2025的TickTock~\cite{yang2025pd}面向LLM训练做计算-centric的物理-逻辑协同设计。
+
+这些工作各自针对晶圆级集成的特定维度提供了深刻的见解，
+但均未提供跨性能-几何-功耗的统一初筛框架。
+架构师在使用这些工具时仍需要手动在不同分析之间传递数据并自行判断耦合效应。
+
+\section{DSE方法论}
+
+FPIA~\cite{jiao2024fpia}在可重用硅interposer上实现了chiplet级placement+routing的自动化，
+其布线grid模型是本文几何约束的参考来源。
+RapidChiplet和FireLink等工具面向小规模chiplet集成（2--8 die），
+未扩展至晶圆级拓扑空间搜索所需的规模。
+经典的架构DSE框架多采用模拟退火或遗传算法等元启发式方法，
+在约束数量大和单次评估成本高时效率急剧下降。
+
+本文的LP-based方法在数学性质上有根本不同：它不是启发式搜索，
+而是对每个设计点的可行性给出\textbf{全局最优}判断（在LP的数学意义上）。
+对偶变量提供了精确的灵敏度信息——这是启发式方法无法提供的。
+
+\section{DSE用于晶圆级系统}
+
+将通用DSE方法应用于晶圆级系统的尝试仍处于早期阶段。
+现有的chiplet DSE工具缺少性能和热维度，
+晶圆级交换机研究缺少系统化的设计空间扫描。
+本文的框架填补了这一交叉空白——
+它是首个将性能、几何、功耗在统一的数学语言下联立求解的晶圆级交换机DSE方法。

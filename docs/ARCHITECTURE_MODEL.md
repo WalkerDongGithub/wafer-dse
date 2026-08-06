@@ -232,5 +232,5 @@ frontier = [f for f in foms if f.on_frontier]
 | 物理模块角色 | 独立做布尔判断 | 向 LP 贡献约束矩阵 |
 | 约束耦合 | 串行 AND | 联立 LP |
 | 灵敏度 | 无 | dual values + binding constraints |
-| 求解路径 | 仅 det (Hungarian) | det + valiant LP |
+| 求解路径 | 仅 det (Hungarian) | det (Hungarian) + 松弛 LP (cvxpy, 用作淘汰筛) |
 | DSE 层次 | 三条并行路径 | 一条统一路径 |

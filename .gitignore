@@ -41,3 +41,7 @@ rust-solvers/target/
 # External dependencies (separate repos)
 MFIT/
 NormNet/
+
+# LaTeX build artifacts
+Tmp/
+docs/paper/Tmp/

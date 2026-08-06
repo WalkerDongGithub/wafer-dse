@@ -133,7 +133,7 @@ class UnifiedLp:
         return result
 
     # ------------------------------------------------------------------
-    # 路径 1: Hungarian (det 或 valiant 均分路径)
+    # 路径 1: Hungarian — det 路由下的精确最坏排列分析
     # ------------------------------------------------------------------
 
     def _solve_hungarian(self) -> LpResult:

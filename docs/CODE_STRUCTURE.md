@@ -35,7 +35,7 @@ DSE 的核心。将拓扑、bump 预算、热约束编码为**单一线性规划
 
 | 文件 | 职责 |
 |---|---|
-| `engine.py` | `UnifiedLp`: 逐步添加约束，一次 solve。det 路径走 Hungarian，valiant 路径走 cvxpy LP |
+| `engine.py` | `UnifiedLp`: 逐步添加约束，一次 solve。det 路径走 Hungarian（精确最坏排列），valiant 路径走 cvxpy 松弛 LP（乐观下界淘汰筛） |
 | `performance.py` | 链路权重矩阵 + per-link 最坏负载 (Hungarian) + 路径-链路 incidence (供 LP) |
 | `geometry.py` | 每 die 一个 bump 预算约束: Σ L_e·B/R_e ≤ N_signal |
 | `thermal.py` | 功率密度约束: Σ p_e·L_e ≤ A·q_max |

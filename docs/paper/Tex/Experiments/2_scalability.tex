@@ -1,0 +1,22 @@
+% 可解性
+\section{实验一：框架能跑多大？}\label{sec:scalability}
+
+\textbf{论证目标}：证明LP在DSE实用规模内高效可解。
+
+\textbf{实验设计}：
+在16个拓扑配置上（7个Dragonfly，$N=2$到$30$；4个Mesh；5个k-ary n-cube，$N=4$到$27$）
+测量变量数--求解时间关系。每个配置跑完整的Valiant LP + 物理约束（几何L1 + 功耗L1）。
+
+\textbf{预期发现}：
+\begin{itemize}
+    \item 所有$N \le 27$的设计点在20秒内求解完成
+    \item 变量数按$O(N^2 \cdot g)$增长，$N=30$是当前实用上限
+    \item 所有Dragonfly配置$t^* = 1.0000$——Valiant路由完美均衡，但这引出了下一个问题
+\end{itemize}
+
+\begin{figure}[!htbp]
+    \centering
+    \includegraphics[width=0.85\textwidth]{scalability.pdf}
+    \caption{Valiant LP的可扩展性。左：变量数随$N$增长（$O(N^2)$参考线）；右：求解时间随变量数增长。}
+    \label{fig:scalability}
+\end{figure}

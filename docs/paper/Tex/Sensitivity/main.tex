@@ -1,0 +1,51 @@
+% 灵敏度分析
+\chapter{灵敏度分析：从LP解中提取设计梯度}\label{chap:sensitivity}
+
+第~\ref{chap:overview}章建立了统一LP框架——给定一个技术选型，求解一个LP即可判断其物理可行性。
+但LP给出的远不止"feasible/infeasible"。
+本章展示如何从LP的最优解中提取\textbf{设计梯度}——每个约束的影子价格、物理带宽天花板、以及约束松弛的边际收益。
+
+\textit{（本章待详细展开。当前为骨架，后续将补充完整的对偶分析、多约束联合灵敏度和可视化方法。）}
+
+\section{对偶变量：每个约束的影子价格}
+
+LP求解器在返回最优解的同时，也返回每个约束的对偶变量。
+对偶值有明确的物理解释：$\lambda_i = \partial t^* / \partial b_i$——
+放宽约束$i$右手边一个单位，最优$t^*$的变化量。
+
+对三组约束：
+\begin{itemize}
+    \item \textbf{bump预算约束}的对偶值$\nu_v$：给裸片$v$多分配一个信号bump对$t^*$的边际改善
+    \item \textbf{热约束}的对偶值$\tau$：多1W散热预算对$t^*$的边际改善
+    \item \textbf{链路容量约束}的对偶值$\mu_e$：扩容链路$e$对$t^*$的边际收益
+\end{itemize}
+
+影子价格的比值$\nu_v / \tau$直接告诉架构师：在当前设计点，投资bump改进还是冷却升级更划算。
+当约束未绑定时对偶值为0——"现在不是瓶颈"同样是重要信息。
+
+\section{B$_{\max}$：物理带宽天花板}
+
+注意到$t^*$是归一化量，不随端口带宽$B$变化——$B$只出现在物理约束的系数中。
+因此一次LP求解得到$L_e^*$后，所有物理约束变为关于$B$的单变量线性不等式，可直接解出：
+
+\begin{equation}\label{eq:bmax}
+    B_{\max}^{\text{geom}} = \min_v \frac{N_v^{\text{sig}} \cdot R_e}{\sum_{e \in \delta(v)} L_e^*}, \qquad
+    B_{\max}^{\text{thermal}} = \frac{A_{\text{total}} \cdot q_{\max} \cdot R_e}{\sum_e L_e^* \cdot P_{\text{lane}}}
+\end{equation}
+
+$B_{\max} = \min(B_{\max}^{\text{geom}}, B_{\max}^{\text{thermal}})$是物理上可支撑的最大端口带宽。
+\textbf{不需要额外LP求解——$L_e^*$已有，代入即可。}
+
+\section{约束松弛扫描}
+
+除单点灵敏度外，可扫描约束RHS的连续变化，观察$t^*$的响应曲线：
+当约束不绑定时$\partial t^* / \partial b_i = 0$（改进无益），
+绑定时对偶值给出$t^*$对RHS的精确导数。
+
+\section{待发展方向}
+
+\begin{itemize}
+    \item \textbf{多约束联合灵敏度}：当多个约束同时绑定时，如何给出"先改哪个"的排序？
+    \item \textbf{可视化}：如何将影子价格比值转化为架构师能直观理解的图表？
+    \item \textbf{不确定性量化}：工艺波动下的鲁棒可行性判定。
+\end{itemize}
