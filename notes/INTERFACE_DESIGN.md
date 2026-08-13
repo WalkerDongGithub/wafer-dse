@@ -2,7 +2,7 @@
 
 > 状态：2026-08-13，基于当前工作区代码（V2 LP 引擎重构后）。
 > UML 用 Mermaid 类图，VSCode 预览 / GitHub 均可渲染。
-> 只记接口契约，不记实现与数学推导（数学见 `MATH_MODEL_COMPLETE_V3.md`）。
+> 只记接口契约，不记实现与数学推导（数学见 `MATH_MODEL_COMPLETE_V4.md`）。
 
 ## 1. 总体架构
 
@@ -756,7 +756,7 @@ classDiagram
 
 1. **`Model.build(ctx)` 签名**：ABC 单参，实际全部两参。要么 ABC 改成 `build(ctx, B)`，要么 Runner 改调用方式——先定，再改（论文一致原则）。
 2. **`GlobalPowerModel` 缺 `cache_key()`**：与其它模型混用时 Runner 对该次求解整体禁用缓存，且失败无声。
-3. **`WarpModel` 有意不导出**（2026-08-13 决定）：实现与 test0402 保留作技术记录，但已移出论文约束集（die-die 温差代理撑不起真实翘曲物理，ΔT_max 缺文献）。见 MATH_MODEL_COMPLETE_V3 §3.5 状态注。
+3. **`WarpModel` 有意不导出**（2026-08-13 决定）：实现与 test0402 保留作技术记录，但已移出论文约束集（die-die 温差代理撑不起真实翘曲物理，ΔT_max 缺文献）。见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注（V4 无此约束）。
 4. **骨架占位**：`TrafficFreeModel`（build 抛 NotImplementedError）、`DragonflyPlus`（核心方法全抛 NotImplementedError）——接口存在但不可用，调用方无法从签名区分。
 5. **`EnvelopeModel` 偏离预计算惯例**：paths/link_incidence 在 build() 内动态算，docstring 声明有意为之——接口文档保留原样，标记为唯一例外。
 6. **duals 提取三个坑**：①无目标（feasibility）求解 CLARABEL 可能不返回 duals——绑定诊断必须用 min ΣL 解（见 test08 §1e）；②`_cvx.py` 按 `enumerate(prob.constraints)` 索引对齐 `ctx.constraints[i].name`，依赖 cvxpy 不重排约束——当前实测保序，但这是脆弱假设；③feasible=False 时 duals 是 Farkas 证书，不是绑定约束；④min ΣL 解处只有活跃约束有 dual——"B 再涨谁先碰壁"要看账本 margin（rhs−lhs 的最小者），duals 回答的是"流量再大谁挡路"。

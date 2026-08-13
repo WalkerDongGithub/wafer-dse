@@ -25,7 +25,7 @@ from lp.models.phys import (
     DiePlacement, MfitStackConfig,
 )
 from lp.models.phys.therm._temp_limit import GlobalPowerModel
-# 注意：WarpModel 有意不导出——已移出论文约束集（见 MATH_MODEL_COMPLETE_V3 §3.5 状态注）
+# 注意：WarpModel 有意不导出——已移出论文约束集（见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注（V4 无此约束））
 from lp.models.phys.wiring import (
     WiringModel, RoutingModel,
     WiringGrid, RoutingGrid,

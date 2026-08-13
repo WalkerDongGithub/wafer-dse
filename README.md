@@ -85,14 +85,14 @@ print(f"B* = {r.B_star:.0f} Gbps")             # toy: 4453（手算锚点 4500�
 
 ## 约束集
 
-论文约束集（MATH_MODEL_COMPLETE_V3）：性能包络、μbump、C4、温度极限、布线。
-翘曲已移出（die 间温差代理撑不起真实物理，见 V3 §3.5 状态注；实现保留作技术记录）。
+论文约束集（MATH_MODEL_COMPLETE_V4）：性能包络、μbump、C4、温度极限、布线。
+翘曲已移出（die 间温差代理撑不起真实物理，见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注；实现保留作技术记录）。
 
 ## 文档
 
 | 文档 | 内容 |
 |------|------|
-| [MATH_MODEL_COMPLETE_V3.md](notes/MATH_MODEL_COMPLETE_V3.md) | 当前数理模型总纲 |
+| [MATH_MODEL_COMPLETE_V4.md](notes/MATH_MODEL_COMPLETE_V4.md) | 当前数理模型总纲（V4 为代码对齐目标） |
 | [INTERFACE_DESIGN.md](notes/INTERFACE_DESIGN.md) | 接口设计 + UML 类图 + 已知不一致 |
 | [plan_inter_group.md](notes/plan_inter_group.md) | 组内/组间双模型实验计划 |
 | [RENT_RULE_AND_IO_DENSITY.md](notes/literature/RENT_RULE_AND_IO_DENSITY.md) | Rent's rule / bump / RDL 文献卡 |
