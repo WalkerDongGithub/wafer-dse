@@ -5,7 +5,7 @@
 
 from __future__ import annotations
 
-from topology.base import Topology
+from topology import Topology
 
 
 class Torus(Topology):
@@ -16,7 +16,7 @@ class Torus(Topology):
 
     def __init__(self, size: int) -> None:
         self.size = size
-        self.x = size  # 兼容旧属性
+        self.x = size
         self.n = size * size
 
     # —— 坐标转换 ——

@@ -13,7 +13,7 @@ Dragonfly 是面向高性能互连的分层拓扑：
 
 from __future__ import annotations
 
-from topology.base import Topology, _unique_paths
+from topology import Topology, _unique_paths
 
 
 class Dragonfly(Topology):
@@ -40,7 +40,7 @@ class Dragonfly(Topology):
         self.a = a
         self.p = p
         self.h = h
-        self.g = a * h + 1  # 总 group 数
+        self.g = a * h + 1
         self.total_terminal_num = self.g * a * p
         self.total_node_num = self.g * a * (p + 1)
 

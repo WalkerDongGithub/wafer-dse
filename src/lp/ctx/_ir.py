@@ -1,7 +1,6 @@
 """底层 IR —— Engine 的编译目标，不被模型直接使用。"""
 
 from dataclasses import dataclass
-from enum import Enum, auto
 
 
 @dataclass
@@ -25,17 +24,13 @@ class Term:
 
 @dataclass(frozen=True)
 class LinearC:
-    """一条线性约束: Σ terms {<=, >=, ==} rhs。"""
+    """一条线性约束: Σ terms {<=, >=, ==} rhs。
+
+    sense 是字符串 "<=" / ">=" / "=="。
+    meaning 是不等式取等号时的物理含义（等式可为空）——绑定诊断的语义来源。
+    """
     name: str
     terms: tuple[Term, ...]
     sense: str
     rhs: float = 0.0
-
-
-class Sense(Enum):
-    LE = auto()   # ≤
-    GE = auto()   # ≥
-    EQ = auto()   # ==
-
-    def __str__(self) -> str:
-        return {Sense.LE: "<=", Sense.GE: ">=", Sense.EQ: "=="}[self]
+    meaning: str = ""

@@ -51,8 +51,21 @@ class BmaxQuery(Query):
               lo: float = 100.0,
               hi: float = 10000.0,
               step: float = 50.0,
+              verbose: bool = False,
+              log_file: str | None = None,
               ) -> BmaxResult:
-        """二分 partition，返回 B*。ctx_factory(B) → (Ctx, list[Model])。"""
+        """二分 partition，返回 B*。ctx_factory(B) → (Ctx, list[Model])。
+
+        默认静默：二分迭代细节只在 verbose=True 时打控制台，
+        log_file 给定则追加写入（每次 solve 追加，不清空）。
+        """
+
+        def _log(msg: str) -> None:
+            if log_file:
+                with open(log_file, "a") as f:
+                    f.write(msg + "\n")
+            if verbose:
+                print(msg)
 
         def _ok(b: float) -> bool:
             out = ctx_factory(b)
@@ -62,28 +75,27 @@ class BmaxQuery(Query):
             )
 
         if not _ok(lo):
-            print(f"[bmax] lo={lo:.0f} infeasible — abort")
+            _log(f"[bmax] lo={lo:.0f} infeasible — abort")
             return BmaxResult(B_star=0.0, lo=lo, hi=hi,
                               notes=["lo 不可行"])
 
         while _ok(hi):
-            print(f"[bmax] hi={hi:.0f} feasible → expand")
+            _log(f"[bmax] hi={hi:.0f} feasible → expand")
             lo, hi = hi, hi * 2
 
-        print(f"[bmax] search [{lo:.0f}, {hi:.0f}] step={step:.0f}")
+        _log(f"[bmax] search [{lo:.0f}, {hi:.0f}] step={step:.0f}")
         iters = 0
         while hi - lo > step:
             mid = (lo + hi) / 2.0
             iters += 1
             ok = _ok(mid)
             status = "✓" if ok else "✗"
-            print(f"[bmax]   iter{iters}: lo={lo:.0f} hi={hi:.0f} mid={mid:.0f} {status}")
+            _log(f"[bmax]   iter{iters}: lo={lo:.0f} hi={hi:.0f} mid={mid:.0f} {status}")
             if ok:
                 lo = mid
             else:
                 hi = mid
 
-        print(f"[bmax] B* = {lo:.0f} Gbps ({iters} LP solves)")
         return BmaxResult(B_star=lo, lo=lo, hi=hi, iterations=iters)
 
 

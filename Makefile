@@ -1,72 +1,42 @@
-.PHONY: test test-quiet test-one test-hungarian test-derangement test-topology \
-        test-solver test-model run clean lint \
-        rust-build rust-build-debug rust-test rust-clean test-rust-backend test-all ci
+# wafer-dse 实验运行入口 (V2 LP 引擎)
+#
+#   make help            打印本帮助（默认目标）
+#   make test            全部测试 (tests/ 下 11 个 .md，叙述 + 可运行代码块)
+#   make matrix          实验矩阵 → exp/output/matrix_<组>.csv  [PARAMS=...]
+#   make ledger          约束账本  [TOPOS="Mesh(2) Dragonfly(2,1,1)"]
+#   make smoke           快速冒烟 (~半分钟)
+#   make run             CLI：读 YAML 配置求解  [PROBLEM=config/problems/xxx.yaml]
+#   make clean           清 __pycache__
 
-PYTHON = python
-PYTHONPATH = PYTHONPATH=src
+.PHONY: help test matrix ledger smoke run clean
 
-CARGO = cargo
+PYTHON = python3
+PARAMS ?= ucie-32g      # toy | ucie-16g | ucie-24g | ucie-32g
+TOPOS ?=
+PROBLEM ?= config/problems/toy_fullmesh2.yaml
 
 # ------------------------------------------------------------------
 # 测试
 # ------------------------------------------------------------------
 
 test:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v
-
-test-quiet:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -q
-
-test-one:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/$(TEST) -v
-
-test-hungarian:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_hungarian.py tests/test_derangement.py -v
-
-test-topology:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_topology_*.py -v
-
-test-solver:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_solver_*.py -v
-
-test-model:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_model.py -v
-
-test-slow:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v --durations=10
+	cd tests && PYTHONPATH=../src $(PYTHON) run_all.py
 
 # ------------------------------------------------------------------
-# 运行
+# 实验
 # ------------------------------------------------------------------
+
+matrix:
+	PYTHONPATH=src $(PYTHON) exp/run_matrix.py $(PARAMS)
+
+ledger:
+	PYTHONPATH=src $(PYTHON) exp/run_ledger.py $(TOPOS)
+
+smoke:
+	cd exp && PYTHONPATH=../src $(PYTHON) smoke_bmax.py
 
 run:
-	$(PYTHONPATH) $(PYTHON) -m wafer_dse --config configs/example_user_request.yaml
-
-# ------------------------------------------------------------------
-# Rust solver backend
-# ------------------------------------------------------------------
-
-rust-build:
-	cd rust-solvers && $(CARGO) build --release
-
-rust-build-debug:
-	cd rust-solvers && $(CARGO) build
-
-rust-test:
-	cd rust-solvers && $(CARGO) test
-
-rust-clean:
-	cd rust-solvers && $(CARGO) clean
-
-test-rust-backend:
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_rust_backend.py -v
-
-test-all: rust-build test-rust-backend
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v
-
-ci: rust-build rust-test
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/ -v
-	$(PYTHONPATH) $(PYTHON) -m pytest tests/test_rust_backend.py -v
+	PYTHONPATH=src $(PYTHON) src/main.py $(PROBLEM)
 
 # ------------------------------------------------------------------
 # 元操作
@@ -74,10 +44,7 @@ ci: rust-build rust-test
 
 clean:
 	find . -name '__pycache__' -type d -exec rm -rf {} + 2>/dev/null || true
-	find . -name '.DS_Store' -exec rm -f {} + 2>/dev/null || true
 	find . -name '*.pyc' -exec rm -f {} + 2>/dev/null || true
-	rm -rf .pytest_cache
-	rm -rf outputs/
 
-lint:
-	$(PYTHONPATH) $(PYTHON) -m flake8 src/wafer_dse/ --max-line-length=120 || true
+help:
+	@grep -E "^#   " $(MAKEFILE_LIST) | sed 's/^#   //'

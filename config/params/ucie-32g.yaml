@@ -1,0 +1,10 @@
+name: ucie-32g
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 5.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: UCIe-32G-Advanced, lane_rate_gbps: 32.0, power_per_lane_w: 0.016}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 1.5, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 80.0, interposer_h_mm: 80.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

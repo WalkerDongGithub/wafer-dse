@@ -4,10 +4,10 @@
 直接用结构条件（如 Clos m≥n）判定无阻塞。
 """
 
-from lp.models.perf import PerformanceModel
+from lp.models.perf import PerfModel
 
 
-class TrafficFreeModel(PerformanceModel):
+class TrafficFreeModel(PerfModel):
     """流量无关的性能模型基类（占位）。"""
 
     def build(self, ctx, B: float) -> None:

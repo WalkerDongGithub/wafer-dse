@@ -1,0 +1,10 @@
+name: toy
+die: {width_mm: 10.0, height_mm: 10.0, static_power_w: 10.0, vdd_v: 1.0}
+bump: {name: toy-bump-100μm, pitch_um: 100.0, current_per_bump_ma: 100.0, utilization: 1.0}
+link: {name: toy-link-10G, lane_rate_gbps: 10.0, power_per_lane_w: 0.1}
+global_link: {name: toy-serdes-100G, lane_rate_gbps: 100.0, power_per_lane_w: 1.0}
+c4: {name: toy-c4-200μm, pitch_um: 200.0, current_per_bump_ma: 200.0, utilization: 1.0}
+thermal: {r_vert_k_per_w: 1.0, k_interposer: 100.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 400.0}
+pkg: {interposer_w_mm: 100.0, interposer_h_mm: 100.0,
+      metal_layers: 4, lanes_per_mm: 100.0, c4_pitch_mm: 1.0}

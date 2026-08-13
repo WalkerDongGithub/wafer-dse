@@ -1,8 +1,0 @@
-[workspace]
-members = [
-    "wafer-core",
-    "wafer-hungarian",
-    "wafer-derangement",
-    "wafer-solve",
-]
-resolver = "2"

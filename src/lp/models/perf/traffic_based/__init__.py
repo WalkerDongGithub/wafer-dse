@@ -4,14 +4,26 @@ EnvelopeModel — 核心：R 个排列 → 包络 L。
 traffic/      — 流量模式选择器（排列代表元）。
 """
 
-from lp.models.perf.traffic_based._envelope import EnvelopeModel
+from lp.models.perf.traffic_based._envelope import (
+    EnvelopeModel, SelectedEnvelopeModel,
+)
 from lp.models.perf.traffic_based.traffic import (
-    PermutationRep,
-    SConjugacyReps, AllDerangements, ManualSelector,
+    Pattern, Selector,
+    PermutationRep, PermutationPattern,
+    TrafficMatrixPattern, TrafficMatrix,
+    ConjugacySelector, SConjugacyReps,
+    DerangementSelector, AllDerangements,
+    ManualSelector,
+    select_representatives,
 )
 
 __all__ = [
-    "EnvelopeModel",
-    "PermutationRep",
-    "SConjugacyReps", "AllDerangements", "ManualSelector",
+    "EnvelopeModel", "SelectedEnvelopeModel",
+    "Pattern", "Selector",
+    "PermutationRep", "PermutationPattern",
+    "TrafficMatrixPattern", "TrafficMatrix",
+    "ConjugacySelector", "SConjugacyReps",
+    "DerangementSelector", "AllDerangements",
+    "ManualSelector",
+    "select_representatives",
 ]

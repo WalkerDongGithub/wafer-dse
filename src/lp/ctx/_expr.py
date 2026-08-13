@@ -86,24 +86,8 @@ class LinExpr:
         return self.__mul__(1.0 / k)
 
     # -- 约束注册 ---------------------------------------------------------
-    # 这部分解决：expr <= rhs 如何变成 ctx 中的一条约束。
-    # LinExpr 通过 _ctx 透视回 Ctx.constrain()——这是"自动注册"的核心。
-
-    def __le__(self, rhs: float) -> None:
-        """expr <= rhs → 自动注册 ≤ 约束。"""
-        if self._ctx is None:
-            raise TypeError("LinExpr 无 ctx——用 ctx.constrain(name, expr, sense, rhs)")
-        from lp.ctx._ir import Sense
-        self._ctx.constrain(
-            f"auto_{self._ctx._auto_name()}", self, Sense.LE, rhs)
-
-    def __ge__(self, rhs: float) -> None:
-        """expr >= rhs → 自动注册 ≥ 约束。"""
-        if self._ctx is None:
-            raise TypeError("LinExpr 无 ctx——用 ctx.constrain(name, expr, sense, rhs)")
-        from lp.ctx._ir import Sense
-        self._ctx.constrain(
-            f"auto_{self._ctx._auto_name()}", self, Sense.GE, rhs)
+    # 注意：__le__/__ge__ 操作符重载已删除——匿名约束（auto_N）让瓶颈诊断
+    # 失去语义。写约束的唯一方式是显式 ctx.constrain(name, expr, sense, rhs)。
 
     # -- 索引 / 迭代 ------------------------------------------------------
     # L[3] → 该分量的 LinExpr。L[[0,1,2]] → 多分量的 LinExpr。
@@ -132,6 +116,25 @@ class LinExpr:
             for n, c in by_idx[i]:
                 e._terms[(n, i)] = c
             yield e
+
+    # -- 数值求值 -----------------------------------------------------------
+
+    def evaluate(self, var_values: dict[str, list[float]]) -> float:
+        """给定变量值, 计算表达式的数值: Σ coeff_i × value_i.
+
+        Args:
+          var_values: {"L": [1.0, 2.0, ...], "f_rep0_p0_k0": [0.5], ...}
+
+        Returns:
+          表达式的数值 (float).
+        """
+        total = 0.0
+        for (name, idx), coeff in self._terms.items():
+            vals = var_values.get(name)
+            if vals is None:
+                raise KeyError(f"变量 '{name}' 不在给定的值字典中")
+            total += coeff * vals[idx]
+        return total
 
     # -- 内部（读代码时可跳过）----------------------------------------------
 

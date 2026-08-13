@@ -4,7 +4,7 @@
 p(10)=42, p(16)=231——n ≤ 16 时可接受。
 """
 
-from lp.models.perf.traffic_based.traffic import PermutationRep
+from lp.models.perf.traffic_based.traffic import Pattern, Selector, PermutationRep
 
 
 def _partitions(n: int) -> list[tuple[int, ...]]:
@@ -44,18 +44,20 @@ def _is_derangement(sigma: tuple[int, ...]) -> bool:
     return all(sigma[i] != i for i in range(len(sigma)))
 
 
-class SConjugacyReps:
-    """S_n 共轭类代表元。
+class ConjugacySelector(Selector):
+    """S_n 共轭类代表元 —— 枚举整数分拆对应的排列。
 
-    当 Aut(G) = S_n 时精确；当 Aut(G) < S_n 时是保守近似（代表元数 ≥ 真实轨道数）。
-    待 dse/orbit.py 实现真正的 Aut(G) 轨道计算后替换。
+    当 Aut(G) = S_n 时精确；当 Aut(G) < S_n 时是保守近似
+    （代表元数 ≥ 真实轨道数）。
+
+    读论文: CONJUGACY_AND_PARTITIONS.md — 为什么 S_n 的共轭类 = 整数分拆。
     """
 
     def __init__(self, derangements_only: bool = True):
         self._derangements = derangements_only
 
-    def select(self, n_terminals: int) -> list[PermutationRep]:
-        reps: list[PermutationRep] = []
+    def select(self, n_terminals: int) -> list[Pattern]:
+        reps: list[Pattern] = []
         for lam in _partitions(n_terminals):
             sigma = _canonical_permutation(lam)
             if self._derangements and not _is_derangement(sigma):

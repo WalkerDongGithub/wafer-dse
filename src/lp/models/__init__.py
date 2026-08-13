@@ -1,27 +1,54 @@
 """
 约束模型——不同物理层面的约束族。
 
-  topo/  拓扑结构分析（perf/phys/therm 的共同数据源）
   perf/  性能约束族
   phys/  物理约束族
+
+拓扑结构数据由 topology.Topology 的属性直接提供，不再需要独立的分析层。
 """
 
-from lp.models.topo import TopoStructure, analyze as analyze_topo
-from lp.models.perf import PerformanceModel, EnvelopeModel
+from lp.models.perf import PerfModel, PerformanceModel, EnvelopeModel, SelectedEnvelopeModel
 from lp.models.perf.traffic_based import (
-    PermutationRep, SConjugacyReps, AllDerangements, ManualSelector,
+    Pattern, Selector,
+    PermutationRep, PermutationPattern,
+    TrafficMatrixPattern, TrafficMatrix,
+    ConjugacySelector, SConjugacyReps,
+    DerangementSelector, AllDerangements,
+    ManualSelector,
+    select_representatives,
 )
 from lp.models.phys import (
-    BumpModel,
-    ThermalModel, ThermalNetwork, NetworkModel, build_thermal_network,
+    PhysModel,
+    BumpModel, C4Model,
+    ThermalModel, ThermalNetwork, SteadyStateModel,
+    ThermalNetworkBuilder, AnalyticNetworkBuilder,
+    DiePlacement, MfitStackConfig,
 )
-from lp.models.phys.therm._temp_limit import PowerDensityModel
+from lp.models.phys.therm._temp_limit import GlobalPowerModel
+# 注意：WarpModel 有意不导出——已移出论文约束集（见 MATH_MODEL_COMPLETE_V3 §3.5 状态注）
+from lp.models.phys.wiring import (
+    WiringModel, RoutingModel,
+    WiringGrid, RoutingGrid,
+    build_wiring_grid, build_routing_grid, populate_paths,
+    make_wiring_model, make_routing_model,
+)
 
 __all__ = [
-    "TopoStructure", "analyze_topo",
-    "PerformanceModel", "EnvelopeModel",
-    "PermutationRep", "SConjugacyReps", "AllDerangements", "ManualSelector",
-    "BumpModel",
-    "ThermalModel", "ThermalNetwork", "NetworkModel", "build_thermal_network",
-    "PowerDensityModel",
+    "PerfModel", "PerformanceModel", "EnvelopeModel", "SelectedEnvelopeModel",
+    "PhysModel",
+    "Pattern", "Selector",
+    "PermutationRep", "PermutationPattern",
+    "TrafficMatrixPattern", "TrafficMatrix",
+    "ConjugacySelector", "SConjugacyReps",
+    "DerangementSelector", "AllDerangements",
+    "ManualSelector", "select_representatives",
+    "BumpModel", "C4Model",
+    "ThermalModel", "ThermalNetwork", "SteadyStateModel",
+    "ThermalNetworkBuilder", "AnalyticNetworkBuilder",
+    "DiePlacement", "MfitStackConfig",
+    "GlobalPowerModel",
+    "WiringModel", "RoutingModel",
+    "WiringGrid", "RoutingGrid",
+    "build_wiring_grid", "build_routing_grid", "populate_paths",
+    "make_wiring_model", "make_routing_model",
 ]

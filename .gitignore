@@ -45,3 +45,6 @@ NormNet/
 # LaTeX build artifacts
 Tmp/
 docs/paper/Tmp/
+
+# 实验输出
+exp/output/

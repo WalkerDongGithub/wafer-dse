@@ -1,0 +1,5 @@
+params: config/params/toy.yaml
+topo: {type: fullmesh, args: [2, 1]}
+scenario: perf+bump+therm
+selector: conjugacy
+query: {type: bmax, lo: 100, hi: 20000, step: 100}

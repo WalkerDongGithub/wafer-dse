@@ -1,0 +1,5 @@
+params: config/params/ucie-32g.yaml
+topo: {type: mesh, args: [3]}
+scenario: perf+bump+therm
+selector: conjugacy
+query: {type: bmax, lo: 100, hi: 100000, step: 200}

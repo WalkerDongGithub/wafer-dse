@@ -17,7 +17,7 @@
 
 from __future__ import annotations
 
-from topology.base import Topology
+from topology import Topology
 
 
 class KaryNCube(Topology):

@@ -10,8 +10,7 @@ Ctx —— LP 问题构造上下文。
     ctx = Ctx()
     L = ctx.vector("L", 8)          # 声明向量 → Var 句柄
     x = ctx.scalar("x")             # 声明标量 → LinExpr
-    (3 * L[0] + L[1]) <= 100        # 数学式（自动注册）
-    ctx.constrain("flow", sum(f)-d, Sense.EQ, 0)  # 等式
+    ctx.constrain("flow", sum(f)-d, "==", 0)   # 约束必须显式写，sense 是字符串
 
 读者指南：
   - 想理解"怎么写约束" → 读本文件
@@ -23,7 +22,7 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from lp.ctx._ir import VarSpec, Term, LinearC, Sense
+from lp.ctx._ir import VarSpec, Term, LinearC
 from lp.ctx._expr import LinExpr, Var
 from lp.ctx._model import Model
 
@@ -32,7 +31,7 @@ from lp.ctx._model import Model
 # 这部分是什么？
 #   Ctx 是唯一你需要关心的类——所有约束操作通过它完成。
 #   变量声明（vector/scalar/var）、约束注册（constrain）、变量引用（ctx["L"]）。
-#   其余 _auto_name / _to_terms 是内部方法，读代码时可以跳过。
+#   其余 _to_terms 是内部方法，读代码时可以跳过。
 # ========================================================================
 
 @dataclass
@@ -41,7 +40,6 @@ class Ctx:
 
     _vars: dict[str, VarSpec] = field(default_factory=dict)
     _cons: list[LinearC] = field(default_factory=list)
-    _auto_cnt: int = 0
 
     # -- 变量声明 ---------------------------------------------------------
     # 这部分解决：如何声明一个 LP 变量，拿到它的句柄以便后续引用。
@@ -71,14 +69,32 @@ class Ctx:
 
     # -- 约束 -------------------------------------------------------------
     # 这部分解决：如何添加一条线性约束。
-    # 两种方式：(a) 数学式 expr <= rhs（推荐），(b) 显式 constrain()（等式专用）。
-    # const ineq 会走到 LinExpr.__le__()，内部调 constrain()——最终都是这里。
+    # 写约束的唯一方式：ctx.constrain(name, lhs, sense, rhs, meaning)。
+    #   lhs / rhs 都接受 LinExpr——rhs 是表达式时内部移到左边（rhs=0）。
+    #   sense 是字符串 "<=" / ">=" / "=="，非法值当场 ValueError。
+    #   meaning：不等式取等号时的物理含义——不等式必须给，缺了 ValueError；
+    #            等式不强制。绑定诊断按 name + meaning 读出瓶颈语义。
 
-    def constrain(self, name: str, expr: LinExpr | list[Term],
-                  sense: Sense, rhs: float = 0.0) -> None:
+    _SENSES = {"<=", ">=", "=="}
+
+    def constrain(self, name: str,
+                  lhs: LinExpr | list[Term],
+                  sense: str,
+                  rhs: LinExpr | float = 0.0,
+                  meaning: str = "",
+                  ) -> None:
         """添加显式约束。name 用于诊断（出现在 binding_constraints 中）。"""
-        s = {Sense.LE: "<=", Sense.GE: ">=", Sense.EQ: "=="}[sense]
-        self._cons.append(LinearC(name, tuple(self._to_terms(expr)), s, rhs))
+        if sense not in self._SENSES:
+            raise ValueError(
+                f"sense 必须是 {sorted(self._SENSES)} 之一，收到 '{sense}'")
+        if sense in ("<=", ">=") and not meaning:
+            raise ValueError(
+                f"不等式约束 '{name}' 缺少 meaning——说明取等号时的物理含义")
+        if isinstance(rhs, LinExpr):
+            lhs = lhs - rhs
+            rhs = 0.0
+        self._cons.append(LinearC(name, tuple(self._to_terms(lhs)), sense,
+                                  float(rhs), meaning))
 
     @staticmethod
     def _to_terms(expr: LinExpr | list[Term]) -> list[Term]:
@@ -100,12 +116,6 @@ class Ctx:
         return list(self._cons)
 
     # -- 内部 -------------------------------------------------------------
-
-    def _auto_name(self) -> int:
-        """数学式 <= 自动注册时生成名称 auto_0, auto_1, ..."""
-        n = self._auto_cnt
-        self._auto_cnt += 1
-        return n
 
     def __repr__(self) -> str:
         return f"Ctx(vars={len(self._vars)}, constraints={len(self._cons)})"
