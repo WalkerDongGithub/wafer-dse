@@ -23,7 +23,7 @@ from pathlib import Path
 
 import yaml
 
-from lp import Ctx, CvxSolver, Runner
+from lp import Ctx, CvxSolver, Runner, ResultStore
 from lp.builder import build_scenario
 from lp.queries import BmaxQuery, FeasibilityQuery
 from layout import place
@@ -106,7 +106,8 @@ def solve_problem(spec: ProblemSpec) -> dict:
     layout = place(topo, spec.params)
     models, meta = build_scenario(topo, spec.scenario, spec.params, layout)
 
-    runner = Runner(CvxSolver(), log=False)
+    store_dir = Path(__file__).resolve().parent.parent / "exp" / "output" / ".cache"
+    runner = Runner(CvxSolver(), store=ResultStore(store_dir), log=False)
     if spec.query_type == "bmax":
         r = BmaxQuery().solve(runner, lambda b: (Ctx(), models),
                               lo=spec.query_lo, hi=spec.query_hi,

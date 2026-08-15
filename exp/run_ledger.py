@@ -26,7 +26,7 @@ if str(_project_root / "src") not in sys.path:
 if str(_project_root / "exp") not in sys.path:
     sys.path.insert(0, str(_project_root / "exp"))
 
-from lp import Ctx, CvxSolver, Runner
+from lp import Ctx, CvxSolver, Runner, ResultStore
 from lp import (
     EnvelopeModel, select_representatives,
     BumpModel, SteadyStateModel,
@@ -50,7 +50,8 @@ T_MAX_K = 358.15
 
 def main():
     names = sys.argv[1:] or list(TOPOS.keys())
-    runner = Runner(CvxSolver(), log=False)
+    runner = Runner(CvxSolver(),
+                    store=ResultStore(Path("exp/output/.cache")), log=False)
     bmax = BmaxQuery()
 
     for name in names:

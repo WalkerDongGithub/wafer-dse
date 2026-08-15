@@ -24,7 +24,7 @@ _project_root = Path(__file__).resolve().parent.parent
 if str(_project_root / "src") not in sys.path:
     sys.path.insert(0, str(_project_root / "src"))
 
-from lp import Ctx, CvxSolver, Runner
+from lp import Ctx, CvxSolver, Runner, ResultStore
 from lp import (
     EnvelopeModel, select_representatives,
     BumpModel, SteadyStateModel,
@@ -82,7 +82,8 @@ def main():
     log_path = out_dir / f"bmax_{params_name}.log"
     log_path.write_text("")  # 每次运行清空
 
-    runner = Runner(CvxSolver(), log=False)
+    runner = Runner(CvxSolver(), store=ResultStore(out_dir / ".cache"),
+                     log=False)
     bmax = BmaxQuery()
     rows = []
 
