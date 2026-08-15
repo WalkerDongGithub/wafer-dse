@@ -70,7 +70,7 @@
 - **来源**：ISCA 2025
 - **核心思想**："TickTock" co-design：物理拓扑 ↔ 逻辑拓扑 ↔ 并行策略 迭代优化
 - **关键参数**：50mm 最大 D2D 链路（超出则 BER 108×, 延迟 210ns），50,000 mm² 可用 wafer 面积
-- **关键结果**：2.39× LLM 训练吞吐提升 vs SOTA mesh-based NoW
+- **关键结果**：2.39× LLM 训练吞吐提升 vs Tesla Dojo（2026-08-15 修正：旧版误记为 vs SOTA mesh-based NoW，实际基线是 Dojo，见 literature/architecture_cases/）
 - **与我们的关系**：**目前最全面的 NoW DSE 框架。** 但他们的 focus 是 LLM 训练（compute-centric），我们是网络交换机（communication-centric）。他们的约束模型（面积、功率、D2D 距离）与我们有重叠。这是最接近的 **DSE 同行工作**，但目标不同
 
 ---
