@@ -122,8 +122,8 @@ def solve_problem(spec: ProblemSpec) -> dict:
     # B* 处诊断（min ΣL 解，绑定约束可靠）
     ledger = {}
     if B_star > 0:
-        ctx, sol, L = solve_diagnostic(models, B_star)
-        ledger = full_ledger(models, L, B_star)
+        diag = solve_diagnostic(models, B_star)
+        ledger = full_ledger(models, diag.L_star, B_star)
 
     return {
         "B_star": B_star, "iterations": iters,

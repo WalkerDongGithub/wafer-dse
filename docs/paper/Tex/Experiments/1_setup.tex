@@ -1,8 +1,46 @@
 % 实验设置
 \section{实验设置}\label{sec:setup}
 
-硬件：Intel Core i7-13700K, 32GB RAM, Linux。
-软件：Python 3.13, cvxpy 1.3 + CLARABEL求解器。
-默认物理参数：12×12mm裸片，50W TDP功耗，45$\mu$m pitch $\mu$bump（75mA/bump），0.8V供电，
-70\%面积利用率，液冷（2.0 W/mm$^2$），UCIe-32G lane速率，5 mW/lane功耗。
-除特别说明，物理参数取最坏情况（TDP + 稳态），不引入瞬态或降额假设。
+\textbf{软件栈与求解器。}
+框架以 Python 实现，LP 建模用 CVXPY~\cite{diamond2016cvxpy}，求解用 CLARABEL 内点法求解器~\cite{goulart2024clarabel}。
+二分搜索（第~\ref{sec:ov-bisection}节）每轮固定 $B$ 求解式~\eqref{eq:unified-lp}，
+系数与右手边均为常数，问题保持线性；每轮查询按参数缓存复用。
+
+\textbf{参数组合。}
+实验围绕两组物理参数组合展开，参数维度与取值以实现代码为准（此处只列维度与来源，不重复罗列数字）：
+\begin{itemize}
+    \item \textbf{TOY（手算友好组）}：全部数字自拟、手算友好——die 面积、静态功耗、供电电压、
+    bump 密度与单 bump 载流、垂直热阻、热预算均取便于手算的整数组合，
+    使模型输出能与手算逐位一致核对。这一组服务于\textbf{模型正确性}的核对，而非性能结论。
+    \item \textbf{UCIE（规范组）}：基于 UCIe 规范~\cite{ucie2.0-2024} 的 Advanced Package 档位，
+    覆盖 16/24/32\,GT/s 三档 lane 速率与典型每 lane 功耗；组间统一采用 OIF-CEI-112G-VSR~\cite{oif-cei-5.1}。
+    这一组服务于真实场景下的 $B^*$、Pareto 前沿与保真度分析。
+\end{itemize}
+
+两组共享的\textbf{参数维度}如下，具体取值（die 尺寸/静态功耗/供电电压、$\mu$bump pitch/单 bump 载流/阵列利用率、
+lane 速率/每 lane 功耗、垂直热阻 $R_{\text{th}}$/环境温度/结温上限、interposer 尺寸/金属层数/走线密度、C4 pitch）均来自上述来源：
+
+\begin{center}
+\begin{tabular}{l|l|l}
+\hline
+\textbf{参数维度} & \textbf{TOY 取值依据} & \textbf{UCIE 取值依据} \\
+\hline
+die 尺寸 / 静态功耗 / 供电电压 & 手算整数组合 & UCIe Advanced Package 档位 \\
+$\mu$bump pitch / 载流 / 利用率 & 手算整数组合 & UCIe 45\,$\mu$m 档位 \\
+lane 速率 / 每 lane 功耗 & 手算整数组合 & UCIe 16/24/32\,GT/s 档位 \\
+组间链路 & 手算整数组合 & OIF-CEI-112G-VSR \\
+热：$R_{\text{th}}$ / 环境温度 / 结温上限 & 手算整数热预算 & MFIT 标定档位~\cite{mfit2025} \\
+interposer 尺寸 / 金属层 / 走线密度 & 手算整数组合 & 典型 RDL 参数 \\
+\hline
+\end{tabular}
+\end{center}
+
+\textbf{最坏情况设定。}
+除特别说明外，物理参数取最坏情况：芯片峰值功耗按额定值、热按稳态热网络（式~\eqref{eq:thermal}）求解，
+不引入瞬态或降额假设——这保证温度是上界、可行性判定是保守的。
+die 缩放模型取 $\alpha_d=\beta_P=0$ 的退化特例（第~\ref{sec:ov-diescale}节），
+即 die 面积与峰值功耗不随 $B$ 变；非零情形的灵敏度是第~\ref{chap:sensitivity}章物理参数梯度的对象。
+
+\textbf{运行参数。}
+拓扑枚举范围、$\mathcal{R}$ 的排列代表元数量、二分收敛步长 $\varepsilon$ 等运行参数随实验确定，
+不在此预设数值（\todo{运行参数}）。

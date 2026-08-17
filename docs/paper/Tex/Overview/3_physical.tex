@@ -1,0 +1,89 @@
+% 物理约束按位置
+\section{物理约束按位置}\label{sec:ov-physical}
+
+变量空间与第~\ref{sec:ov-performance}节共享：
+$\mathbf{f},\mathbf{L},\boldsymbol{\ell},\mathbf{P},\mathbf{N}^{\text{sig}},\mathbf{N}^{\text{pwr}},\mathbf{T},\mathbf{x}$ 及标量 $B$。
+其中 $\boldsymbol{\ell}$ 是唯一的物理桥梁：负载包络经每 lane 带宽换算为物理 lane 数，
+lane 数再经每 lane 动态功耗进入功耗：
+
+\begin{equation}\label{eq:lane-def}
+    \boldsymbol{\ell} \;=\; B\,\mathbf{S}_{\text{bw}}^{-1}\,\mathbf{L}
+    \qquad\Longrightarrow\qquad
+    \mathbf{P} \;=\; \mathbf{P}_{peak}(B) + \mathbf{M}\,\mathbf{S}_{\text{dyn}}\,\boldsymbol{\ell}
+\end{equation}
+
+其中 $\mathbf{M}$ 为 die-链路 incidence（$M_{v,e}=1 \iff$ 链路 $e$ 的源或宿是 die $v$），
+$\mathbf{S}_{\text{bw}},\mathbf{S}_{\text{dyn}}$ 为每 lane 带宽/动态功耗对角阵。
+下面按物理位置给七组约束（对应第~\ref{sec:bg-constraints}节的物理描述）。
+
+\subsection{die 内（on-die）：零物理代价}\label{sec:ov-ondie}
+
+\begin{equation}\label{eq:ondie}
+    S_{\text{bw},e} = \infty,\qquad S_{\text{dyn},e} = 0 \qquad \forall e \in \mathcal{E}_{\text{on-die}}
+\end{equation}
+
+于是 $\ell_e \to 0$，不产生 bump、热、布线需求。
+
+\subsection{die $\leftrightarrow$ interposer 界面：$\mu$bump 的零和竞争}\label{sec:ov-ubump}
+
+每个 die 通过面阵列 $\mu$bump 与 interposer 连接，总焊球数 $N_v^{\text{total}} = \eta\,A_{die}(B)/p^2$。
+信号 lane 与电源 lane 共享同一批焊球：
+
+\begin{equation}\label{eq:ubump}
+    \mathbf{N}^{\text{sig}} = \mathbf{M}\,\boldsymbol{\ell},\qquad
+    \mathbf{N}^{\text{pwr}} = \mathbf{S}_{\text{in}}^{-1}\,\mathbf{P},\qquad
+    \mathbf{N}^{\text{sig}} + \mathbf{N}^{\text{pwr}} \;\le\; \mathbf{N}^{\text{total}}(B)
+\end{equation}
+
+其中 $\mathbf{S}_{\text{in}}$ 为功率-bump 换算对角阵：$[\mathbf{S}_{\text{in}}]_{vv} = V_{dd}\,I_{bump}$。
+物理含义：die 功耗越高，电源 bump 需求越大，留给信号的 bump 越少——性能追求反噬实现可行性。
+
+\subsection{interposer 布线层}\label{sec:ov-wiring}
+
+布线分配变量 $\mathbf{x}$（链路 $\times$ 候选路径）满足：
+
+\begin{equation}\label{eq:wiring}
+    \mathbf{A}\,\mathbf{x} = \boldsymbol{\ell},\qquad
+    \mathbf{R}\,\mathbf{x} \;\le\; \mathbf{C}
+\end{equation}
+
+其中 $\mathbf{A}\mathbf{x}=\boldsymbol{\ell}$ 表达走线需求等于 lane 数；
+$\mathbf{R}\mathbf{x}\le\mathbf{C}$ 把边容量、点容量、C4 pad 容量统一为一条容量不等式
+（$\mathbf{R}=[\mathbf{R}_{\text{edge}};\ \mathbf{R}_{\text{vert}};\ \mathbf{R}_{\text{pad}}]$）。
+
+\subsection{interposer 热系统}\label{sec:ov-thermal}
+
+稳态热网络把功耗线性映射为温度：
+
+\begin{equation}\label{eq:thermal}
+    \mathbf{G}\,\mathbf{T} = \mathbf{P} + \mathbf{b},\qquad
+    \mathbf{T} \;\le\; T_{\max}\,\mathbf{1}
+\end{equation}
+
+其中 $\mathbf{G}$ 为热导矩阵（对角占优 M-矩阵，$\mathbf{G}^{-1}\ge 0$）。
+本文只讨论芯片峰值功耗 $P_{peak}$ 与 PHY 额定动态功耗两个稳态分量；
+翘曲、PDN 瞬态、瞬态热、良率、时钟不在本方法讨论范围。
+
+\subsection{interposer $\leftrightarrow$ substrate 界面：C4}\label{sec:ov-c4}
+
+\begin{equation}\label{eq:c4}
+    \mathbf{1}^T \boldsymbol{\ell}_{\text{SerDes}} \;\le\; N_{C4}^{\text{SerDes}}
+\end{equation}
+
+\subsection{组间（SerDes 全局链路）}\label{sec:ov-intergroup}
+
+组间链路没有独立的约束行——其代价经三个位置体现：
+C4（式~\eqref{eq:c4}）、动态功耗（进入式~\eqref{eq:ubump} 与式~\eqref{eq:thermal}）、
+pad 容量（进入式~\eqref{eq:wiring}）；拓扑侧需求在性能约束中统一处理。
+
+\subsection{die 缩放模型}\label{sec:ov-diescale}
+
+\begin{equation}\label{eq:die-scale}
+    d(B) = d_0 + \alpha_d\,B,\qquad
+    A_{die}(B) = d(B)^2,\qquad
+    P_{peak}(B) = P_0 + \beta_P\,B
+\end{equation}
+
+它使 $\mathbf{N}^{\text{total}}(B)$ 与 $\mathbf{P}_{peak}(B)$ 成为 $B$ 的函数，
+从而 bump 预算与热预算随带宽增长而收缩。
+（本文数值实验取 $\alpha_d=\beta_P=0$ 的特例；非零时 $\alpha_d,\beta_P$ 正是第~\ref{chap:sensitivity}章物理参数梯度的对象。）

@@ -72,7 +72,8 @@ def build_scenario(topo, scenario: str, P: ExpParams, layout: Layout):
     budgets = [DieBumpBudget(f"d{i}", P.bump.spec(),
                              P.die.width_mm, P.die.height_mm,
                              P.die.static_power_w, P.die.vdd_v,
-                             P.bump.utilization)
+                             P.bump.utilization,
+                             P.die.d0_mm, P.die.alpha_d, P.die.beta_p)
                for i in range(n_dies)]
     bump = BumpModel(budgets, d2l, topo.n_links, lane_rate, ppl)
 
@@ -86,5 +87,5 @@ def build_scenario(topo, scenario: str, P: ExpParams, layout: Layout):
     P0 = np.full(n_dies, P.die.static_power_w)
     net = AnalyticNetworkBuilder(stack=stack, T_max=P.thermal.t_max_k).build(
         layout.placements, d2l, topo.n_links, lane_rate, ppl, P0)
-    therm = SteadyStateModel(net)
+    therm = SteadyStateModel(net, beta_p=P.die.beta_p)
     return [perf, bump, therm], {"n_dies": n_dies}

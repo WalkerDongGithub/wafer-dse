@@ -81,17 +81,17 @@ for _name, _params in [
     )),
     ("UCIe-16G-Advanced", dict(
         lane_rate_gbps=16.0, power_per_lane_w=0.005,
-        loss_db_per_mm=0.05, max_reach_mm=2.0, ber=1e-27,
+        loss_db_per_mm=0.05, max_reach_mm=2.0, ber=1e-15,
         lane_density_per_mm=10.0,
     )),
     ("UCIe-24G-Advanced", dict(
         lane_rate_gbps=24.0, power_per_lane_w=0.009,
-        loss_db_per_mm=0.07, max_reach_mm=1.5, ber=1e-27,
+        loss_db_per_mm=0.07, max_reach_mm=1.5, ber=1e-15,
         lane_density_per_mm=10.0,
     )),
     ("UCIe-32G-Advanced", dict(
         lane_rate_gbps=32.0, power_per_lane_w=0.016,
-        loss_db_per_mm=0.10, max_reach_mm=1.0, ber=1e-27,
+        loss_db_per_mm=0.10, max_reach_mm=1.0, ber=1e-15,
         lane_density_per_mm=10.0,
     )),
     # === Standard Package (2D): 110μm bump pitch ===
@@ -102,7 +102,7 @@ for _name, _params in [
     )),
     ("UCIe-16G-Standard", dict(
         lane_rate_gbps=16.0, power_per_lane_w=0.016,
-        loss_db_per_mm=0.40, max_reach_mm=25.0, ber=1e-27,
+        loss_db_per_mm=0.40, max_reach_mm=25.0, ber=1e-15,
         lane_density_per_mm=4.0,
     )),
 ]:

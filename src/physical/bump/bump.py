@@ -16,6 +16,7 @@ C4 bump (interposer → substrate, 面阵列):
 
 from __future__ import annotations
 
+import math
 from dataclasses import dataclass
 
 
@@ -75,6 +76,9 @@ class DieBumpBudget:
     """一个 die 的 μbump 信号池 — 面积阵列模型。
 
     总 bump 数由 die 面积决定。信号和电源竞争同一总预算。
+
+    §2.8 die 缩放: d(B)=d0+α_d·B, A_die(B)=d(B)², P_peak(B)=P0+β_P·B。
+    默认 α_d=β_P=0、d0=None（退化特例）。
     """
 
     die_label: str
@@ -84,10 +88,30 @@ class DieBumpBudget:
     power_w: float = 50.0          # die 功耗 [W] — 来自 DieEstimator
     vdd_v: float = 0.8             # 供电电压 [V]
     utilization: float = 0.7       # 面积利用率 η（含 test/DFT）
+    d0_mm: float | None = None     # 缩放基线边长 [mm]；None → width_mm
+    alpha_d: float = 0.0           # 边长随 B 增长率 [mm/Gbps]
+    beta_p: float = 0.0            # 峰值功耗随 B 增长率 [W/Gbps]
 
     @property
     def area_mm2(self) -> float:
         return self.width_mm * self.height_mm
+
+    @property
+    def base_side_mm(self) -> float:
+        return self.width_mm if self.d0_mm is None else self.d0_mm
+
+    def side_mm(self, B: float) -> float:
+        """d(B) = d0 + α_d·B."""
+        return self.base_side_mm + self.alpha_d * B
+
+    def area_mm2_at(self, B: float) -> float:
+        """A_die(B) = d(B)^2."""
+        d = self.side_mm(B)
+        return d * d
+
+    def peak_power_w(self, B: float) -> float:
+        """P_peak(B) = P0 + β_P·B."""
+        return self.power_w + self.beta_p * B
 
     @property
     def total_bumps(self) -> int:
@@ -98,12 +122,25 @@ class DieBumpBudget:
     def power_bumps(self) -> int:
         """电源 bump 数 = ceil(总电流 / 单 bump 载流)。"""
         amps = self.power_w / self.vdd_v
-        return max(1, int(__import__('math').ceil(amps * 1000 / self.spec.current_per_bump_ma)))
+        return max(1, int(math.ceil(amps * 1000 / self.spec.current_per_bump_ma)))
 
     @property
     def available(self) -> int:
         """信号 bump 可用量 = 总量 - 电源。"""
         return max(0, self.total_bumps - self.power_bumps)
+
+    def total_bumps_at(self, B: float) -> int:
+        """N_total(B) = η · A_die(B) / pitch²。"""
+        return int(self.area_mm2_at(B) * self.spec.density_per_mm2 * self.utilization)
+
+    def power_bumps_at(self, B: float) -> int:
+        """N_pwr(B) = ceil(P_peak(B) / (V_dd · I_bump))。"""
+        amps = self.peak_power_w(B) / self.vdd_v
+        return max(1, int(math.ceil(amps * 1000 / self.spec.current_per_bump_ma)))
+
+    def available_at(self, B: float) -> int:
+        """N_sig(B) = N_total(B) - N_pwr(B)。"""
+        return max(0, self.total_bumps_at(B) - self.power_bumps_at(B))
 
     @property
     def budget_frac(self) -> float:

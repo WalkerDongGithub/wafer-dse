@@ -1,7 +1,9 @@
 """
-BumpModel —— bump 预算分配（MATH_MODEL_COMPLETE_V2 §3.2）。
+BumpModel —— μbump 预算分配（MATH_MODEL_COMPLETE_V4 §2.3 + §2.8）。
 
 支持 per-link 异构互联标准（UCIe / SerDes 不同 lane_rate 和 power_per_lane）。
+rhs = N_total(B) - N_pwr(B)，其中 N_total(B)=η·A_die(B)/p²、
+N_pwr(B)=ceil(P_peak(B)/(V_dd·I_bump))，随 B 在 build() 里计算。
 """
 
 from __future__ import annotations
@@ -38,7 +40,7 @@ class BumpModel(PhysModel):
 
         self._incid: list[list[int]] = []
         self._coeffs: list[dict[int, float]] = []   # per-die, {link_idx: linear_coeff}
-        self._rhs: list[float] = []
+        self._budgets: list[DieBumpBudget] = []     # per-die, 供 build 按 B 计算 rhs
         self._names: list[str] = []                 # per-约束的 die 标签（约束名用）
 
         for v, budget in enumerate(die_budgets):
@@ -51,11 +53,9 @@ class BumpModel(PhysModel):
                 continue
 
             mA = budget.spec.current_per_bump_ma * 1e-3
-            # available = total - power_bumps(P0), 已扣除静态电源 bump.
-            # 动态部分通过 coeff 中的 ppl/(V·I) 项线性加入.
-            # 注意: 不再加回 pwr_P0 —— 那会 double-count 静态电源 bump.
-            rhs_val = float(budget.available)
-
+            # 动态功耗经 coeff 的 ppl/(V·I) 项折进 lhs；
+            # 静态峰值功耗 P_peak(B)=P0+β_P·B 与总面积 A_die(B) 留在 rhs，
+            # 由 build() 按 B 调 budget.available_at(B) 计算。
             coeffs = {}
             for e in links:
                 lr_e = float(lr[e])
@@ -66,7 +66,7 @@ class BumpModel(PhysModel):
             if coeffs:
                 self._incid.append(list(coeffs.keys()))
                 self._coeffs.append(coeffs)
-                self._rhs.append(rhs_val)
+                self._budgets.append(budget)
                 self._names.append(budget.die_label)
 
     def build(self, ctx: Ctx, B: float) -> None:
@@ -75,11 +75,19 @@ class BumpModel(PhysModel):
             expr = sum(float(self._coeffs[idx][e]) * L[e]
                        for e in self._incid[idx])
             ctx.constrain(
-                f"bump_{self._names[idx]}", B * expr, "<=", self._rhs[idx],
+                f"bump_{self._names[idx]}", B * expr, "<=",
+                float(self._budgets[idx].available_at(B)),
                 meaning=f"die {self._names[idx]} 的信号+功率 bump 用尽预算",
             )
 
     def cache_key(self) -> tuple:
+        # rhs 是 B 的函数，结构由缩放参数决定；具体 B 值不在 cache_key 里
+        # （B 已在 Runner 的缓存 key 中单独存在）。
+        budget_keys = tuple(
+            (b.base_side_mm, b.alpha_d, b.beta_p, b.power_w,
+             b.vdd_v, b.utilization,
+             b.spec.pitch_um, b.spec.current_per_bump_ma)
+            for b in self._budgets)
         return ("bump_v2",
                 tuple(tuple(sorted(c.items())) for c in self._coeffs),
-                tuple(self._rhs))
+                budget_keys)

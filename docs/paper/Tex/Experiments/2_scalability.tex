@@ -1,22 +1,32 @@
-% 可解性
-\section{实验一：框架能跑多大？}\label{sec:scalability}
+% 可扩展性
+\section{可扩展性：可行性 LP 的规模与求解时间}\label{sec:scalability}
 
-\textbf{论证目标}：证明LP在DSE实用规模内高效可解。
+\textbf{论证目标。}
+证明框架在 DSE 实用规模内高效可解：可行性 LP（式~\eqref{eq:unified-lp}）的规模随端口数 $N$ 增长受控，
+求解时间允许批量 DSE 扫描。这是所有后续实验的前提——若单点求解不可承受，$B^*$ 分析与 Pareto 扫描都无从谈起。
 
-\textbf{实验设计}：
-在16个拓扑配置上（7个Dragonfly，$N=2$到$30$；4个Mesh；5个k-ary n-cube，$N=4$到$27$）
-测量变量数--求解时间关系。每个配置跑完整的Valiant LP + 物理约束（几何L1 + 功耗L1）。
+\textbf{实验设计。}
+在拓扑家族上枚举一组设计点（Dragonfly 的 $(a,p,h)$ 网格、Mesh、Torus、$k$-ary $n$-cube），
+对每个设计点构造并求解完整可行性 LP：性能侧用式~\eqref{eq:valiant-lp} 的 $\min\sum_e L_e$ 压出包络下界，
+物理侧含 $\mu$bump 与热 L1。记录三个量：
+\begin{enumerate}
+    \item 变量数与约束数（LP 规模）随 $N$ 的增长；
+    \item 单次 LP 求解时间随规模的增长；
+    \item 二分搜索的 LP 调用次数——理论上界 $\log_2(B_{\max}/\varepsilon)$ 与实际次数（第~\ref{sec:ov-bisection}节）。
+\end{enumerate}
 
-\textbf{预期发现}：
+\textbf{规模构成分析。}
+LP 变量以分流变量 $\{\mathbf{f}^{(r)}\}_{r\in\mathcal{R}}$ 为主，规模由排列代表元数 $|\mathcal{R}|$
+（附录 A）与端口数 $N$ 共同决定：流量变量数正比于 $|\mathcal{R}|$ 与每模式端口对数的乘积，
+物理侧（$\boldsymbol{\ell},\mathbf{P},\mathbf{N}^{\text{sig}},\mathbf{N}^{\text{pwr}},\mathbf{T},\mathbf{x}$）
+随链路数与 die 数线性增长。$|\mathcal{R}|$ 由群论归约从 $N!$ 压到分拆数规模（$p(16)=231$，见附录 A），
+是 LP 可解的关键。
+
+\textbf{预期方向。}
 \begin{itemize}
-    \item 所有$N \le 27$的设计点在20秒内求解完成
-    \item 变量数按$O(N^2 \cdot g)$增长，$N=30$是当前实用上限
-    \item 所有Dragonfly配置$t^* = 1.0000$——Valiant路由完美均衡，但这引出了下一个问题
+    \item 单点求解时间应落在 \todo{求解时间量级}，远快于 cycle-accurate 仿真的分钟级开销~\cite{dally2004principles}；
+    \item 变量数增长应落在 \todo{规模复杂度} 区间内，$N$ 增至实用规模时不出现超线性爆炸；
+    \item 二分搜索的 LP 调用次数应接近 $\log_2(B_{\max}/\varepsilon)$，总开销为单点开销的 \todo{倍数} 倍；
+    \item 若某拓扑族的 $|\mathcal{R}|$ 或路径集过大导致 LP 不可解，则回退到附录 A 的更强归约，
+    或改用第~\ref{sec:bg-nonblocking}节的 RNB 下界作为可行域下界。
 \end{itemize}
-
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.85\textwidth]{scalability.pdf}
-    \caption{Valiant LP的可扩展性。左：变量数随$N$增长（$O(N^2)$参考线）；右：求解时间随变量数增长。}
-    \label{fig:scalability}
-\end{figure}

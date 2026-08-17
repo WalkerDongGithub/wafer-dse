@@ -20,15 +20,40 @@ from physical.bump.bump import BumpSpec, UBUMP_45UM, C4_130UM
 
 @dataclass(frozen=True)
 class DieParams:
-    """die 规格."""
+    """die 规格.
+
+    §2.8 die 缩放: d(B)=d0+α_d·B, A_die(B)=d(B)², P_peak(B)=P0+β_P·B。
+    默认 α_d=β_P=0、d0=None（退化特例，面积/峰值功耗不随 B 变）。
+    """
+
     width_mm: float
     height_mm: float
     static_power_w: float
     vdd_v: float
+    d0_mm: float | None = None      # 缩放基线边长 [mm]；None → width_mm（正方形退化）
+    alpha_d: float = 0.0            # 边长随 B 增长率 [mm/Gbps]
+    beta_p: float = 0.0             # 峰值功耗随 B 增长率 [W/Gbps]
 
     @property
     def area_mm2(self) -> float:
         return self.width_mm * self.height_mm
+
+    @property
+    def base_side_mm(self) -> float:
+        return self.width_mm if self.d0_mm is None else self.d0_mm
+
+    def side_mm(self, B: float) -> float:
+        """d(B) = d0 + α_d·B."""
+        return self.base_side_mm + self.alpha_d * B
+
+    def area_mm2_at(self, B: float) -> float:
+        """A_die(B) = d(B)^2."""
+        d = self.side_mm(B)
+        return d * d
+
+    def peak_power_w(self, B: float) -> float:
+        """P_peak(B) = P0 + β_P·B."""
+        return self.static_power_w + self.beta_p * B
 
 
 @dataclass(frozen=True)
@@ -187,3 +212,29 @@ UCIE_32G = _ucie("ucie-32g", 32.0, 0.016)
 
 UCIE_SERIES = [UCIE_16G, UCIE_24G, UCIE_32G]
 ALL_PARAMS = [TOY] + UCIE_SERIES
+
+
+# ══════════════════════════════════════════════════════════════════
+# YAML 参数数据集加载 —— config/params/*.yaml 是"实验设置"的载体。
+# 每个 YAML 一个物理参数组合（技术谱系: 2D/2.5D/3D/晶圆级/光互连）。
+# 单一来源是 YAML 文件本身，这里只负责读入，不重复造数字。
+# ══════════════════════════════════════════════════════════════════
+
+def load_yaml_params(directory: str) -> dict[str, "ExpParams"]:
+    """从目录加载全部 params/*.yaml → {name: ExpParams}.
+
+    供实验矩阵 / 批量 DSE 程序化枚举用。from_dict 把 dict 填进结构体，
+    字段缺失由 KeyError 自然报错（参数校验不静默兜底）。
+    """
+    import glob
+    import os
+
+    import yaml
+
+    out: dict[str, ExpParams] = {}
+    for path in sorted(glob.glob(os.path.join(directory, "*.yaml"))):
+        with open(path, encoding="utf-8") as f:
+            d = yaml.safe_load(f)
+        p = ExpParams.from_dict(d)
+        out[p.name] = p
+    return out

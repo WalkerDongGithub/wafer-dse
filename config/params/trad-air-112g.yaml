@@ -1,0 +1,22 @@
+# trad-air-112g — 传统 2D 封装，风冷，112G SerDes
+# 代表场景: 标准数据中心交换机 ASIC (NVIDIA Spectrum-4 风格)
+# 物理来源: OIF-CEI-112G-VSR, JEDEC JC-70, 传统有机基板工艺
+#
+# 设计意图: 作为"传统基线"——所有先进封装技术的参照点。
+# 大尺寸单片 die + 有机基板 + 风冷 + SerDes 串行互连，
+# 代表 2020-2023 主流数据中心交换芯片的物理形态。
+#
+# 功率密度: 50W / 400mm² = 0.125 W/mm² (风冷极限 0.5 W/mm² 内)
+# 能效: 4.0 pJ/bit (SerDes 串行化的代价)
+# 最大互连距离: 150mm (VSR)
+
+name: trad-air-112g
+die: {width_mm: 20.0, height_mm: 20.0, static_power_w: 50.0, vdd_v: 0.8}
+bump: {name: C4-200μm, pitch_um: 200.0, current_per_bump_ma: 200.0, utilization: 0.6}
+link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-200μm, pitch_um: 200.0, current_per_bump_ma: 200.0, utilization: 0.6}
+thermal: {r_vert_k_per_w: 0.4, k_interposer: 0.4, t_interposer_mm: 0.8,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 50.0, interposer_h_mm: 50.0,
+      metal_layers: 6, lanes_per_mm: 100.0, c4_pitch_mm: 1.0}

@@ -1,54 +1,29 @@
-% B_max 分析
-\section{实验二：真正的物理瓶颈是什么？}\label{sec:bmax}
+% B* 分析
+\section{$B^*$ 分析：二分搜索与事后闭式瓶颈识别}\label{sec:bmax}
 
-\textbf{论证目标}：展示框架的区分力——即使拓扑性能相同（$t^* = 1.0$），物理天花板在不同设计点上有数量级的差异。
-
-\textbf{论证逻辑}：
-如果只问"800 Gbps下是否feasible"，所有Dragonfly配置返回相同的答案。
-但这是初筛工具的失败——它应该能区分设计点的优劣。
-因此我们换一个问法：\textbf{不是"在800G下是否可行"，而是"最多能撑到多高带宽才被物理约束杀死"。}
-
-\textbf{实验设计}：
-对9个拓扑求解Valiant LP，取最优$\mathbf{L}^*$，代入Eq.~\ref{eq:bmax}计算$B_{\max}^{\text{geom}}$和$B_{\max}^{\text{thermal}}$。
-绘制$B_{\max}$--$N$曲线，标注先绑定约束。
-
-\textbf{预期发现}：
-\begin{enumerate}
-    \item \textbf{Bump预算始终先触顶}。$B_{\max}^{\text{geom}} < B_{\max}^{\text{thermal}}$在所有9个拓扑上成立，
-    散热余量2--7倍。这意味着信号bump先用完——优先投资bump pitch缩减而非更激进的冷却。
-    \item \textbf{$B_{\max} \propto 1/N$}。从$N=2$的391K Gbps到$N=24$的67K Gbps。
-    可外推：$N=96$时$B_{\max} \sim 17$K Gbps。
-    \item \textbf{在$N \le 30$和800 Gbps目标下，物理约束有80倍以上余量}。
-    架构师可以安全地先专注于拓扑优化，物理验证后置。
-\end{enumerate}
-
-\textbf{这个实验的核心价值}：它展示了统一LP框架的区分力——不是"这个设计可不可行"，而是"这个设计的极限在哪里"。
+\textbf{论证目标。}
+展示框架的区分力：对不同设计点，$B^*$ 与绑定约束给出明确的瓶颈定位——
+不是「这个设计可不可行」，而是「这个设计的极限在哪、先撞哪堵墙」。
 这一信息直接指导技术路线规划。
 
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.85\textwidth]{bmax.pdf}
-    \caption{$B_{\max}$随$N$的变化。实线为bump预算上限$B_{\max}^{\text{geom}}$，虚线为散热上限$B_{\max}^{\text{thermal}}$。阴影区域为散热余量。}
-    \label{fig:bmax}
-\end{figure}
+\textbf{论证逻辑。}
+若只问「目标带宽下是否可行」，多个设计点可能返回同一答案，初筛失去区分力。
+因此换一个问法：\textbf{不是「在目标带宽下是否可行」，而是「最多能撑到多高带宽才被物理约束杀死」}。
+二分搜索求 $B^*$ 后，再取最后一次可行解 $\mathbf{L}^*$，
+用事后闭式 $\lambda_j = 1/(A_j\cdot\mathbf{L}^*)$（式~\eqref{eq:sens-lambda}）识别先绑定约束。
 
-\begin{table}[!htbp]
-    \centering
-    \caption{B$_{\max}$分析——9个拓扑的物理带宽天花板}
-    \label{tab:bmax}
-    \footnotesize
-    \begin{tabular}{lrrrl}
-        \hline
-        拓扑 & $N$ & $B_{\max}^{\text{geom}}$ (Gbps) & $B_{\max}^{\text{thermal}}$ (Gbps) & 先绑定约束 \\
-        \hline
-        DF(1,1,1) & 2  & 391,544 & 1,830,400 & geometry \\
-        DF(2,1,1) & 6  & 161,453 & 468,523  & geometry \\
-        DF(2,2,1) & 12 & 112,766 & 306,923  & geometry \\
-        DF(2,3,1) & 18 & 87,718  & 229,895  & geometry \\
-        DF(3,2,1) & 24 & 66,779  & 133,916  & geometry \\
-        DF(2,4,1) & 24 & 71,389  & 183,405  & geometry \\
-        Mesh(4)    & 16 & 66,925  & 469,295  & geometry \\
-        Torus(4)   & 16 & 97,886  & 686,400  & geometry \\
-        \hline
-    \end{tabular}
-\end{table}
+\textbf{实验设计。}
+对一组拓扑分别二分搜索 $B^*$（式~\eqref{eq:unified-lp} + 第~\ref{sec:ov-bisection}节），
+并把 $B^*$ 分解为单约束天花板：$B^*_{\text{bump}}$（仅 $\mu$bump 约束，式~\eqref{eq:ubump}）与
+$B^*_{\text{thermal}}$（仅热约束，式~\eqref{eq:thermal}），
+比较二者的绑定顺序与松弛余量，再算归一化影子价格比 $\nu_{\text{bump}}/\nu_{\text{thermal}}$（第~\ref{sec:sens-norm}节）。
+
+\textbf{预期方向。}
+\begin{itemize}
+    \item 先绑定约束的归属（$\mu$bump 与热谁先触顶）\todo{待真实数据}；
+    其相对顺序是技术路线规划的直接输入——若 $\mu$bump 先触顶，优先投资 bump pitch 缩减；若热先触顶，优先投资冷却；
+    \item $B^*$ 随 $N$ 的缩放方向：端口数增多 $\to$ 包络 $\mathbf{L}$ 增大 $\to$ 物理需求上升 $\to$ $B^*$ 预期下降，
+    具体缩放关系 \todo{待真实数据}；
+    \item 归一化影子价格比 $\nu_{\text{bump}}/\nu_{\text{thermal}}$ \todo{待真实数据}，
+    与绑定顺序互相印证，共同回答「投 bump 还是投冷却」。
+\end{itemize}

@@ -1,0 +1,25 @@
+# 3d-tsv-9um — 3D 堆叠, 9μm hybrid bonding, 浸没式冷却
+# 代表场景: 主流 3D 芯片堆叠 (Intel Foveros / TSMC SoIC)
+# 物理来源: Intel Nature Electronics 2024, UCIe 2.0 §2.3 (UCIe-3D)
+#           IMEC IRDS 2024 Packaging Roadmap
+#
+# 设计意图: 3D 堆叠技术的入门档——
+# 能效 0.04 pJ/bit (比 UCIe 2.5D 低 8×), 但 lane_rate 仅 4G。
+# 垂直互连密度极高 (100 lane/mm), 无水平走线开销。
+# 热阻 R_vert=0.8 (3D 堆叠增加热阻, 但浸没冷却补偿)。
+# 适合逻辑-存储 3D 集成 (如 AMD 3D V-Cache)。
+#
+# 功率密度: 15W / 64mm² = 0.234 W/mm² (需浸没冷却)
+# 能效: 0.04 pJ/bit (3D 垂直互连极低功耗)
+# 互连距离: ~0.1mm (垂直, die 厚度量级)
+
+name: 3d-tsv-9um
+die: {width_mm: 8.0, height_mm: 8.0, static_power_w: 15.0, vdd_v: 0.7}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: TSV-3D-9μm, lane_rate_gbps: 4.0, power_per_lane_w: 0.00016}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.8, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 30.0, interposer_h_mm: 30.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 2.0}

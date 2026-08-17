@@ -1,0 +1,23 @@
+# 3d-tsv-5um — 3D 堆叠, 5μm hybrid bonding, 浸没式冷却
+# 代表场景: 先进 3D 集成 (TSMC SoIC 5μm, Intel Foveros Direct)
+# 物理来源: TSMC 3DFabric Roadmap 2024, IMEC IRDS 2024
+#
+# 设计意图: 3D 堆叠技术进阶档——
+# 能效 0.025 pJ/bit (比 9μm 再低 37%), 密度 180 lane/mm (提升 80%)。
+# 更小 die 面积 (6×6mm) 适配更细粒度的功能分解。
+# 适合 AI 推理芯片的 3D 分解 (计算+存储+I/O 分别一个 die)。
+#
+# 功率密度: 10W / 36mm² = 0.278 W/mm² (浸没冷却边界)
+# 能效: 0.025 pJ/bit (5μm hybrid bond 极低电容)
+# 互连密度: 180 lane/mm (1/5μm × 0.9 利用率)
+
+name: 3d-tsv-5um
+die: {width_mm: 6.0, height_mm: 6.0, static_power_w: 10.0, vdd_v: 0.7}
+bump: {name: μbump-25μm, pitch_um: 25.0, current_per_bump_ma: 40.0, utilization: 0.9}
+link: {name: TSV-3D-5μm, lane_rate_gbps: 4.0, power_per_lane_w: 0.0001}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.6, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 25.0, interposer_h_mm: 25.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 1.5}

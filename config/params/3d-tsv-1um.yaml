@@ -1,0 +1,24 @@
+# 3d-tsv-1um — 3D 堆叠, 1μm hybrid bonding, 微流控冷却
+# 代表场景: 前沿 3D 集成研究 (IMEC 1μm hybrid bond roadmap)
+# 物理来源: IMEC IRDS 2024 (1μm pitch hybrid bonding), Nature 2023
+#
+# 设计意图: 3D 堆叠技术极限档——
+# 能效 0.01 pJ/bit (所有互连技术物理极限), 密度 900 lane/mm。
+# 1μm pitch 接近器件互连密度, 3D 集成密度优势最大化。
+# 热密度极高需微流控 (R_vert=0.4), T_max 降至 75°C (3D 可靠性约束)。
+# 适合未来晶圆级 3D 集成研究 (2026+ 前沿探索)。
+#
+# 功率密度: 5W / 16mm² = 0.313 W/mm² (必须微流控)
+# 能效: 0.01 pJ/bit (1μm hybrid bond 理论极限)
+# 互连密度: 900 lane/mm (1/1μm × 0.9 利用率)
+
+name: 3d-tsv-1um
+die: {width_mm: 4.0, height_mm: 4.0, static_power_w: 5.0, vdd_v: 0.65}
+bump: {name: μbump-25μm, pitch_um: 25.0, current_per_bump_ma: 40.0, utilization: 0.95}
+link: {name: TSV-3D-1μm, lane_rate_gbps: 4.0, power_per_lane_w: 0.00004}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.4, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 348.15}
+pkg: {interposer_w_mm: 20.0, interposer_h_mm: 20.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 1.0}

@@ -1,0 +1,22 @@
+# trad-air-ucie-std — UCIe Standard Package (2D)，风冷
+# 代表场景: 成本敏感型 chiplet 互连 (UCIe 1.1 Standard Package)
+# 物理来源: UCIe 1.1 Spec Table 1-1 (Standard Package, 110μm bump pitch)
+#
+# 设计意图: 展示 UCIe 在 2D 有机基板上的表现——
+# 能效 1.0 pJ/bit (远优于 SerDes 的 4.0)，但 max_reach 仅 25mm。
+# 与 2.5D Advanced 对比可看出: 同标准下封装工艺对带宽的约束。
+#
+# 功率密度: 30W / 225mm² = 0.133 W/mm² (风冷可行)
+# 能效: 1.0 pJ/bit (UCIe Standard，4× 优于 SerDes)
+# 最大互连距离: 25mm (标准有机基板走线)
+
+name: trad-air-ucie-std
+die: {width_mm: 15.0, height_mm: 15.0, static_power_w: 30.0, vdd_v: 0.8}
+bump: {name: μbump-110μm, pitch_um: 110.0, current_per_bump_ma: 150.0, utilization: 0.7}
+link: {name: UCIe-16G-Standard, lane_rate_gbps: 16.0, power_per_lane_w: 0.016}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.65}
+thermal: {r_vert_k_per_w: 0.5, k_interposer: 0.4, t_interposer_mm: 0.8,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 40.0, interposer_h_mm: 40.0,
+      metal_layers: 4, lanes_per_mm: 200.0, c4_pitch_mm: 0.8}

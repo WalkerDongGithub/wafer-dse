@@ -1,18 +1,24 @@
 % 框架总览
-\chapter{统一DSE框架：从物理约束到线性规划}\label{chap:overview}
+\chapter{统一 DSE 框架：从物理约束到线性规划}\label{chap:overview}
 
-第~\ref{chap:background}章展示了晶圆级交换机面临的多类物理约束及其紧耦合特征。
-本章介绍本文的核心方法论：如何将这些看似无关的约束统一到一个数学框架中。
+第~\ref{chap:background}章展示了晶圆级交换机的三层物理架构、按位置的七组约束与无阻塞潜能语义。
+本章给出本文的核心方法论：如何把这些约束统一到一个线性规划中，
+并在给定技术选型下求最大端口无阻塞带宽 $B^*$。
 
-我们不从结论开始。我们从一个具体的架构问题出发——
-给定一个技术选型（拓扑、裸片、封装、冷却），如何判断它是否物理可行？——
-然后逐一考察三类约束在这个问题中扮演的角色。
-读者将看到，每一类约束从最粗糙的估计到最精细的建模，
-最终都收敛到同一个数学形式：关于链路负载向量$\mathbf{L}$的线性不等式。
-三类约束分析完成后，我们展示它们的统一结构——以及这一统一性赋予的"梯度配置"能力。
+先把结论讲清。本文把 $B^*$ 刻画为期待与约束的函数：
+$B^* = f(\text{期待},\ \text{约束})$（式~\eqref{eq:intro-bstar}）。
+``期待''是性能侧的无阻塞目标；``约束''是物理侧的资源上限。
+我们在给定期待与约束下``尽我们所能''求最大的端口无阻塞带宽。
+由此，灵敏度是同一句话的另一面：期待降低或约束放宽，$B^*$ 都提高；
+这两个旋钮的定量响应是第~\ref{chap:sensitivity}章的主题。
+
+本章按以下顺序展开：先给两层 DSE 架构（外层选型、内层判定）；
+再定义性能约束（排列模式 + 负载包络 + 无阻塞潜能）；
+然后按物理位置逐一给出七组约束；
+最后组装成``固定 $B$ 的可行性 LP''，用二分搜索求 $B^*$，并以 $B^*$ 的语义收尾。
 
 \input{Tex/Overview/1_two_layer}
 \input{Tex/Overview/2_performance}
-\input{Tex/Overview/3_geometry}
-\input{Tex/Overview/4_power}
-\input{Tex/Overview/5_unified}
+\input{Tex/Overview/3_physical}
+\input{Tex/Overview/4_unified}
+\input{Tex/Overview/5_semantics}

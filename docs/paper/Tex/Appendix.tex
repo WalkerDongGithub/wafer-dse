@@ -1,46 +1,238 @@
-\chapter{中国科学院大学学位论文撰写要求}
+% 附录：群论归约（术，供参考）与热约束线性化
 
-学位论文是研究生科研工作成果的集中体现，是评判学位申请者学术水平、授予其学位的主要依据，是科研领域重要的文献资料。根据《科学技术报告、学位论文和学术论文的编写格式》（GB/T 7713-1987）、《学位论文编写规则》（GB/T 7713.1-2006）和《文后参考文献著录规则》（GB7714—87）等国家有关标准，结合中国科学院大学（以下简称“国科大”）的实际情况，特制订本规定。
+% ============================================================
+% 附录 A：群论归约
+% ============================================================
+\chapter{群论归约：最坏排列模式的代表元}\label{app:symmetry}
 
-\section{论文无附录者无需附录部分}
+本附录给出第~\ref{sec:ov-performance}节引用的群论归约的完整推导。
+需要强调：这是把 $|\mathcal{R}|$ 从 $n!$ 压到可控规模的\textbf{实现技巧}，
+不改变约束形式，也\textbf{非本文核心贡献}——列此仅供读者核验
+第~\ref{sec:ov-performance}节「排列模式集合 $\mathcal{R}$」的规模依据。
 
-\section{测试公式编号 \texorpdfstring{$\Lambda,\lambda,\theta,\bar{\Lambda},\sqrt{S_{NN}}$}{$\textLambda,\textlambda,\texttheta,\bar{\textLambda},\sqrt{S_{NN}}$}} \label{sec:testmath}
+\section{问题定义}
 
-\begin{equation} \label{eq:appedns}
-    \adddotsbeforeeqnnum%
-    \begin{cases}
-        \frac{\partial \rho}{\partial t} + \nabla\cdot(\rho\Vector{V}) = 0\\
-        \frac{\partial (\rho\Vector{V})}{\partial t} + \nabla\cdot(\rho\Vector{V}\Vector{V}) = \nabla\cdot\Tensor{\sigma}\\
-        \frac{\partial (\rho E)}{\partial t} + \nabla\cdot(\rho E\Vector{V}) = \nabla\cdot(k\nabla T) + \nabla\cdot(\Tensor{\sigma}\cdot\Vector{V})
-    \end{cases}
+设物理拓扑为无向图 $H=(V,E)$，$|V|=n$。负载均衡策略 $L$ 把端到端流量需求矩阵
+$T=(t_{ij})_{n\times n}$ 映射为流图 $G(T)=L(H,T)$，瓶颈负载
+$\Phi(T)=\max_{e\in E}\ell_e\bigl(G(T)\bigr)$。
+需求矩阵满足\textbf{双随机}（每行和、每列和均为 1，对应每个端口满速率同时收发），
+其全体构成 Birkhoff 多面体 $\mathcal{T}$。我们不知 $T$，需求最坏情形下的瓶颈负载：
+
+\begin{equation}\label{eq:sym-phi}
+    T^* \;=\; \arg\max_{T\in\mathcal{T}}\ \Phi(T)
 \end{equation}
+
+若负载均衡为最优（自适应/最优多商品流），$\Phi(T)$ 本身是并发流的最优值，
+外层 $\max_T\Phi(T)$ 是凸函数最大化——一般情形无多项式保证。下面的归约正是把这一困难压掉。
+
+\section{定理 1：最坏模式为置换矩阵}
+
+\textbf{定理 1。}
+设 $H$ 顶点传递（vertex-transitive）且负载均衡策略 $L$ 在 $\operatorname{Aut}(H)$ 作用下不变，
+则存在最坏流量模式 $T^*$ 使得每行恰有一个元素非零，即 $T^*$ 为\textbf{置换矩阵}。
+
+\textit{证明思路。}
+$\Phi:\mathcal{T}\to\mathbb{R}^+$ 为凸函数；$\mathcal{T}$ 为 Birkhoff 多面体，
+其顶点恰为置换矩阵（Birkhoff--von Neumann 定理~\cite{birkhoff1946tres}）；
+凸函数在有界多面体上的最大值必在某个顶点处取到。
+顶点传递性与 $L$ 的 $\operatorname{Aut}(H)$-不变性保证 $\Phi$ 限制在 $\mathcal{T}$ 上确为凸。$\square$
+
+\textbf{推论。}只需考虑 $\sigma\in S_n$ 对应的流量模式：
+
 \begin{equation}
-    \adddotsbeforeeqnnum%
-    \frac{\partial }{\partial t}\int\limits_{\Omega} u \, \mathrm{d}\Omega + \int\limits_{S} \unitVector{n}\cdot(u\Vector{V}) \, \mathrm{d}S = \dot{\phi}
+    t_{ij}^{(\sigma)} \;=\; \begin{cases} 1, & j=\sigma(i),\\ 0, & \text{否则},\end{cases}
 \end{equation}
-\[
-    \begin{split}
-        \mathcal{L} \{f\}(s) &= \int _{0^{-}}^{\infty} f(t) e^{-st} \, \mathrm{d}t, \ 
-        \mathscr{L} \{f\}(s) = \int _{0^{-}}^{\infty} f(t) e^{-st} \, \mathrm{d}t\\
-        \mathcal{F} {\bigl (} f(x+x_{0}) {\bigr )} &= \mathcal{F} {\bigl (} f(x) {\bigr )} e^{2\pi i\xi x_{0}}, \ 
-        \mathscr{F} {\bigl (} f(x+x_{0}) {\bigr )} = \mathscr{F} {\bigl (} f(x) {\bigr )} e^{2\pi i\xi x_{0}}
-    \end{split}
-\]
 
-mathtext: $A,F,L,2,3,5,\sigma$, mathnormal: $A,F,L,2,3,5,\sigma$, mathrm: $\mathrm{A,F,L,2,3,5,\sigma}$.
+至此搜索空间从 $n^2$ 维连续多面体降为 $n!$ 个离散点。
 
-mathbf: $\mathbf{A,F,L,2,3,5,\sigma}$, mathit: $\mathit{A,F,L,2,3,5,\sigma}$, mathsf: $\mathsf{A,F,L,2,3,5,\sigma}$.
+\section{定理 2：共轭归约}
 
-mathtt: $\mathtt{A,F,L,2,3,5,\sigma}$, mathfrak: $\mathfrak{A,F,L,2,3,5,\sigma}$, mathbb: $\mathbb{A,F,L,2,3,5,\sigma}$.
+设 $L$ 是 $\operatorname{Aut}(H)$-不变的：
 
-mathcal: $\mathcal{A,F,L,2,3,5,\sigma}$, mathscr: $\mathscr{A,F,L,2,3,5,\sigma}$, boldsymbol: $\boldsymbol{A,F,L,2,3,5,\sigma}$.
+\begin{equation}\label{eq:sym-A1}
+    \forall \varphi\in\operatorname{Aut}(H),\qquad
+    L\bigl(H,\ \varphi\circ T\circ\varphi^{-1}\bigr) \;=\; \varphi\cdot L(H,T),
+\end{equation}
 
-vector: $\Vector{\sigma, T, a, F, n}$, unitvector: $\unitVector{\sigma, T, a, F, n}$
+其中 $(\varphi\circ T\circ\varphi^{-1})_{ij}=T_{\varphi^{-1}(i),\,\varphi^{-1}(j)}$。
 
-matrix: $\Matrix{\sigma, T, a, F, n}$, unitmatrix: $\unitMatrix{\sigma, T, a, F, n}$
+\textbf{引理 1（节点重标号 = 置换共轭）。}
+按 $\varphi$ 对节点重标号后，置换 $\sigma$ 变为 $\varphi\sigma\varphi^{-1}$。
 
-tensor: $\Tensor{\sigma, T, a, F, n}$, unittensor: $\unitTensor{\sigma, T, a, F, n}$ 
+\textit{证明。}原流量 $i\to\sigma(i)$，重标号为 $\varphi(i)\to\varphi(\sigma(i))$；
+对新标号 $j=\varphi(i)$，有 $j\mapsto\varphi(\sigma(\varphi^{-1}(j)))=(\varphi\sigma\varphi^{-1})(j)$。$\square$
 
-\section{测试生僻字}
+\textbf{引理 2（流图同构 = 置换共轭）。}
+在式~\eqref{eq:sym-A1} 下，若 $\sigma\mapsto G_\sigma$ 为单射，则
 
-霜蟾盥薇曜灵霜颸妙鬘虚霩淩澌菀枯菡萏泬寥窅冥毰毸濩落霅霅便嬛岧峣瀺灂姽婳愔嫕飒纚棽俪緸冤莩甲摛藻卮言倥侗椒觞期颐夜阑彬蔚倥偬澄廓簪缨陟遐迤逦缥缃鹣鲽憯懔闺闼璀错媕婀噌吰澒洞阛闠覼缕玓瓑逡巡諓諓琭琭瀌瀌踽踽叆叇氤氲瓠犀流眄蹀躞赟嬛茕頔璎珞螓首蘅皋惏悷缱绻昶皴皱颟顸愀然菡萏卑陬纯懿犇麤掱暒 墌墍墎墏墐墒墒墓墔墕墖墘墖墚墛坠墝增墠墡墢墣墤墥墦墧墨墩墪樽墬墭堕墯墰墱墲坟墴墵垯墷墸墹墺墙墼墽垦墿壀壁壂壃壄壅壆坛壈壉壊垱壌壍埙壏壐壑壒压壔壕壖壗垒圹垆壛壜壝垄壠壡坜壣壤壥壦壧壨坝塆圭嫶嫷嫸嫹嫺娴嫼嫽嫾婳妫嬁嬂嬃嬄嬅嬆嬇娆嬉嬊娇嬍嬎嬏嬐嬑嬒嬓嬔嬕嬖嬗嬘嫱嬚嬛嬜嬞嬟嬠嫒嬢嬣嬥嬦嬧嬨嬩嫔嬫嬬奶嬬嬮嬯婴嬱嬲嬳嬴嬵嬶嬷婶嬹嬺嬻嬼嬽嬾嬿孀孁孂娘孄孅孆孇孆孈孉孊娈孋孊孍孎孏嫫婿媚嵭嵮嵯嵰嵱嵲嵳嵴嵵嵶嵷嵸嵹嵺嵻嵼嵽嵾嵿嶀嵝嶂嶃崭嶅嶆岖嶈嶉嶊嶋嶌嶍嶎嶏嶐嶑嶒嶓嵚嶕嶖嶘嶙嶚嶛嶜嶝嶞嶟峤嶡峣嶣嶤嶥嶦峄峃嶩嶪嶫嶬嶭崄嶯嶰嶱嶲嶳岙嶵嶶嶷嵘嶹岭嶻屿岳帋巀巁巂巃巄巅巆巇巈巉巊岿巌巍巎巏巐巑峦巓巅巕岩巗巘巙巚帠帡帢帣帤帨帩帪帬帯帰帱帲帴帵帷帹帺帻帼帽帾帿幁幂帏幄幅幆幇幈幉幊幋幌幍幎幏幐幑幒幓幖幙幚幛幜幝幞帜幠幡幢幤幥幦幧幨幩幪幭幮幯幰幱庍庎庑庖庘庛庝庠庡庢庣庤庥庨庩庪庬庮庯庰庱庲庳庴庵庹庺庻庼庽庿廀厕廃厩廅廆廇廋廌廍庼廏廐廑廒廔廕廖廗廘廙廛廜廞庑廤廥廦廧廨廭廮廯廰痈廲廵廸廹廻廼廽廿弁弅弆弇弉弖弙弚弜弝弞弡弢弣弤弨弩弪弫弬弭弮弰弲弪弴弶弸弻弼弽弿彖彗彘彚彛彜彝彞彟彴彵彶彷彸役彺彻彽彾佛徂徃徆徇徉后徍徎徏径徒従徔徕徖徙徚徛徜徝从徟徕御徢徣徤徥徦徧徨复循徫旁徭微徯徰徱徲徳徴徵徶德徸彻徺忁忂惔愔忇忈忉忔忕忖忚忛応忝忞忟忪挣挦挧挨挩挪挫挬挭挮挰掇授掉掊掋掍掎掐掑排掓掔掕挜掚挂掜掝掞掟掠采探掣掤掦措掫掬掭掮掯掰掱掲掳掴掵掶掸掹掺掻掼掽掾掿拣揁揂揃揅揄揆揇揈揉揊揋揌揍揎揑揓揔揕揖揗揘揙揤揥揦揧揨揫捂揰揱揲揳援揵揶揷揸揻揼揾揿搀搁搂搃搄搅搇搈搉搊搋搌搎搏搐搑搒摓摔摕摖摗摙摚摛掼摝摞摠摡斫斩斮斱斲斳斴斵斶斸旪旫旮旯晒晓晔晕晖晗晘晙晛晜晞晟晠晡晰晣晤晥晦晧晪晫晬晭晰晱晲晳晴晵晷晸晹晻晼晽晾晿暀暁暂暃暄暅暆暇晕晖暊暋暌暍暎暏暐暑暒暓暔暕暖暗旸暙暚暛暜暝暞暟暠暡暣暤暥暦暧暨暩暪暬暭暮暯暰昵暲暳暴暵
+\begin{equation}
+    \exists\,\varphi\in\operatorname{Aut}(H),\ \varphi(G_{\sigma_1})=G_{\sigma_2}
+    \quad\Longleftrightarrow\quad
+    \sigma_2=\varphi\sigma_1\varphi^{-1}.
+\end{equation}
+
+\textit{证明。}由式~\eqref{eq:sym-A1}，
+$\varphi(G_{\sigma_1})=L(H,\varphi\sigma_1\varphi^{-1})=G_{\varphi\sigma_1\varphi^{-1}}$；由单射性即得。$\square$
+
+\textbf{定理 2。}
+在引理 2 条件下，等价类恰为 $\operatorname{Aut}(H)$ 在 $S_n$ 上的共轭轨道：
+
+\begin{equation}
+    \sigma_1 \sim \sigma_2
+    \quad\Longleftrightarrow\quad
+    \exists\,\varphi\in\operatorname{Aut}(H),\ \sigma_2=\varphi\sigma_1\varphi^{-1}.
+\end{equation}
+
+\textbf{注。}共轭不是额外假设——它是「在对称图上做节点重标号」这一操作的代数表达。
+$L$ 的单射性若放宽，等价只会变粗，共轭结构不变。
+
+\section{轨道计数}
+
+\textbf{命题 1（轨道大小）。}对 $\sigma\in S_n$，其在 $\operatorname{Aut}(H)$ 共轭下的轨道大小为
+
+\begin{equation}
+    |\operatorname{orb}(\sigma)| \;=\;
+    \frac{|\operatorname{Aut}(H)|}{|\operatorname{Aut}(H)\cap C_{S_n}(\sigma)|},
+\end{equation}
+
+其中 $C_{S_n}(\sigma)=\{\tau\in S_n:\tau\sigma=\sigma\tau\}$ 为 $\sigma$ 在 $S_n$ 中的中心化子。
+
+\textbf{命题 2（共轭类内轨道数）。}
+对 cycle type $\lambda\vdash n$，该 $S_n$ 共轭类内的 $G$-轨道数（$G=\operatorname{Aut}(H)$）为
+
+\begin{equation}
+    N_\lambda(G) \;=\; \frac{n!}{|G|}\cdot\frac{|G\cap C_{S_n}(\sigma_\lambda)|}{|C_{S_n}(\sigma_\lambda)|},
+\end{equation}
+
+其中 $\sigma_\lambda$ 为 cycle type $\lambda$ 的任一代表元。
+
+\textbf{命题 3（总轨道数，Burnside 引理）。}
+
+\begin{equation}
+    \text{总轨道数} \;=\; \frac{1}{|G|}\sum_{g\in G} |C_{S_n}(g)|,
+    \qquad
+    |C_{S_n}(g)| \;=\; \prod_{k=1}^{n} k^{m_k}\cdot m_k!,
+\end{equation}
+
+其中 $g$ 的 cycle type 为 $1^{m_1}2^{m_2}\cdots n^{m_n}$。
+
+\section{常见拓扑的自同构群}
+
+\begin{center}
+\begin{tabular}{l|l|l}
+\hline
+物理拓扑 $H$ & $\operatorname{Aut}(H)$ & 阶 \\
+\hline
+$K_n$（完全图） & $S_n$ & $n!$ \\
+$C_n$（环） & $D_n$（二面体群） & $2n$ \\
+$\text{Mesh}(k)$（$k\times k$ 网格） & $D_4$ & 8 \\
+$\text{Torus}(k)$ & $(C_k\times C_k)\rtimes C_2$ & $2k^2$ \\
+$\text{Dragonfly}(a,p,h)$ & 取决于布线，正则布线时接近 $S_a\wr S_p$ & — \\
+$Q_d$（超立方，$n=2^d$） & 超正八面体群 & $d!\cdot 2^d$ \\
+$K_{m,m}$（完全二分图） & $S_m\times S_m\rtimes C_2$ & $2(m!)^2$ \\
+\hline
+\end{tabular}
+\end{center}
+
+当 $G=S_n$ 时，轨道即 $S_n$ 共轭类，对应 $n$ 的整数分拆，共 $p(n)$ 个。
+
+\section{可行性}
+
+对 $n\le 10$，分拆数 $p(n)\le 42$。$n$ 增至 12--15 时 $p(12)=77$、$p(15)=176$，仍可控；
+但若 $\operatorname{Aut}(H)$ 退化为平凡群 $\{e\}$，轨道数退化为 $15!\approx 1.3\times 10^{12}$，
+需更强的归约或启发式。对于本文涉及的对称拓扑（Mesh/Torus/Dragonfly），
+$\operatorname{Aut}(H)$ 非平凡，$|\mathcal{R}|$ 远小于 $n!$，是第~\ref{sec:scalability}节
+「LP 规模受控」的依据。
+
+% ============================================================
+% 附录 B：热约束线性化
+% ============================================================
+\chapter{热约束的线性化：M-矩阵与保序消元}\label{app:thermal}
+
+本附录给出第~\ref{sec:ov-linearize}节热约束消元（$\mathbf{G}^{-1}\ge 0$）的完整推导，
+对应第~\ref{sec:ov-thermal}节的稳态热网络式~\eqref{eq:thermal}。
+
+\section{热网络的 M-矩阵结构}
+
+热传导与电路同构：温差 $\Delta T$ 对应电压、热流 $P$ 对应电流、热阻 $R_{\text{th}}$ 对应电阻，
+欧姆定律的热学版本为 $P=\Delta T/R_{\text{th}}$。为书写方便用热导 $g=1/R_{\text{th}}$。
+
+把每个 interposer 聚合为一个热节点，节点 $i$ 的稳态热平衡为
+「产热 = 向上散热 + 向邻居横向散热」：
+
+\begin{equation}\label{eq:th-node}
+    P_i \;=\; g_{\text{vert}}\bigl(T_i-T_{\text{amb}}\bigr)
+    \;+\; \sum_{j\in\mathcal{N}(i)} g_{\text{lat}}\bigl(T_i-T_j\bigr),
+\end{equation}
+
+其中 $g_{\text{vert}}=1/R_{\text{th,vert}}$ 为 die $\to$ 环境的垂直热导（TIM + lid + heatsink 集总），
+$g_{\text{lat}}=1/R_{\text{th,lat}}$ 为相邻节点经 substrate 的横向热导，$T_{\text{amb}}$ 为环境温度。
+整理为矩阵形式：
+
+\begin{equation}\label{eq:th-matrix}
+    \mathbf{G}\cdot\mathbf{T} \;=\; \mathbf{P} + \mathbf{b},
+\end{equation}
+
+其中
+
+\begin{equation}
+    G_{ii}=g_{\text{vert}}+|\mathcal{N}(i)|\,g_{\text{lat}},
+    \qquad
+    G_{ij}=-g_{\text{lat}}\ (j\in\mathcal{N}(i)),
+    \qquad
+    b_i=g_{\text{vert}}\,T_{\text{amb}}.
+\end{equation}
+
+$\mathbf{G}$ 是对角占优的\textbf{M-矩阵}：对角元全正、非对角元非正、
+每行对角元不小于非对角元绝对值之和（$G_{ii}\ge\sum_{j\neq i}|G_{ij}|$，此处严格大于，差即 $g_{\text{vert}}$），
+且稀疏（每节点最多连 4 个邻居）、对称正定。
+
+\section{M-矩阵的逆非负性}
+
+M-矩阵的核心性质是\textbf{逆非负}：$\mathbf{G}^{-1}\ge 0$（逐元素非负）~\cite{berman1994nonnegative}。
+其物理含义是热传导的因果性：
+
+\begin{quote}
+任何一个节点的功率增加，所有节点的温度只升不降；功率减少，温度只降不升。
+\end{quote}
+
+即 $\mathbf{T}=\mathbf{G}^{-1}(\mathbf{P}+\mathbf{b})$ 是 $\mathbf{P}$ 的\textbf{单调}（保序）映射——
+这正是第~\ref{sec:ov-linearize}节能把温度约束线性化、且保证消元后不等式方向不变的原因。
+
+\section{温度约束的线性化}
+
+要求所有节点温度不超过结温上限 $T_{\max}$：
+
+\begin{equation}\label{eq:th-ineq}
+    \mathbf{T} \;=\; \mathbf{G}^{-1}(\mathbf{P}+\mathbf{b}) \;\le\; T_{\max}\cdot\mathbf{1}.
+\end{equation}
+
+因 $\mathbf{G}^{-1}$ 为常数矩阵，式~\eqref{eq:th-ineq} 已是关于 $\mathbf{P}$ 的线性不等式。
+代入功耗模型 $\mathbf{P}=\mathbf{P}_{peak}(B)\cdot\mathbf{1}+\mathbf{M}\mathbf{S}_{\text{dyn}}\boldsymbol{\ell}$
+与 lane 定义 $\boldsymbol{\ell}=B\,\mathbf{S}_{\text{bw}}^{-1}\mathbf{L}$（式~\eqref{eq:lane-def}），
+整理得\textbf{关于 $\mathbf{L}$ 的线性不等式}：
+
+\begin{equation}\label{eq:th-linearized}
+    B\cdot\underbrace{\mathbf{G}^{-1}\mathbf{M}\mathbf{S}_{\text{dyn}}\mathbf{S}_{\text{bw}}^{-1}}_{\mathbf{K}}
+    \cdot\mathbf{L}
+    \;\le\;
+    \underbrace{T_{\max}\cdot\mathbf{1}-\mathbf{G}^{-1}\bigl(\mathbf{P}_{peak}(B)\cdot\mathbf{1}+\mathbf{b}\bigr)}_{\mathbf{rhs}}.
+\end{equation}
+
+固定 $B$ 后，系数矩阵 $\mathbf{K}$ 与右手边 $\mathbf{rhs}$ 均为常数，问题保持线性——
+这正是第~\ref{sec:ov-unified}节统一 LP 中热约束的消元形式。
+$\mathbf{K}\ge 0$（因 $\mathbf{G}^{-1}\ge 0$、$\mathbf{M},\mathbf{S}_{\text{dyn}},\mathbf{S}_{\text{bw}}^{-1}$ 均非负）
+保证「负载越重、左侧越大」，物理单调性贯穿消元全过程。
+
+\section{L0 粗筛（全局功耗）}
+
+热 L0 是上述消元的进一步粗化：把整个 interposer 聚为单热节点、忽略温度梯度，
+只约束总功耗不超过面积热密度上限：
+
+\begin{equation}\label{eq:th-l0}
+    \mathbf{1}^T\mathbf{P} \;\le\; A_{ip}\cdot q_{\max},
+\end{equation}
+
+其中 $A_{ip}$ 为 interposer 面积、$q_{\max}$ 为散热密度上限。
+它比式~\eqref{eq:th-linearized} 更保守（忽略横向热扩散、只留垂直散热），
+与 L1 的判定一致性在第~\ref{sec:fidelity}节讨论。

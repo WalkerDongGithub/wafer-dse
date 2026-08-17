@@ -1,0 +1,22 @@
+# trad-liquid-224g — 传统 2D 封装，液冷，224G SerDes
+# 代表场景: 下一代数据中心交换芯片 (2024-2025, 224G 时代)
+# 物理来源: OIF-CEI-224G-VSR, 精细 C4 pitch 路线图
+#
+# 设计意图: 展示 SerDes 速率翻倍的代价——
+# 能效从 4.0 → 5.0 pJ/bit (25% 退化)，功耗密度更高需液冷。
+# 与 trad-air-112g 对比可看出: 串行互连Scaling即将触达功耗墙。
+#
+# 功率密度: 60W / 324mm² = 0.185 W/mm² (需液冷)
+# 能效: 5.0 pJ/bit (224G SerDes 功耗代价)
+# 最大互连距离: 100mm (VSR, 比112G短)
+
+name: trad-liquid-224g
+die: {width_mm: 18.0, height_mm: 18.0, static_power_w: 60.0, vdd_v: 0.75}
+bump: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.65}
+link: {name: SerDes-224G-VSR, lane_rate_gbps: 212.5, power_per_lane_w: 1.062}
+global_link: {name: SerDes-224G-VSR, lane_rate_gbps: 212.5, power_per_lane_w: 1.062}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.65}
+thermal: {r_vert_k_per_w: 0.25, k_interposer: 0.4, t_interposer_mm: 0.8,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 45.0, interposer_h_mm: 45.0,
+      metal_layers: 8, lanes_per_mm: 150.0, c4_pitch_mm: 0.8}

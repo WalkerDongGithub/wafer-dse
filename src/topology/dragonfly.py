@@ -131,18 +131,19 @@ class Dragonfly(Topology):
 
 
 # ---------------------------------------------------------------------------
-# DragonflyPlus（骨架 — 未来扩展）
+# DragonflyPlus（骨架占位，未接入——论文 DSE 只用标准 Dragonfly）
 # ---------------------------------------------------------------------------
 
 
 class DragonflyPlus(Topology):
-    """Dragonfly+ 拓扑（骨架 — 待完整实现）。
+    """Dragonfly+ 拓扑（骨架占位，未接入）。
 
     Dragonfly+ 在标准 Dragonfly 基础上增加了 trunk link：
         - 每 router 除全局端口外，还有 trunk 端口连接相邻 group。
         - 好处：减少 Valiant 中转跳数，降低延迟。
 
-    当前为骨架占位，供后续详细实现。
+    骨架占位，未接入：核心方法全部 NotImplementedError，
+    不参与论文 §2.7 的组间 DSE（论文只用标准 Dragonfly）。
     """
 
     def __init__(self, a: int, p: int, h: int, t: int = 1) -> None:

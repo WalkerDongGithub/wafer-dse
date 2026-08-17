@@ -1,0 +1,24 @@
+# ucie-32g-microfluidic — UCIe 2.5D Advanced, 32G/lane, 微流控冷却
+# 代表场景: UCIe 2.5D 封装 + 微流控冷却 (极限性能)
+# 物理来源: UCIe 2.0 Spec Table 1-2, IEEE TCPMT 2024 (微流控硅冷却)
+#
+# 设计意图: 冷却方案对比系列——微流控档。
+# 与 ucie-32g (液冷, R_vert=1.5) 唯一差异: R_vert=0.4 (微流控)。
+# 微流控直接在硅中介层内加工微通道, 热阻极低 → 热预算放宽 → B* 提升。
+# 对照组: ucie-32g-air (风冷) / ucie-32g (液冷)。
+# 研究价值: 展示冷却方案是 2.5D 封装带宽的关键约束之一。
+#
+# 冷却散热密度: 10.0 W/mm² (Microfluidic cooling)
+# R_vert: 0.4 K/W (硅中介层内微流控通道)
+# 热预算: (358.15-300)/0.4 = 145.4W per die
+
+name: ucie-32g-microfluidic
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 5.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: UCIe-32G-Advanced, lane_rate_gbps: 32.0, power_per_lane_w: 0.016}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.4, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 80.0, interposer_h_mm: 80.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

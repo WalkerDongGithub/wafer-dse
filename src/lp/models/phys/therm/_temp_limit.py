@@ -35,3 +35,6 @@ class GlobalPowerModel(ThermalModel):
         ctx.constrain("therm_l0", coeff * sum(L), "<=",
                       self._max_power - self._P0,
                       meaning="总功耗达到散热能力上限")
+
+    def cache_key(self) -> tuple:
+        return ("therm_l0", self._P0, self._max_power, self._coeff_per_L)

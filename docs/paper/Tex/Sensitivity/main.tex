@@ -1,51 +1,120 @@
 % 灵敏度分析
-\chapter{灵敏度分析：从LP解中提取设计梯度}\label{chap:sensitivity}
+\chapter{灵敏度分析：$B^*$ 对期待与约束的响应}\label{chap:sensitivity}
 
-第~\ref{chap:overview}章建立了统一LP框架——给定一个技术选型，求解一个LP即可判断其物理可行性。
-但LP给出的远不止"feasible/infeasible"。
-本章展示如何从LP的最优解中提取\textbf{设计梯度}——每个约束的影子价格、物理带宽天花板、以及约束松弛的边际收益。
+第~\ref{chap:overview}章把 $B^*$ 刻画为期待与约束的函数：$B^* = f(\text{期待},\ \text{约束})$，
+并在给定技术选型下用``固定 $B$ 的可行性 LP + 二分搜索''求得最大端口无阻塞带宽。
+本章回答紧随其后的问题：如果期待或约束发生微小变化，$B^*$ 会如何响应？
+这个响应即\textbf{灵敏度}，它把``可行/不可行''的判定提升为``往哪个方向改、改多少、收益多少''的设计指导。
 
-\textit{（本章待详细展开。当前为骨架，后续将补充完整的对偶分析、多约束联合灵敏度和可视化方法。）}
+\section{目标：$\partial B^*/\partial\theta$}\label{sec:sens-objective}
 
-\section{对偶变量：每个约束的影子价格}
+灵敏度分析要回答的不是``哪个约束绑定''，而是``$B^*$ 对参数 $\theta$ 的梯度''。
+最直接的实例是约束右手边：$\partial B^*/\partial b_i$ = 约束 $i$ 的 rhs 松弛 1 个单位、$B^*$ 增加多少。
+这是架构师真正想要的量：投资哪个约束（+1 $\mu$bump / +1\,W / +1 lane）换多少带宽。
 
-LP求解器在返回最优解的同时，也返回每个约束的对偶变量。
-对偶值有明确的物理解释：$\lambda_i = \partial t^* / \partial b_i$——
-放宽约束$i$右手边一个单位，最优$t^*$的变化量。
+更一般的 $\theta$ 覆盖两类旋钮（见第~\ref{sec:sens-knobs}节）：
+\textbf{约束旋钮}（物理参数 $p,\eta,R_{\text{th}},\alpha_d,\beta_P$ 等）与
+\textbf{期待旋钮}（无阻塞要求的严格程度——哪些流量模式进 $\mathcal{R}$ 集合）。
+本章把二者统一为对参数 $\theta$ 的梯度 $\partial B^*/\partial\theta$。
 
-对三组约束：
-\begin{itemize}
-    \item \textbf{bump预算约束}的对偶值$\nu_v$：给裸片$v$多分配一个信号bump对$t^*$的边际改善
-    \item \textbf{热约束}的对偶值$\tau$：多1W散热预算对$t^*$的边际改善
-    \item \textbf{链路容量约束}的对偶值$\mu_e$：扩容链路$e$对$t^*$的边际收益
-\end{itemize}
+\section{数学基础}\label{sec:sens-math}
 
-影子价格的比值$\nu_v / \tau$直接告诉架构师：在当前设计点，投资bump改进还是冷却升级更划算。
-当约束未绑定时对偶值为0——"现在不是瓶颈"同样是重要信息。
+\subsection{参数化优化与包络定理}\label{sec:sens-envelope}
 
-\section{B$_{\max}$：物理带宽天花板}
+把 $B^*$ 视为参数化优化的最优值。为表述简洁，先考虑 rhs 独立于 $B$ 的基准情形，
+即约束可写成 $B\cdot(A_i\cdot\mathbf{L})\le b_i$（$A_i$ 为约束 $i$ 消元后对 $\mathbf{L}$ 的系数行，$b_i$ 为常数 rhs）：
 
-注意到$t^*$是归一化量，不随端口带宽$B$变化——$B$只出现在物理约束的系数中。
-因此一次LP求解得到$L_e^*$后，所有物理约束变为关于$B$的单变量线性不等式，可直接解出：
-
-\begin{equation}\label{eq:bmax}
-    B_{\max}^{\text{geom}} = \min_v \frac{N_v^{\text{sig}} \cdot R_e}{\sum_{e \in \delta(v)} L_e^*}, \qquad
-    B_{\max}^{\text{thermal}} = \frac{A_{\text{total}} \cdot q_{\max} \cdot R_e}{\sum_e L_e^* \cdot P_{\text{lane}}}
+\begin{equation}\label{eq:sens-param}
+    B^*(b) \;=\; \max_{B,\ \mathbf{L}\in\mathcal{F}}\; B
+    \qquad\text{s.t.}\qquad
+    B \cdot (A_i \cdot \mathbf{L}) \;\le\; b_i,\quad \forall i
 \end{equation}
 
-$B_{\max} = \min(B_{\max}^{\text{geom}}, B_{\max}^{\text{thermal}})$是物理上可支撑的最大端口带宽。
-\textbf{不需要额外LP求解——$L_e^*$已有，代入即可。}
+其中 $\mathcal{F}$ 是性能侧（路由 + 定义式，式~\eqref{eq:route-flow}）决定的 $\mathbf{L}$ 可行域，与 $b$ 无关。
+拉格朗日 $\mathcal{L}=B+\sum_i\lambda_i\,(b_i-B\cdot(A_i\cdot\mathbf{L}))$。
+\textbf{包络定理}给出 $\partial B^*/\partial b_i=\lambda_i^*$——约束 $i$ 的 KKT 乘子即带宽影子价格。
+对 $B$ 求偏导得 KKT 条件：
 
-\section{约束松弛扫描}
+\begin{equation}\label{eq:sens-kkt}
+    1 - \sum_i \lambda_i\,(A_i \cdot \mathbf{L}^*) = 0
+    \qquad\Longrightarrow\qquad
+    \sum_i \lambda_i\,(A_i \cdot \mathbf{L}^*) = 1
+\end{equation}
 
-除单点灵敏度外，可扫描约束RHS的连续变化，观察$t^*$的响应曲线：
-当约束不绑定时$\partial t^* / \partial b_i = 0$（改进无益），
-绑定时对偶值给出$t^*$对RHS的精确导数。
+互补松弛：$\lambda_i\ge 0$，$\lambda_i\,(b_i-B^*\cdot(A_i\cdot\mathbf{L}^*))=0$。
 
-\section{待发展方向}
+\subsection{非凸问题的处理：二分 + 事后闭式}\label{sec:sens-posthoc}
+
+注意 $B\cdot(A_i\cdot\mathbf{L})$ 是双线性项，$\max_{B,\mathbf{L}}B$ 受此类约束是\textbf{非凸}问题——
+KKT 只是驻点必要条件，不保证全局最优。因此本文的 $B^*$ \textbf{不}通过求解式~\eqref{eq:sens-param}得到，
+而是按第~\ref{sec:ov-unified}节的``固定 $B$ 可行性 LP + 二分搜索''求得：
+每次固定 $B$，约束是 $\mathbf{L}$ 的线性不等式（凸 LP）；
+$B^*$ 的全局性由``可行性关于 $B$ 单调 + 二分''保证，不依赖 KKT。
+
+$\lambda$ 的取得是\textbf{事后闭式}：二分收敛后取最后一次可行解 $\mathbf{L}^*$，
+对每个绑定约束 $j$ 用
+
+\begin{equation}\label{eq:sens-lambda}
+    \lambda_j = \frac{1}{A_j \cdot \mathbf{L}^*}
+\end{equation}
+
+（因绑定处 $B^*=b_j/(A_j\cdot\mathbf{L}^*)$ 刻画同一超平面）。
+该闭式值与 $\max B$ 问题在 $B^*$ 处的 KKT 乘子数值一致，但不依赖求解非凸 $\max B$ 问题。
+
+式~\eqref{eq:sens-lambda} 与第~\ref{sec:sens-knobs}节的 $\partial B^*/\partial\theta=\sum_i\lambda_i\,\partial g_i/\partial\theta$
+挂 \textbf{Milgrom--Segal (2002) 包络定理}：它只要求 value function 在参数处可微 + 约束规范，
+\textbf{不要求凸性}；在 $B^*$ 可微点成立，两个约束同时绑定的退化点只给方向导数/次梯度（见下）。
+
+\subsection{单约束绑定与退化情况}\label{sec:sens-degenerate}
+
+若仅约束 $j$ 绑定（其余 slack，$\lambda_i=0$），式~\eqref{eq:sens-kkt} 直接给出
+
+\begin{equation}\label{eq:sens-single}
+    \lambda_j = \frac{1}{A_j \cdot \mathbf{L}^*},
+    \qquad
+    \frac{\partial B^*}{\partial b_j} = \frac{1}{A_j \cdot \mathbf{L}^*}
+\end{equation}
+
+物理含义：$A_j\cdot\mathbf{L}^*$ 是``约束 $j$ 单位带宽的 lhs 占用''，其倒数是``每松弛 1 单位 rhs 换多少 Gbps''。
+
+若约束集 $\mathcal{J}$ 同时绑定，式~\eqref{eq:sens-kkt} 只给出
+$\{\lambda_j\ge 0,\ \sum_{j\in\mathcal{J}}\lambda_j\,(A_j\cdot\mathbf{L}^*)=1\}$：
+单独松弛一个约束 $B^*$ 不增（其余仍挡路），$\lambda_j$ 需联合确定，且退化不唯一。
+此时``先改哪个''由绑定演化序列（沿 $B$ 轴谁先绑定）回答。
+
+（实现注记：二分搜索每次求解的``固定 $B$ 可行性判定''无目标函数，
+其对偶不可靠，且含义是 $\partial(\min\sum_e L_e)/\partial b_i$（固定 $B$ 下），
+与 $\partial B^*/\partial b_i$ 不是同一个量；故 $\lambda$ 一律用式~\eqref{eq:sens-lambda} 事后闭式求取，不依赖可行性对偶。）
+
+\section{两个旋钮：约束旋钮与期待旋钮}\label{sec:sens-knobs}
+
+接入 die 缩放模型（式~\eqref{eq:die-scale}）后，约束 rhs 本身是 $B$ 的函数
+（$\mathbf{N}^{\text{total}}(B)$、$\mathbf{P}_{peak}(B)$），``$b_i$ 独立于 $B$''的前提失效。
+更本质的灵敏度目标是对\textbf{物理参数} $\theta$ 求导：
+
+\begin{equation}\label{eq:sens-dtheta}
+    \frac{\partial B^*}{\partial \theta}
+    \;=\; \sum_i \lambda_i^* \cdot \frac{\partial g_i}{\partial \theta}
+\end{equation}
+
+其中约束 $i$ 记为 $g_i(B,\mathbf{L},\theta)\le 0$，$\lambda_i^*$ 是 KKT 乘子（单约束闭式式~\eqref{eq:sens-single}），
+$\partial g_i/\partial\theta$ 是约束对参数的显式偏导（对第~\ref{chap:overview}章线性化系数的显式求导）。
+
+统一两种情况：
 
 \begin{itemize}
-    \item \textbf{多约束联合灵敏度}：当多个约束同时绑定时，如何给出"先改哪个"的排序？
-    \item \textbf{可视化}：如何将影子价格比值转化为架构师能直观理解的图表？
-    \item \textbf{不确定性量化}：工艺波动下的鲁棒可行性判定。
+\item \textbf{约束旋钮}：$\theta$ = 物理参数——bump pitch $p$、阵列利用率 $\eta$、热阻 $R_{\text{th}}$、
+die 边长 $d_0$、缩放斜率 $\alpha_d$、功耗斜率 $\beta_P$，用式~\eqref{eq:sens-dtheta} 的通用形式。
+$\theta$ = rhs 常数 $b_i$ 是特例（$\partial g_i/\partial b_i=1$，回到 $\partial B^*/\partial b_i=\lambda_i$）。
+\item \textbf{期待旋钮}：$\theta$ = $\mathcal{R}$ 集合的严格程度——$\mathcal{R}$ 变小时需求下界 $\mathbf{L}$ 变小，
+经同一梯度结构传至 $B^*$：期待降低（少要求一些流量模式无阻塞），$B^*$ 提高。
 \end{itemize}
+
+两个旋钮方向明确：\textbf{约束放宽}（工艺、散热、功耗调度改善）或\textbf{期待降低}，$B^*$ 都提高；反之亦然。
+
+\section{归一化与可比性}\label{sec:sens-norm}
+
+不同约束 rhs 单位不同（bump 数 / W / lane 数），直接比较影子价格无意义。
+归一化后给架构师可比的投资优先级：每 +1 $\mu$bump $\to X$\,Gbps；每 +1\,W 散热 $\to Y$\,Gbps；
+比值 $\nu_{\text{bump}}/\nu_{\text{thermal}}$ 判断投 bump pitch 缩减还是更激进的冷却。
+由此，灵敏度把``可行/不可行''的判定提升为``往哪个方向改、改多少、收益多少''的设计指导。

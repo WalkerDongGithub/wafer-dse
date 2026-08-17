@@ -1,0 +1,26 @@
+# optical-cpo — 共封装光学 (CPO), 硅光互连, 液冷
+# 代表场景: 共封装光学交换 (CPO + Silicon Photonics)
+# 物理来源: JLT 2025 (1.6T FOWLP Silicon Photonic Engine),
+#           COL 2024 (MDM-WDM SiPh Transmitter Chiplet),
+#           Optica 2025 (Polymer Waveguides + SiPh for CPO)
+#
+# 设计意图: 光互连打破铜线距离-带宽积极限——
+# 能效 3.0 pJ/bit (比 SerDes 差), 但 max_reach 500mm (远超铜互连)。
+# 每条链路有固定 CPO 开销 (~0.8W 激光器 + 调谐)。
+# 适合需要长距离高带宽的解聚合架构 (dis-aggregated switches)。
+# 与 SerDes 对比: 光互连在长距离场景下功耗优势显著。
+#
+# 功率密度: 20W / 144mm² = 0.139 W/mm² (液冷)
+# 能效: 3.0 pJ/bit (含 CPO 开销; 波导段几乎无损耗)
+# 最大互连距离: 500mm (光波导, 距离几乎不限)
+
+name: optical-cpo
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 20.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: Optical-1.6T-8λ, lane_rate_gbps: 200.0, power_per_lane_w: 0.6}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 1.0, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 60.0, interposer_h_mm: 60.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 3.0}

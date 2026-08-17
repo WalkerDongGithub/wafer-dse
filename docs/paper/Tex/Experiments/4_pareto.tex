@@ -1,26 +1,25 @@
-% DSE 扫描与 Pareto 前沿
-\section{实验三：设计空间长什么样？}\label{sec:pareto}
+% Pareto 前沿
+\section{Pareto 前沿：批量 DSE 扫描}\label{sec:pareto}
 
-\textbf{论证目标}：展示框架在批量DSE扫描中的实用价值——在多个设计点上运行LP，揭示Pareto前沿结构，给出设计指导。
+\textbf{论证目标。}
+展示框架在批量 DSE 扫描中的实用价值：在多个设计点运行 LP，揭示设计空间的 Pareto 前沿结构，
+给出「往哪个拓扑方向调参」的设计指导。
 
-\textbf{实验设计}：
-固定端口带宽$B = 800$ Gbps，在Dragonfly参数空间$(a,p,h)$中枚举8个配置（$a \le 3, p \le 5$），
-每个配置求解Eq.~\ref{eq:valiant-lp} + 几何L1 + 功耗L1。
-在$N$--面积平面上绘制Pareto前沿，标注支配关系和总功耗。
+\textbf{实验设计。}
+固定目标端口带宽 $B$（\todo{目标带宽}），在拓扑参数空间枚举一组候选
+（Dragonfly 的 $(a,p,h)$ 网格，以及 Mesh、Torus 对照），
+对每个候选求解式~\eqref{eq:unified-lp}，记录端口数 $N$、总面积、总功耗与可行性（或 $B^*$），
+在 $N$--面积（--功耗）平面标注支配关系，输出 Pareto 前沿。
 
-\textbf{预期发现}：
+\textbf{论证逻辑。}
+Pareto 前沿上的点是不可被其它点同时支配（面积更小、$N$ 更大、功耗更低）的设计；
+前沿的形态直接回答「在给定面积/功耗预算下，哪种拓扑参数组合给出最大的 $N$（或最高的 $B^*$）」，
+为外层选型（第~\ref{sec:ov-twolayer}节）的枚举/剪枝提供依据。
+
+\textbf{预期方向。}
 \begin{itemize}
-    \item Pareto前沿上只有两个支配点：DF(1,1,1)（$N=2$, 288mm$^2$）和DF(2,5,1)（$N=30$, 432mm$^2$）
-    \item 在固定面积下，增加每路由器终端数$p$是提升$N$的最有效策略——
-    DF(2,2,1)到DF(2,5,1)，面积不变，$N$从12到30
-    \item 增加$h$或$a$增加裸片数量和总面积，效率低于增大$p$
+    \item Pareto 前沿的构成（哪些参数组合落于前沿）\todo{待真实数据}；
+    \item 参数维度之间的替代关系——例如增大 Dragonfly 的每路由器终端数 $p$ 与增大组数/链路数谁更划算
+    \todo{待真实数据}；
+    \item 前沿结论直接对应外层选型的剪枝策略：落在被支配区域的候选可安全剪除。
 \end{itemize}
-
-\textbf{设计指导}：优先增大$p$，再考虑增大$a$或$h$。
-
-\begin{figure}[!htbp]
-    \centering
-    \includegraphics[width=0.8\textwidth]{pareto.pdf}
-    \caption{Dragonfly设计空间的Pareto前沿（$N$ vs 面积，$B=800$Gbps，Valiant路由）。星标为Pareto前沿点，气泡大小表示总功耗。}
-    \label{fig:pareto}
-\end{figure}

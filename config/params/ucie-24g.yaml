@@ -1,0 +1,23 @@
+# ucie-24g — UCIe 2.5D Advanced Package, 24G/lane
+# 代表场景: 高性能 die-to-die 互连 (UCIe 高速档位)
+# 物理来源: UCIe 2.0 Spec Table 1-2 (Advanced Package, 45μm bump)
+#
+# 设计意图: UCIe 速率系列高性能档——
+# 能效 0.375 pJ/bit (略高于 16G), lane_rate 24G, max_reach 1.5mm。
+# 速率提升 50% 但能效仅退化 20%，性价比优异。
+# 适合 AI/HPC 计算 chiplet 间高带宽互连。
+#
+# 功率密度: 5W / 144mm² = 0.035 W/mm² (液冷余量充足)
+# 能效: 0.375 pJ/bit (速率换能效的甜蜜点)
+# 最大互连距离: 1.5mm (速率提升 → 信道损耗预算收紧)
+
+name: ucie-24g
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 5.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: UCIe-24G-Advanced, lane_rate_gbps: 24.0, power_per_lane_w: 0.009}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 1.5, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 80.0, interposer_h_mm: 80.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

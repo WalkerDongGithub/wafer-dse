@@ -1,0 +1,59 @@
+% 统一LP
+\section{统一 LP：固定 $B$ 的可行性判定与二分 $B^*$}\label{sec:ov-unified}
+
+现在把所有约束组装起来。给定外层技术选型（所有系数矩阵随之固定）与端口带宽 $B$，
+内层判断是否存在一组变量同时满足全部约束。它是纯线性不等式组——\textbf{固定 $B$ 的可行性 LP}：
+
+\begin{equation}\label{eq:unified-lp}
+\boxed{
+\begin{aligned}
+\text{find} \quad & \{\mathbf{f}^{(r)}\}_{r\in\mathcal{R}},\; \{\mathbf{L}^{(r)}\},\; \mathbf{L},\; \boldsymbol{\ell},\; \mathbf{P},\; \mathbf{N}^{\text{sig}},\; \mathbf{N}^{\text{pwr}},\; \mathbf{T},\; \mathbf{x} \\[6pt]
+\text{s.t.} \quad & \text{(2.1)}\;\; \textstyle\sum_k f_{ij}^{k,(r)} = D_{ij}^{(r)},\quad
+\mathbf{L}^{(r)} = \mathcal{P}_r \mathbf{f}^{(r)},\quad
+\mathbf{L} \ge \mathbf{L}^{(r)} \qquad \forall r \\[6pt]
+& \text{(2.2)}\;\; S_{\text{bw},e}=\infty,\; S_{\text{dyn},e}=0 \;\; \forall e \in \mathcal{E}_{\text{on-die}} \\[6pt]
+& \boldsymbol{\ell} = B\, \mathbf{S}_{\text{bw}}^{-1} \mathbf{L},\qquad
+\mathbf{P} = \mathbf{P}_{peak}(B) + \mathbf{M}\mathbf{S}_{\text{dyn}}\boldsymbol{\ell} \\[6pt]
+& \text{(2.3)}\;\; \mathbf{N}^{\text{sig}} = \mathbf{M}\boldsymbol{\ell},\quad
+\mathbf{N}^{\text{pwr}} = \mathbf{S}_{\text{in}}^{-1}\mathbf{P},\quad
+\mathbf{N}^{\text{sig}} + \mathbf{N}^{\text{pwr}} \le \mathbf{N}^{\text{total}}(B) \\[6pt]
+& \text{(2.4)}\;\; \mathbf{A}\mathbf{x} = \boldsymbol{\ell},\qquad \mathbf{R}\mathbf{x} \le \mathbf{C} \\[6pt]
+& \text{(2.5)}\;\; \mathbf{G}\mathbf{T} = \mathbf{P} + \mathbf{b},\qquad \mathbf{T} \le T_{\max}\mathbf{1} \\[6pt]
+& \text{(2.6)}\;\; \mathbf{1}^T \boldsymbol{\ell}_{\text{SerDes}} \le N_{C4}^{\text{SerDes}} \\[6pt]
+& \mathbf{f} \ge 0,\;\; \mathbf{L} \ge 0,\;\; \mathbf{x} \ge 0
+\end{aligned}
+}
+\end{equation}
+
+式中 (2.1)--(2.6) 对应性能约束（式~\eqref{eq:route-flow}）与按物理位置的约束
+（式~\eqref{eq:ondie}--\eqref{eq:c4}）的编号；die 缩放模型（式~\eqref{eq:die-scale}）
+不显式出现，而是经 $\mathbf{N}^{\text{total}}(B)$ 与 $\mathbf{P}_{peak}(B)$ 进入系数与右手边。
+组内/组间可分离求解：$B^* = \min(B^*_{\text{intra}}, B^*_{\text{inter}})$——组内用 $\mathcal{E}_{\text{UCIe}}$ + $\mu$bump，
+组间用 $\mathcal{E}_{\text{SerDes}}$ + C4。
+
+\subsection{线性化（实现注记）}\label{sec:ov-linearize}
+
+主体约束是物理形式；LP 求解前做一次消元，使全部系数成为常数。
+热：消去 $\mathbf{T},\mathbf{P}$（利用 $\mathbf{G}^{-1}\ge 0$）得
+$B\,\mathbf{K}\,\mathbf{L}\le\mathbf{rhs}$，其中 $\mathbf{K}=\mathbf{G}^{-1}\mathbf{M}\mathbf{S}_{\text{dyn}}\mathbf{S}_{\text{bw}}^{-1}$，
+$\mathbf{rhs}=T_{\max}\mathbf{1}-\mathbf{G}^{-1}(\mathbf{P}_{peak}(B)\mathbf{1}+\mathbf{b})$。
+$\mu$bump：动态功耗的 bump 需求折进 lane 系数，静态功耗留在右手边取整。
+粗筛（L0）：$\mathbf{1}^T\mathbf{P}\le A_{ip}\,q_{\max}$。
+固定 $B$ 后这些系数与右手边都是常数，问题保持线性。
+
+\subsection{二分搜索求 $B^*$}\label{sec:ov-bisection}
+
+可行性关于 $B$ 单调（$B$ 越大物理约束越紧），二分收敛：
+
+\begin{verbatim}
+lo 可行, hi 不可行
+while hi - lo > step:
+    mid = (lo + hi) / 2
+    if LP_feasible(mid): lo = mid
+    else: hi = mid
+return lo
+\end{verbatim}
+
+每轮固定 $B$，求解式~\eqref{eq:unified-lp}（无目标函数、纯线性），
+$\log_2(B_{\max}/\varepsilon)$ 次 LP 调用即得 $\varepsilon$-近似的 $B^*$。
+$B$ 不进入目标函数，意味着每次 LP 规模更小、求解更稳定。

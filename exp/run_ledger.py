@@ -38,7 +38,7 @@ from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
 
 from diagnostics import (
     full_ledger, print_ledger,
-    solve_diagnostic, binding_with_meaning,
+    solve_diagnostic,
 )
 from run_matrix import TOPOS
 from lp.builder import build_scenario
@@ -68,13 +68,14 @@ def main():
         print(f"\n{'='*72}\n{name}  B* = {r.B_star:.0f} Gbps")
         for frac in (0.25, 0.5, 0.75, 1.0):
             B = r.B_star * frac
-            ctx, sol, L = solve_diagnostic(models, B)
-            ledger = full_ledger(models, L, B, T_max=T_MAX_K)
+            diag = solve_diagnostic(models, B)
+            ledger = full_ledger(models, diag.L_star, B, T_max=T_MAX_K)
             print_ledger(ledger, B, f"({frac:.0%} of B*)")
-            if sol.duals:
+            if diag.binding:
                 print("  绑定 (按 |dual| 降序):")
-                for n, v, meaning in binding_with_meaning(ctx, sol.duals):
-                    print(f"    {n:>22}  dual={v:+.3f}  {meaning}")
+                for b in diag.binding:
+                    print(f"    {b.name:>22}  [{b.family}]  "
+                          f"dual={b.dual:+.3f}  {b.meaning}")
 
 
 if __name__ == "__main__":

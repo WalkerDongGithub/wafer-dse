@@ -1,0 +1,25 @@
+# sow-x — 晶圆级 SoW-X, 两级互连 (LSI + SerDes), 微流控冷却
+# 代表场景: TSMC SoW-X (System-on-Wafer eXtended)
+# 物理来源: TSMC 3DFabric 技术文档, Li et al. IEEE OJSSCS 2024 Table 1
+#
+# 设计意图: 晶圆级 + 两级互连——
+# 邻接 die 用 SoW-X-LSI (400G, 0.10 pJ/bit, ≤6.5mm)
+# 远距 die 用 SoW-X-SerDes (100G, 0.25 pJ/bit, ≤50mm)
+# 两级互连策略: 短距用高密度并口, 长距用串行化。
+# 与 InFO-SoW 单级互连对比 → 两级策略的带宽/功耗权衡。
+# 适合超大规模 AI 训练 (晶圆级 + 远距 die 间高带宽)。
+#
+# 功率密度: 30W / 100mm² = 0.300 W/mm² (微流控)
+# 能效: 0.10 pJ/bit (LSI 短距) / 0.25 pJ/bit (SerDes 中距)
+# 互连距离: LSI ≤6.5mm, SerDes ≤50mm
+
+name: sow-x
+die: {width_mm: 10.0, height_mm: 10.0, static_power_w: 30.0, vdd_v: 0.8}
+bump: {name: μbump-25μm, pitch_um: 25.0, current_per_bump_ma: 40.0, utilization: 0.85}
+link: {name: SoW-X-LSI, lane_rate_gbps: 400.0, power_per_lane_w: 0.040}
+global_link: {name: SoW-X-SerDes, lane_rate_gbps: 100.0, power_per_lane_w: 0.025}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.3, k_interposer: 150.0, t_interposer_mm: 0.775,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 300.0, interposer_h_mm: 300.0,
+      metal_layers: 2, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

@@ -97,14 +97,14 @@ M-矩阵的逆矩阵所有元素都 $\ge 0$。物理含义：
 
 $$\mathbf{T} = \mathbf{G}^{-1}(\mathbf{P} + \mathbf{b}) \le T_{\text{max}} \cdot \mathbf{1}$$
 
-因为 $\mathbf{G}^{-1} \ge 0$，这是一个**保序映射**——两边同时左乘 $\mathbf{G}$，不等号方向不变：
+注意：**不要**两边左乘 $\mathbf{G}$ 来"保序"——$\mathbf{G}$ 是 M-矩阵（非对角非正），不是非负矩阵，左乘 $\mathbf{G}$ 不保序（反例：$\mathbf{G}=\begin{bmatrix}2&-1\\-1&2\end{bmatrix}$，$\mathbf{T}=[0.5,0.9]\le[1,1]$，但 $\mathbf{G}\mathbf{T}=[0.1,1.3]\not\le \mathbf{G}\cdot[1,1]$）。正确做法是直接用 $\mathbf{G}^{-1}$（常数矩阵）展开，它本身就是关于 $\mathbf{P}$ 的线性不等式：
 
-$$\mathbf{G} \cdot (T_{\text{max}} \cdot \mathbf{1}) \ge \mathbf{P} + \mathbf{b}$$
-
-右边 $\mathbf{P} + \mathbf{b}$ 是实际功率加环境贡献，左边 $\mathbf{G} \cdot (T_{\text{max}}\mathbf{1})$ 是**热网络在 $T_{\text{max}}$ 下能带走的最大功率**。不等式意味着：实际功率不能超过这个上限。
+$$\mathbf{G}^{-1}(\mathbf{P} + \mathbf{b}) \le T_{\text{max}} \cdot \mathbf{1}
+\iff
+\mathbf{G}^{-1}\mathbf{P} \le T_{\text{max}}\mathbf{1} - \mathbf{G}^{-1}\mathbf{b}$$
 
 代入 $\mathbf{P} = \mathbf{P}_0 + \mathbf{C} \cdot \mathbf{L}$：
 
-$$\boxed{\mathbf{C} \cdot \mathbf{L} \le \mathbf{G} \cdot (T_{\text{max}} \cdot \mathbf{1}) - \mathbf{b} - \mathbf{P}_0}$$
+$$\boxed{\mathbf{G}^{-1}\mathbf{C} \cdot \mathbf{L} \le T_{\text{max}}\mathbf{1} - \mathbf{G}^{-1}(\mathbf{b} + \mathbf{P}_0)}$$
 
-**热约束 = 关于 $\mathbf{L}$ 的线性不等式。** 整条推导链上唯一的"数学"就是 $\mathbf{G}^{-1} \ge 0$。写成代码只需构造 $\mathbf{G}$（5 行）、算右边常数、检查 $\mathbf{C} \cdot \mathbf{L} \le \text{常数}$。
+热约束 = 关于 $\mathbf{L}$ 的线性不等式（系数矩阵 $\mathbf{G}^{-1}\mathbf{C}$）。整条推导链上唯一的"数学"就是 $\mathbf{G}^{-1}$ 是常数矩阵（M-矩阵可逆），无需保序论证。写成代码只需构造 $\mathbf{G}$、算 $\mathbf{G}^{-1}\mathbf{C}$ 和 rhs、检查 $\mathbf{G}^{-1}\mathbf{C}\cdot\mathbf{L} \le \text{rhs}$。

@@ -1,0 +1,23 @@
+# ucie-12g — UCIe 2.5D Advanced Package, 12G/lane
+# 代表场景: 能效优先的 die-to-die 互连 (最低功耗 UCIe 档位)
+# 物理来源: UCIe 1.1 Spec Table 1-2 (Advanced Package, 45μm bump)
+#
+# 设计意图: UCIe 速率系列最低档——
+# 能效 0.3125 pJ/bit (所有互连技术中最低), 但 lane_rate 仅 12G。
+# 与 SerDes 的 4.0 pJ/bit 对比 → UCIe 能效优势 12.8×。
+# 适合 I/O 密集型 chiplet 间短距互连。
+#
+# 功率密度: 3W / 144mm² = 0.021 W/mm² (液冷余量极大)
+# 能效: 0.3125 pJ/bit (UCIe 最低功耗档)
+# 最大互连距离: 2mm (硅中介层上邻接 die)
+
+name: ucie-12g
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 3.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: UCIe-12G-Advanced, lane_rate_gbps: 12.0, power_per_lane_w: 0.00375}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 1.5, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 80.0, interposer_h_mm: 80.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

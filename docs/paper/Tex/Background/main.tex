@@ -1,10 +1,12 @@
 % 背景
-\chapter{背景：晶圆级集成与物理约束}\label{chap:background}
+\chapter{背景：晶圆级物理架构、按位置的约束与无阻塞语义}\label{chap:background}
 
-本章建立理解本文框架所需的前置知识。
-首先说明晶圆级集成平台的技术特征及其构建交换机的天然优势，
-然后系统梳理晶圆级交换机面临的五类核心物理约束——
-对每类约束，描述其物理本质、给出本文的建模思路、并说明该建模方式在框架中产生的效果。
+本章建立理解本文框架所需的前置知识，分三部分。
+首先说明晶圆级交换机的三层物理架构（Die--Interposer / Interposer--Substrate / 晶圆级集成）；
+其次按物理位置梳理七组核心物理约束（on-die / $\mu$bump / 布线 / 热 / C4 / 组间 / die 缩放），
+对每组给出物理本质与建模思路；
+最后澄清本文「无阻塞」的确切语义——无阻塞\textbf{潜能}，而非保证。
 
-\input{Tex/Background/1_wafer_scale}
+\input{Tex/Background/1_three_layer}
 \input{Tex/Background/2_physical_constraints}
+\input{Tex/Background/3_nonblocking}

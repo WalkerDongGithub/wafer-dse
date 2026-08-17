@@ -1,0 +1,26 @@
+# sow-info — 晶圆级 InFO-SoW, RDL 互连, 微流控冷却
+# 代表场景: TSMC InFO-SoW (Cerebras WSE-2/WSE-3 风格)
+# 物理来源: TSMC 3DFabric 技术文档, Li et al. IEEE OJSSCS 2024
+#           Cerebras WSE-2 public specs
+#
+# 设计意图: 晶圆级集成——所有 die 直接在同一晶圆上, 通过 RDL 互连。
+# 无硅中介层 (RDL 直接在 molding compound 上), 互连距离可达 50mm。
+# InFO-SoW 200G/lane + 0.15 pJ/bit → 能效介于 UCIe 和 SerDes 之间。
+# 微流控冷却 (R_vert=0.3) 是晶圆级散热的必要条件。
+# 适合大规模 AI 训练芯片 (单晶圆 >1000 个核心)。
+#
+# 功率密度: 50W / 225mm² = 0.222 W/mm² (微流控)
+# 能效: 0.15 pJ/bit (RDL 走线, 优于 SerDes 但不如 UCIe)
+# 互连距离: ≤50mm (RDL max_reach)
+# 晶圆尺寸: 300mm (≈ 70686mm² 可用面积)
+
+name: sow-info
+die: {width_mm: 15.0, height_mm: 15.0, static_power_w: 50.0, vdd_v: 0.8}
+bump: {name: μbump-25μm, pitch_um: 25.0, current_per_bump_ma: 40.0, utilization: 0.85}
+link: {name: InFO-SoW, lane_rate_gbps: 200.0, power_per_lane_w: 0.030}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 0.3, k_interposer: 150.0, t_interposer_mm: 0.775,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 300.0, interposer_h_mm: 300.0,
+      metal_layers: 2, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}

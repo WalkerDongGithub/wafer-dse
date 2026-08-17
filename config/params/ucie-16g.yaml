@@ -1,0 +1,23 @@
+# ucie-16g — UCIe 2.5D Advanced Package, 16G/lane
+# 代表场景: 主流 die-to-die 互连 (UCIe 最常用档位)
+# 物理来源: UCIe 1.1/2.0 Spec Table 1-2 (Advanced Package, 45μm bump)
+#
+# 设计意图: UCIe 速率系列主流档——
+# 能效 0.3125 pJ/bit, lane_rate 16G, max_reach 2mm。
+# 平衡能效与带宽，是 UCIe 生态中最广泛部署的档位。
+# 适合通用计算 chiplet 间互连。
+#
+# 功率密度: 5W / 144mm² = 0.035 W/mm² (液冷余量充足)
+# 能效: 0.3125 pJ/bit (与 12G 持平, 速率更高)
+# 最大互连距离: 2mm (硅中介层上邻接 die)
+
+name: ucie-16g
+die: {width_mm: 12.0, height_mm: 12.0, static_power_w: 5.0, vdd_v: 0.8}
+bump: {name: μbump-45μm, pitch_um: 45.0, current_per_bump_ma: 75.0, utilization: 0.9}
+link: {name: UCIe-16G-Advanced, lane_rate_gbps: 16.0, power_per_lane_w: 0.005}
+global_link: {name: SerDes-112G-VSR, lane_rate_gbps: 106.25, power_per_lane_w: 0.425}
+c4: {name: C4-130μm, pitch_um: 130.0, current_per_bump_ma: 300.0, utilization: 0.7}
+thermal: {r_vert_k_per_w: 1.5, k_interposer: 150.0, t_interposer_mm: 0.1,
+          t_ambient_k: 300.0, t_max_k: 358.15}
+pkg: {interposer_w_mm: 80.0, interposer_h_mm: 80.0,
+      metal_layers: 4, lanes_per_mm: 500.0, c4_pitch_mm: 5.0}
