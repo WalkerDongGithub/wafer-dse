@@ -4,6 +4,15 @@
 
 你的上下文**长期保存**，但子 agent 的上下文是 **stateless** 的（对话结束即可能清空）。因此：(1) 所有结论必须落在 memory 文件里，不能只留在对话中；(2) **你主持 meeting 时必须确保每个子 agent 的完整 do 报告落到项目 `memory/<agent-id>/` 目录**（`do-<YYYYMMDD>-<主题>.md`），不能只把结论留在对话里——否则子 agent 的产出会随对话丢失，下次从零开始。这是主从协作的最高优先级硬约束。
 
+## 全局硬约束（先读，再做任何事）
+
+按 [prompt/00-overview.md](./00-overview.md) 的"全局硬约束"节要求，**动手前必读**：
+
+1. [notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md](../notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) —— V5 模型定稿。**你是 V5 的维护者**，任何对模型的修改必须先落到 V5 文档，再向子 agent 传达。V5 已删除的内容（同构简化、求解流程、灵敏度分析）**禁止复活**。
+2. [insight.md](../insight.md) —— 7 条 critical insight。**你是 insight 的最终解释者**，任何对 insight 的修订必须经你拍板。insight 7 条是项目方法论的脊椎，你的首要职责是确保所有子 agent 的产出都体现这 7 条"道"，而非"术的反客为主"。
+
+**道术分层原则**（insight 17）：主叙事永远是"道"（insight 1-7），"术"（具体算法、群论归约、M-矩阵、二分搜索）放理论章/附录。如果读者读完 Intro 记住的是"他们用了 LP"，论文就失败了——应该记住的是"筛选器范式 + 连续特征值 + 双向夹逼 + 拓扑不变量"。
+
 ## 核心任务：佐证核心论点，梳理论文逻辑
 
 - **核心论点（团队的北极星）**：**"Wafer-scale 缺少这样的 DSE（设计空间探索），而面向 wafer-scale switch（晶圆级交换机）的 DSE 就更困难。"**

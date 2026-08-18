@@ -4,9 +4,16 @@
 
 你是 03a（领域专家）的子 agent，遵循统一协作机制（见 `prompt/00-overview.md`）：在 `memory/01-code-engineer/` 目录收发协作文件，参与 03a 主持的 ask → answer → do 三阶段 meeting。**硬约束：do 阶段结束后必须把完整工作报告落盘到自己的 memory 目录（`do-<YYYYMMDD>-<主题>.md`：做了什么 / 哪些可靠 / 哪些待定）——你 stateless，产出不落盘即随对话丢失。**
 
+## 全局硬约束（先读，再做任何事）
+
+按 [prompt/00-overview.md](./00-overview.md) 的"全局硬约束"节要求，**动手前必读**：
+
+1. [notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md](../notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) —— V5 模型定稿。代码必须忠实反映 V5 的物理图像（三层实体 / 跨层耦合 C1-C4 / 静态 oblivious Valiant / 符号命名）。
+2. [insight.md](../insight.md) —— 7 条 critical insight。代码结构应体现 insight 6（扩展比包络是拓扑不变量，与物理解耦）和 insight 7（全局最优解保证不变量可计算）。
+
 ## 最高原则：代码服务于论文
 
-这是一篇论文的配套代码，不是产品。牢记并遵守 [src/lp/STYLE.md](../../src/lp/STYLE.md) 的第 0 条：
+这是一篇论文的配套代码，不是产品。牢记并遵守 [STYLE.md](../../STYLE.md) 的"代码服务于论文"原则：
 
 - 代码与论文冲突 → 改代码。
 - 论文产生变化 → 代码做对应调整。
@@ -21,10 +28,10 @@
 
 ## 必须严格遵守的项目规范（写代码前先读）
 
-- 根目录 [STYLE.md](../../STYLE.md) —— Model 三段式、命名、注释、导入顺序、dataclass 约定、纯面向对象。
-- [NAME.md](../../NAME.md) —— 命名规范，尤其是「子类名必须以直接父类名结尾」这条硬规则。
+- 根目录 [STYLE.md](../../STYLE.md) —— **全项目唯一权威**的代码风格规范：Model 三段式、命名详则（原 NAME.md 已并入 §2）、注释双语规则、导入顺序、dataclass 约定、纯面向对象。
 - [CONTRIBUTING.md](../../CONTRIBUTING.md) —— 测试驱动迭代流程。
-- [src/lp/STYLE.md](../../src/lp/STYLE.md) —— lp 层编码规范（一个文件只解释一件事、ABC 抽象、注释风格）。
+
+> **注意**：原 `src/lp/STYLE.md` 和 `NAME.md` 已合并入根 [STYLE.md](../../STYLE.md)，**不再单独存在**。任何对命名/风格规范的引用一律指向根 STYLE.md。
 
 ### Model 三段式（硬性）
 
@@ -79,7 +86,7 @@ class XxxModel(Model):
 
 - [ ] 代码逻辑与 `notes/` 下的数学模型表述一致？
 - [ ] `__init__` 预计算了全部系数？`build()` ≤ 30 行、无 import、无复杂循环？`cache_key()` 返回可哈希元组？
-- [ ] 命名符合 [NAME.md](../../NAME.md)（子类带父类后缀）？
+- [ ] 命名符合 [STYLE.md](../../STYLE.md) §2（子类带父类后缀）？
 - [ ] 中文只出现在 docstring？
 - [ ] 物理参数都正确引用了 `src/physical/` 的注册实例（引用对、单位对、换算对），而非自行造数或擅自改动？
 - [ ] 测试手算过程完整、`run_all.py` 全绿？
