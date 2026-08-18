@@ -1,4 +1,4 @@
-# test07 — 布线模型 (src/lp/models/phys/wiring/)
+# test07 — 布线模型 (src/problem/models/phys/wiring/)
 
 ## 模块定位
 
@@ -8,8 +8,8 @@ die 之间的 lane 需要在 interposer 金属层上走线。布线模型把 int
 
 ```python
 import sys; sys.path.insert(0, '../src')
-from lp.models.phys.wiring import build_wiring_grid, populate_paths
-from lp import DiePlacement
+from problem.models.phys.wiring import build_wiring_grid, populate_paths
+from physical.layout.thermal_network import DiePlacement
 ```
 
 ---

@@ -24,13 +24,13 @@ _project_root = Path(__file__).resolve().parent.parent
 if str(_project_root / "src") not in sys.path:
     sys.path.insert(0, str(_project_root / "src"))
 
-from lp import Ctx, CvxSolver, Runner, ResultStore
-from lp import (
+from problem import Ctx, CvxSolver, Runner, ResultStore
+from problem import (
     EnvelopeModel, select_representatives,
     BumpModel, SteadyStateModel,
 )
-from lp.queries import BmaxQuery
-from lp.builder import build_scenario
+from problem.queries import BmaxQuery
+from problem.builder import build_scenario
 from physical.params import TOY, UCIE_16G, UCIE_24G, UCIE_32G
 from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
 

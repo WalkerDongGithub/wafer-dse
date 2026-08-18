@@ -1,4 +1,4 @@
-# test03a — 流量需求模式 (src/lp/models/perf/traffic_based/traffic/)
+# test03a — 流量需求模式 (src/problem/models/perf/traffic_based/traffic/)
 
 ## 模块定位
 
@@ -9,13 +9,13 @@
 ```python
 import sys; sys.path.insert(0, '../src')
 import numpy as np
-from lp.models.perf.traffic_based.traffic import (
+from problem.models.perf.traffic_based.traffic import (
     Pattern, Selector,
-    TrafficMatrixPattern, PermutationPattern, PermutationRep,
+    TrafficMatrixPattern, PermutationPattern,
     ConjugacySelector, DerangementSelector, ManualSelector,
     select_representatives,
 )
-from lp.models.perf.traffic_based.traffic._conjugacy import (
+from problem.models.perf.traffic_based.traffic._conjugacy import (
     _partitions, _canonical_permutation, _is_derangement,
 )
 ```
@@ -97,15 +97,6 @@ print("✓ PermutationPattern is hashable and comparable")
 
 ---
 
-## 4. PermutationRep 是 PermutationPattern 的别名
-
-```python
-assert PermutationRep is PermutationPattern
-print("✓ PermutationRep == PermutationPattern")
-```
-
----
-
 ## 5. 整数分拆
 
 p(4) = 5：4 分为正整数之和有 5 种写法。每个分拆对应 S_n 的一个共轭类。
@@ -174,9 +165,9 @@ print("✓ select_representatives returns list[Pattern]")
 `Selector` 是 ABC。`ConjugacySelector`、`DerangementSelector`、`ManualSelector` 都实现 `select(n) → list[Pattern]`。
 
 ```python
-from lp.models.perf.traffic_based.traffic import Selector
-from lp.models.perf.traffic_based.traffic._brute import DerangementSelector
-from lp.models.perf.traffic_based.traffic._manual import ManualSelector
+from problem.models.perf.traffic_based.traffic import Selector
+from problem.models.perf.traffic_based.traffic._brute import DerangementSelector
+from problem.models.perf.traffic_based.traffic._manual import ManualSelector
 
 selectors: list[Selector] = [
     ConjugacySelector(True),

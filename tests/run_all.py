@@ -34,8 +34,8 @@ def main():
             "import sys; sys.path.insert(0, '../src')\n"
             + code
         )
-        tmp = Path("/tmp/_test_suite.py")
-        tmp.write_text(full_code)
+        tmp = Path(__file__).parent / "_test_suite.py"
+        tmp.write_text(full_code, encoding="utf-8")
 
         r = subprocess.run(
             [sys.executable, str(tmp)],

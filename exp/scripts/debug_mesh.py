@@ -9,11 +9,11 @@ _project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(_project_root / "src"))
 
 import numpy as np
-from lp import Ctx, CvxSolver, AnalyticNetworkBuilder, ThermalNetworkBuilder
-from lp import EnvelopeModel, select_representatives
-from lp import BumpModel, SteadyStateModel
-from lp import DiePlacement, MfitStackConfig
-from physical.bump.bump import BumpSpec, DieBumpBudget
+from problem import Ctx, CvxSolver, AnalyticNetworkBuilder, ThermalNetworkBuilder
+from problem import EnvelopeModel, select_representatives
+from problem import BumpModel, SteadyStateModel
+from problem import DiePlacement, MfitStackConfig
+from physical.config.spec_bump import BumpSpec, DieBumpBudget
 from physical.placement import PlacementProblem, solve_grid_placement
 from topology import Mesh
 

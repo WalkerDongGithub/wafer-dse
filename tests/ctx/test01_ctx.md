@@ -1,4 +1,4 @@
-# test01 — LP 问题构造上下文 (src/lp/ctx/)
+# test01 — LP 问题构造上下文 (src/problem/ctx/)
 
 ## 模块定位
 
@@ -12,7 +12,7 @@ LinExpr 内部是 `{ ("变量名", 索引): 系数 }` 的字典，不存值—�
 
 ```python
 import sys; sys.path.insert(0, '../src')
-from lp.ctx import Ctx
+from problem.ctx import Ctx
 ```
 
 ---

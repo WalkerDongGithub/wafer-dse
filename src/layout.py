@@ -1,13 +1,13 @@
 """布局设计（更高层）—— 拓扑分片 + die 摆放.
 
-布局是设计决策，在 exp 层做出，然后作为输入传给 lp.builder。
-lp 层不碰 placement 求解器。
+布局是设计决策，在 exp 层做出，然后作为输入传给 problem.builder。
+problem 层不碰 placement 求解器。
 """
 
 from __future__ import annotations
 
-from lp.builder import Layout
-from lp import DiePlacement
+from physical.layout import Layout
+from physical.layout.thermal_network import DiePlacement
 from physical.params import ExpParams
 from physical.placement import PlacementProblem, solve_grid_placement
 from topology import FullMesh, Dragonfly

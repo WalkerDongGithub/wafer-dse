@@ -5,7 +5,7 @@
 ## 快速开始
 
 ```bash
-make test          # 全部测试（tests/ 下 12 个 .md，叙述 + 可运行代码块）
+make test          # 全部测试（tests/ 下 17 个 .md，14 通过 + 3 待修）
 make run           # CLI：读 YAML 配置求解（默认 toy 示例）
 make run PROBLEM=config/problems/ucie32g_mesh3.yaml
 make matrix        # 实验矩阵：拓扑 × 约束场景 → B* 表 + CSV
@@ -39,18 +39,19 @@ src/
 ├── topology/         拓扑定义，Topology ABC（Mesh/Torus/KaryNCube/FullMesh/Dragonfly）
 ├── physical/
 │   ├── params.py     参数组合结构体（ExpParams：TOY + UCIE 三档）
-│   ├── bump/         μbump / C4 bump 规格
+│   ├── config/       物理规格（spec_bump / spec_interconnect / spec_thermal / validator）
 │   ├── placement/    网格布局（PlacementSolver ABC + GridFillSolver）
-│   ├── interconnect/ UCIe / SerDes / 光 / 以太网 / TSV 标准注册表
-│   └── thermal/      冷却方案 + MFIT/hierarchical/simple 求解器
-└── lp/               LP 引擎
-    ├── builder.py    建模工具包：拓扑 + 参数 + 布局 → 模型列表
+│   └── layout/       几何实体（Layout / Interposer / Substrate）
+│       ├── thermal_network/   布局 → 预计算热网络（G⁻¹/rhs/link_coeff）
+│       └── thermal_solver/    工厂驱动的热求解器多态（simple/mfit/hierarchical）
+└── problem/          LP 引擎（纯数学层，不 import physical）
+    ├── builder/      编排：拓扑 + 参数 + Layout → 模型列表
     ├── ctx/          变量声明 + 约束注册（constrain(name, lhs, sense, rhs, meaning)）
     ├── models/
     │   ├── perf/     性能包络（SelectedEnvelopeModel + 排列选择器）
     │   └── phys/
     │       ├── bumps/ μbump + C4
-    │       ├── therm/ 热约束族（L0 全局 / L1 稳态 / network/ 热网络构建器）
+    │       ├── therm/ 热约束族（L0 全局 / L1 稳态 / L2 翘曲 — LP 模板）
     │       └── wiring/ 布线网格 + 多商品流
     ├── engine/       求解器（CvxSolver）+ 缓存（Runner）
     └── queries/      查询（FeasibilityQuery / BmaxQuery，共享缓存）
@@ -60,7 +61,7 @@ exp/                实验编排（只做选参数、跑查询、收集结果）
 ├── run_ledger.py    约束账本扫描
 └── smoke_*.py       冒烟测试
 
-tests/              测试即文档（.md 叙述 + 可运行代码块，12 个）
+tests/              测试即文档（.md 叙述 + 可运行代码块，17 个 .md（14 通过 + 3 待修））
 config/             物理参数 + 问题定义
 notes/              论文文档（见下表）
 ```
@@ -68,8 +69,8 @@ notes/              论文文档（见下表）
 ### Python 编程入口
 
 ```python
-from lp import Ctx, CvxSolver, Runner, BmaxQuery
-from lp.builder import build_scenario
+from problem import Ctx, CvxSolver, Runner, BmaxQuery
+from problem.builder import build_scenario
 from layout import place
 from physical.params import TOY
 from topology import FullMesh
@@ -92,7 +93,7 @@ print(f"B* = {r.B_star:.0f} Gbps")             # toy: 4453（手算锚点 4500�
 
 | 文档 | 内容 |
 |------|------|
-| [MATH_MODEL_COMPLETE_V4.md](notes/MATH_MODEL_COMPLETE_V4.md) | 当前数理模型总纲（V4 为代码对齐目标） |
+| [MATH_MODEL_V5_JOINT_SENSITIVITY.md](notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) | 当前数理模型总纲（V5 为代码对齐目标（唯一权威）） |
 | [INTERFACE_DESIGN.md](notes/INTERFACE_DESIGN.md) | 接口设计 + UML 类图 + 已知不一致 |
 | [plan_inter_group.md](notes/plan_inter_group.md) | 组内/组间双模型实验计划 |
 | [RENT_RULE_AND_IO_DENSITY.md](notes/literature/RENT_RULE_AND_IO_DENSITY.md) | Rent's rule / bump / RDL 文献卡 |
@@ -104,6 +105,6 @@ print(f"B* = {r.B_star:.0f} Gbps")             # toy: 4453（手算锚点 4500�
 
 ```bash
 make test
-# tests/ 下 12 个 .md：叙述 + 可运行代码块（run_all.py 提取执行）
+# tests/ 下 17 个 .md：叙述 + 可运行代码块（run_all.py 提取执行，14 通过 + 3 待修）
 # toy 参数组的手算锚点写死在 test09/test10——模型输出与手算不一致当场变红
 ```

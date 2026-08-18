@@ -4,7 +4,7 @@
 
 | 目录 | 用途 |
 |------|------|
-| `src/` | 核心代码：`lp/`（LP 引擎：ctx/engine/models/queries）、`topology/`（Mesh/Torus/Dragonfly 等）、`physical/`（互连/bump/热/布局） |
+| `src/` | 核心代码：`problem/`（LP 引擎：ctx/engine/models/queries）、`topology/`（Mesh/Torus/Dragonfly 等）、`physical/`（config/layout/placement） |
 | `notes/` | 知识库：数理模型、设计文档、文献笔记（PDF 已 gitignore） |
 | `docs/paper/` | 论文 LaTeX（学位论文模板 ucasthesis） |
 | `prompt/` | 多角色协作 prompt 库（00-overview 协作机制 + 各角色） |

@@ -64,9 +64,10 @@ FullMesh(2,1)：2 die、2 条 die 间有向链路 + 4 条 on-die（零代价）�
 
 ```python
 import numpy as np
-from lp import Ctx, CvxSolver, Runner, EnvelopeModel, select_representatives, BumpModel, SteadyStateModel,  DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder
-from lp.queries import BmaxQuery
-from physical.bump.bump import DieBumpBudget
+from problem import Ctx, CvxSolver, Runner, EnvelopeModel, select_representatives, BumpModel, SteadyStateModel
+from physical.layout.thermal_network import DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder
+from problem.queries import BmaxQuery
+from physical.config.spec_bump import DieBumpBudget
 from physical.placement import PlacementProblem, solve_grid_placement
 from topology import FullMesh
 

@@ -22,14 +22,14 @@ import sys; sys.path.insert(0, '../src')
 import inspect
 import numpy as np
 from physical.params import DieParams
-from physical.bump.bump import BumpSpec, DieBumpBudget
-from physical.thermal import CoolingSolution
-from lp import Ctx
-from lp.ctx import Model
-from lp.models.phys.bumps import BumpModel
-from lp.models.phys.therm._temp_limit import GlobalPowerModel
-from lp.models.phys.therm._steady_state import SteadyStateModel
-from lp.models.phys.therm.network import (
+from physical.config.spec_bump import BumpSpec, DieBumpBudget
+from physical.config.spec_thermal import CoolingSolution
+from problem import Ctx
+from problem.ctx import Model
+from problem.models.phys.bumps import BumpModel
+from problem.models.phys.therm._temp_limit import GlobalPowerModel
+from problem.models.phys.therm._steady_state import SteadyStateModel
+from physical.layout.thermal_network import (
     DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder,
 )
 ```

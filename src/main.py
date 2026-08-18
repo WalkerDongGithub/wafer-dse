@@ -23,9 +23,9 @@ from pathlib import Path
 
 import yaml
 
-from lp import Ctx, CvxSolver, Runner, ResultStore
-from lp.builder import build_scenario
-from lp.queries import BmaxQuery, FeasibilityQuery
+from problem import Ctx, CvxSolver, Runner, ResultStore
+from problem.builder import build_scenario
+from problem.queries import BmaxQuery, FeasibilityQuery
 from layout import place
 from physical.params import ExpParams
 from diagnostics import solve_diagnostic, full_ledger, print_ledger

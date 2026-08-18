@@ -1,4 +1,4 @@
-# test03b — EnvelopeModel (src/lp/models/perf/traffic_based/_envelope.py)
+# test03b — EnvelopeModel (src/problem/models/perf/traffic_based/_envelope.py)
 
 ## 模块定位
 
@@ -16,9 +16,9 @@ paths 和 link_incidence 是 `(topology, pattern)` 的派生产物，在 `build(
 import sys; sys.path.insert(0, '../src')
 import itertools
 import numpy as np
-from lp import Ctx, CvxSolver
-from lp.models.perf.traffic_based import EnvelopeModel
-from lp.models.perf.traffic_based.traffic import TrafficMatrixPattern, PermutationPattern
+from problem import Ctx, CvxSolver
+from problem.models.perf.traffic_based import EnvelopeModel
+from problem.models.perf.traffic_based.traffic import TrafficMatrixPattern, PermutationPattern
 from topology import Mesh
 ```
 
@@ -260,8 +260,8 @@ print("✓ PermutationPattern works identically to TrafficMatrixPattern in Envel
 `SelectedEnvelopeModel(topo, selector=None)` 继承 `EnvelopeModel`，构造时内部用 selector 生成代表置换——builder 不需要自己调 `select_representatives`，给拓扑 new 模型就完事。默认 selector 是 `ConjugacySelector`（共轭类代表元，当前唯一生产实现）。
 
 ```python
-from lp.models.perf.traffic_based._envelope import SelectedEnvelopeModel
-from lp.models.perf.traffic_based.traffic import select_representatives
+from problem.models.perf.traffic_based._envelope import SelectedEnvelopeModel
+from problem.models.perf.traffic_based.traffic import select_representatives
 
 graph4 = Mesh(2)
 
@@ -279,7 +279,7 @@ assert len(ctx_a.constraints) == len(ctx_m.constraints)
 assert [c.name for c in ctx_a.constraints] == [c.name for c in ctx_m.constraints]
 
 # 显式 selector 也能用
-from lp.models.perf.traffic_based.traffic import ManualSelector
+from problem.models.perf.traffic_based.traffic import ManualSelector
 m = SelectedEnvelopeModel(graph4, ManualSelector([(1, 0, 3, 2)]))
 ctx4 = Ctx(); m.build(ctx4, B=800.0)
 assert any(c.name.startswith("r0_flow") for c in ctx4.constraints)

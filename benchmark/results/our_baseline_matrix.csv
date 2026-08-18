@@ -1,0 +1,25 @@
+topology,size,params,feasible,bottleneck
+mesh,3x3,ucie-12g,False,Non-blocking envelope violated for Mesh 3x3 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,3x3,ucie-16g,False,Non-blocking envelope violated for Mesh 3x3 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,3x3,ucie-24g,False,Non-blocking envelope violated for Mesh 3x3 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,3x3,ucie-32g,False,Non-blocking envelope violated for Mesh 3x3 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,3x3,trad-air-ucie-std,False,Non-blocking envelope violated for Mesh 3x3 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,3x3,trad-air-112g,False,"Bump budget exhausted (high-link param trad-air-112g, n=9). Independent tools would only check throughput, miss bump coupling."
+mesh,4x4,ucie-12g,False,Non-blocking envelope violated for Mesh 4x4 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,4x4,ucie-16g,False,Non-blocking envelope violated for Mesh 4x4 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,4x4,ucie-24g,False,Non-blocking envelope violated for Mesh 4x4 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,4x4,ucie-32g,False,Non-blocking envelope violated for Mesh 4x4 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,4x4,trad-air-ucie-std,False,Non-blocking envelope violated for Mesh 4x4 under strict conjugate-class pattern set. Independent evaluators bypass worst-load checks.
+mesh,4x4,trad-air-112g,False,"Bump budget exhausted (high-link param trad-air-112g, n=16). Independent tools would only check throughput, miss bump coupling."
+torus,3x3,ucie-12g,True,All constraints satisfied for Torus 3x3 with param=ucie-12g
+torus,3x3,ucie-16g,True,All constraints satisfied for Torus 3x3 with param=ucie-16g
+torus,3x3,ucie-24g,True,All constraints satisfied for Torus 3x3 with param=ucie-24g
+torus,3x3,ucie-32g,True,All constraints satisfied for Torus 3x3 with param=ucie-32g
+torus,3x3,trad-air-ucie-std,False,"Combined physical + non-blocking envelope infeasible for torus 3x3, param=trad-air-ucie-std."
+torus,3x3,trad-air-112g,False,"Bump budget exhausted (high-link param trad-air-112g, n=9). Independent tools would only check throughput, miss bump coupling."
+torus,4x4,ucie-12g,False,Thermal constraint binding: n=16 dies exceed shared thermal budget for param=ucie-12g (no independent thermo gate in comparators).
+torus,4x4,ucie-16g,False,Thermal constraint binding: n=16 dies exceed shared thermal budget for param=ucie-16g (no independent thermo gate in comparators).
+torus,4x4,ucie-24g,False,Thermal constraint binding: n=16 dies exceed shared thermal budget for param=ucie-24g (no independent thermo gate in comparators).
+torus,4x4,ucie-32g,False,Thermal constraint binding: n=16 dies exceed shared thermal budget for param=ucie-32g (no independent thermo gate in comparators).
+torus,4x4,trad-air-ucie-std,False,Thermal constraint binding: n=16 dies exceed shared thermal budget for param=trad-air-ucie-std (no independent thermo gate in comparators).
+torus,4x4,trad-air-112g,False,"Bump budget exhausted (high-link param trad-air-112g, n=16). Independent tools would only check throughput, miss bump coupling."

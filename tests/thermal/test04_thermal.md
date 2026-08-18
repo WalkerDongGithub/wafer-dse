@@ -1,4 +1,4 @@
-# test04 — 热模型 (src/lp/models/phys/therm/)
+# test04 — 热模型 (src/problem/models/phys/therm/)
 
 ## 我们要解决什么问题
 
@@ -11,11 +11,11 @@
 ```python
 import sys; sys.path.insert(0, '../src')
 import numpy as np
-from lp.models.phys.therm.network import (
+from physical.layout.thermal_network import (
     DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder,
 )
-from lp.models.phys.therm._steady_state import SteadyStateModel
-from lp import Ctx
+from problem.models.phys.therm._steady_state import SteadyStateModel
+from problem import Ctx
 ```
 
 ---
@@ -307,7 +307,7 @@ B × link_coeff × L ≤ rhs  (Layer C: SteadyStateModel.build)
 "placement → 热网络"这层留接口：`ThermalNetworkBuilder(ABC)`，输入布局，输出 `ThermalNetwork`。model 层（`SteadyStateModel`）不关心 G/b 怎么来的——将来换 MFIT 仿真标定、hierarchical 标定网络，只是加一个子类。
 
 ```python
-from lp.models.phys.therm.network import ThermalNetworkBuilder, AnalyticNetworkBuilder
+from physical.layout.thermal_network import ThermalNetworkBuilder, AnalyticNetworkBuilder
 
 # ABC 不可实例化
 try:
@@ -350,7 +350,7 @@ print(f"✓ {builder.name} 构建器: 与手工两步构建逐矩阵一致")
 - 合法构造只有 `ThermalNetwork.from_system(...)` 类方法，构造时校验不变量
 
 ```python
-from lp.models.phys.therm.network._net import ThermalNetwork
+from physical.layout.thermal_network._net import ThermalNetwork
 
 # 直接构造被禁
 try:

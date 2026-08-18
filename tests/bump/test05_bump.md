@@ -1,4 +1,4 @@
-# test05 — μbump 预算 (src/lp/models/phys/bumps/_bump.py)
+# test05 — μbump 预算 (src/problem/models/phys/bumps/_bump.py)
 
 ## 模块定位
 
@@ -8,10 +8,10 @@
 
 ```python
 import sys; sys.path.insert(0, '../src')
-from physical.bump.bump import BumpSpec, DieBumpBudget
-from lp.models.phys.bumps import BumpModel
+from physical.config.spec_bump import BumpSpec, DieBumpBudget
+from problem.models.phys.bumps import BumpModel
 from topology import Mesh
-from lp import Ctx
+from problem import Ctx
 ```
 
 ---

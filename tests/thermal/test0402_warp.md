@@ -1,4 +1,4 @@
-# test0402 — 翘曲约束 (src/lp/models/phys/therm/_warp_limit.py)
+# test0402 — 翘曲约束 (src/problem/models/phys/therm/_warp_limit.py)
 
 ## 问题
 
@@ -29,12 +29,12 @@ $$B \cdot \underbrace{\mathbf{W} \cdot \mathbf{K}}_{warp\_coeff} \cdot \mathbf{L
 ```python
 import sys; sys.path.insert(0, '../src')
 import numpy as np
-from lp.models.phys.therm.network import (
+from physical.layout.thermal_network import (
     DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder,
 )
-from lp.models.phys.therm._steady_state import SteadyStateModel
-from lp.models.phys.therm._warp_limit import WarpModel, _are_adjacent
-from lp import Ctx
+from problem.models.phys.therm._steady_state import SteadyStateModel
+from problem.models.phys.therm._warp_limit import WarpModel, _are_adjacent
+from problem import Ctx
 ```
 
 ---

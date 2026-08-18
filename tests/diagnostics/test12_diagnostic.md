@@ -22,7 +22,7 @@ query 层回答"可行吗 / B\* 是多少"，诊断原语回答第三个问题�
 
 ```python
 import sys; sys.path.insert(0, '../src')
-from lp import Model
+from problem import Model
 from diagnostics import solve_diagnostic, constraint_family
 
 
@@ -168,7 +168,7 @@ for name, want in cases.items():
 默认求解器（CLARABEL 内点法）在退化点上不一定报 dual=0。为了隔离判定逻辑本身，这里用 monkeypatch 把 `CvxSolver.solve` 换成"返回 L\*=(2,0)、duals 为空"的确定性结果，模拟 dual=0 的退化点：
 
 ```python
-from lp import CvxSolver, Result
+from problem import CvxSolver, Result
 
 class ToyMarginModel(Model):
     """退化 toy：物理上界与需求下界同值，取等但 dual=0。"""

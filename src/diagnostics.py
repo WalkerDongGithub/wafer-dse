@@ -31,10 +31,10 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import TYPE_CHECKING
 
-from lp import Ctx, CvxSolver
+from problem import Ctx, CvxSolver
 
 if TYPE_CHECKING:
-    from lp.ctx import LinearC
+    from problem.ctx import LinearC
 
 # 物理约束家族 = 约束名前缀 → 模型家族。顺序无关（各前缀互不重叠），
 # 但 route 放在 c4 之前是防御性的：route_c4pad_* 属于布线家族，不属于 C4。

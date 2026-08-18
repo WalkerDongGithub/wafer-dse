@@ -26,13 +26,13 @@ if str(_project_root / "src") not in sys.path:
 if str(_project_root / "exp") not in sys.path:
     sys.path.insert(0, str(_project_root / "exp"))
 
-from lp import Ctx, CvxSolver, Runner, ResultStore
-from lp import (
+from problem import Ctx, CvxSolver, Runner, ResultStore
+from problem import (
     EnvelopeModel, select_representatives,
     BumpModel, SteadyStateModel,
 )
-from lp.queries import BmaxQuery
-from physical.bump.bump import DieBumpBudget, UBUMP_45UM
+from problem.queries import BmaxQuery
+from physical.config.spec_bump import DieBumpBudget, UBUMP_45UM
 from physical.placement import PlacementProblem, solve_grid_placement
 from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
 
@@ -41,7 +41,7 @@ from diagnostics import (
     solve_diagnostic,
 )
 from run_matrix import TOPOS
-from lp.builder import build_scenario
+from problem.builder import build_scenario
 from physical.params import UCIE_32G
 from layout import place
 

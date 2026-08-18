@@ -7,15 +7,15 @@
           的 16/24/32 GT/s 三档。功耗为 UCIe 典型值。
           SerDes 统一标准: OIF-CEI-112G-VSR (最经典档位)。
 
-所有数字来自 src/physical/interconnect/{ucie,serdes}.py 的注册实例，
-与 src/physical/bump/bump.py 的预设一一对应，不重复造参数。
+物理参数实例来自 `physical.config.spec_*` 模块，与 UCIe 1.1/2.0 Spec、
+OIF-CEI-112G-VSR、JEDEC 标准对齐说明见各 spec 模块 docstring。
 """
 
 from __future__ import annotations
 
 from dataclasses import dataclass, field
 
-from physical.bump.bump import BumpSpec, UBUMP_45UM, C4_130UM
+from physical.config.spec_bump import BumpSpec, UBUMP_45UM, C4_130UM
 
 
 @dataclass(frozen=True)

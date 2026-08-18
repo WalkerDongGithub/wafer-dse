@@ -1,10 +1,10 @@
 """实验辅助——构建 session（拓扑 + 模型 + runner）。"""
 
 import numpy as np
-from lp import Ctx, CvxSolver, Runner
-from lp import EnvelopeModel, select_representatives
-from lp import BumpModel, SteadyStateModel, ThermalNetworkBuilder
-from physical.bump.bump import DieBumpBudget
+from problem import Ctx, CvxSolver, Runner
+from problem import EnvelopeModel, select_representatives
+from problem import BumpModel, SteadyStateModel, ThermalNetworkBuilder
+from physical.config.spec_bump import DieBumpBudget
 
 
 def _default_thermal_network(n_nodes: int, die_to_links: dict, n_links: int):

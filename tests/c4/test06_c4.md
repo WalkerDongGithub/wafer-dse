@@ -1,4 +1,4 @@
-# test06 — C4 bump 预算 (src/lp/models/phys/bumps/_c4.py)
+# test06 — C4 bump 预算 (src/problem/models/phys/bumps/_c4.py)
 
 ## 模块定位
 
@@ -14,7 +14,7 @@ $$N_{signal} = N_{total} - N_{pwr}$$
 
 ```python
 import sys; sys.path.insert(0, '../src')
-from physical.bump.bump import BumpSpec, C4Budget
+from physical.config.spec_bump import BumpSpec, C4Budget
 ```
 
 ---

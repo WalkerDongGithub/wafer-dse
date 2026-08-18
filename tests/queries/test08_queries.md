@@ -1,4 +1,4 @@
-# test08 — query 层 (src/lp/queries/)
+# test08 — query 层 (src/problem/queries/)
 
 ## 模块定位
 
@@ -21,11 +21,12 @@
 ```python
 import sys; sys.path.insert(0, '../src')
 import numpy as np
-from lp import Ctx, CvxSolver, Runner
-from lp import EnvelopeModel, select_representatives, BumpModel, SteadyStateModel, ThermalNetworkBuilder
-from lp.queries import FeasibilityQuery, BmaxQuery
+from problem import Ctx, CvxSolver, Runner
+from problem import EnvelopeModel, select_representatives, BumpModel, SteadyStateModel
+from physical.layout.thermal_network import ThermalNetworkBuilder
+from problem.queries import FeasibilityQuery, BmaxQuery
 from topology import Mesh
-from physical.bump.bump import UBUMP_45UM, DieBumpBudget
+from physical.config.spec_bump import UBUMP_45UM, DieBumpBudget
 
 topo = Mesh(2)  # 4 节点全 terminal，4 个 die
 
