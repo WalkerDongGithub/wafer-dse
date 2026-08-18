@@ -28,10 +28,17 @@ if TYPE_CHECKING:
 # ═══════════════════════════════════════════════════════════════════════════
 
 def _unique_paths(paths: list[list[int]]) -> list[list[int]]:
-    """路径去重——保持首次出现顺序。"""
+    """路径去重 + 过滤非简单路径——保持首次出现顺序。
+
+    Valiant 拼接 `det(src,mid) + det(mid,dst)[1:]` 时可能产生非简单路径
+    （中间节点重复），物理上无意义（包绕一圈再回），必须丢弃。
+    """
     seen: set[tuple[int, ...]] = set()
     result: list[list[int]] = []
     for p in paths:
+        # 简单性检查：节点不重复
+        if len(set(p)) != len(p):
+            continue
         key = tuple(p)
         if key not in seen:
             seen.add(key)
