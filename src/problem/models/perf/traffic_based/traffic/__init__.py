@@ -2,7 +2,7 @@
 流量需求模式 —— Pattern ABC + 排列生成器。
 
 Pattern 是流量需求矩阵 D_{ij} 的抽象。排列只是其中一种生成策略。
-EnvelopeModel 只依赖 Pattern 接口，不关心 D 是怎么来的。
+OptimalValiantModel 只依赖 Pattern 接口，不关心 D 是怎么来的。
 
 接口: select_representatives(topo, n_terminals) → list[Pattern]
 

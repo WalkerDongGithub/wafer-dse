@@ -10,7 +10,7 @@ Topology(ABC) 定义拓扑抽象接口：图结构 + 路由原语。
     link_index ── (links)
 
 pairs / paths_for_pair / link_incidence 不属于拓扑——它们是
-(topology, pattern) 的派生产物，由 EnvelopeModel 在使用点按需计算。
+(topology, pattern) 的派生产物，由 OptimalValiantModel 在使用点按需计算。
 """
 
 from __future__ import annotations

@@ -1,8 +1,8 @@
-# test03b — EnvelopeModel (src/problem/models/perf/traffic_based/_envelope.py)
+# test03b — OptimalValiantModel (src/problem/models/perf/traffic_based/_envelope.py)
 
 ## 模块定位
 
-`EnvelopeModel` 把一组 `Pattern` 变成 LP 约束。核心三条：
+`OptimalValiantModel` 把一组 `Pattern` 变成 LP 约束。核心三条：
 
 $$\sum_k f_{ij}^{k,(r)} = D_{ij}^{(r)} \quad \text{(每条 OD 对的流量守恒)}$$
 $$L_e^{(r)} = \sum_{(i,j,k): e \in \text{path}} f_{ij}^{k,(r)} \quad \text{(链路负载 = 分流之和)}$$
@@ -17,20 +17,20 @@ import sys; sys.path.insert(0, '../src')
 import itertools
 import numpy as np
 from problem import Ctx, CvxSolver
-from problem.models.perf.traffic_based import EnvelopeModel
+from problem.models.perf.traffic_based import OptimalValiantModel
 from problem.models.perf.traffic_based.traffic import TrafficMatrixPattern, PermutationPattern
 from topology import Mesh
 ```
 
 ---
 
-## 辅助：复现 EnvelopeModel 的 pair/path/incidence 计算
+## 辅助：复现 OptimalValiantModel 的 pair/path/incidence 计算
 
-EnvelopeModel 按 D 矩阵的非零项逐行扫描生成 active pairs，下面这个函数做完全一样的计算。
+OptimalValiantModel 按 D 矩阵的非零项逐行扫描生成 active pairs，下面这个函数做完全一样的计算。
 
 ```python
 def _build_incidence(topo, D):
-    """与 EnvelopeModel.build() 完全一致的计算：返回 (active, pair_paths, inc)。"""
+    """与 OptimalValiantModel.build() 完全一致的计算：返回 (active, pair_paths, inc)。"""
     terminals = topo.terminals
     li = topo.link_index
 
@@ -85,7 +85,7 @@ D_01 = np.array([[0.0, 0.5, 0.0, 0.0],
                   [0.0, 0.0, 0.0, 0.0]])
 pattern = TrafficMatrixPattern("0to1", D_01)
 
-model = EnvelopeModel(graph, [pattern])
+model = OptimalValiantModel(graph, [pattern])
 ctx = Ctx()
 model.build(ctx, B=800.0)
 L = ctx["L"]
@@ -180,7 +180,7 @@ DB = np.array([[0.0, 0.0, 1.0, 0.0],
                [0.0, 0.0, 0.0, 0.0],
                [0.0, 0.0, 0.0, 0.0]])
 
-model2 = EnvelopeModel(graph, [
+model2 = OptimalValiantModel(graph, [
     TrafficMatrixPattern("A_01", DA),
     TrafficMatrixPattern("B_02", DB),
 ])
@@ -228,7 +228,7 @@ print("✓ flow conservation holds for both patterns")
 
 ## 第三部分：排列模式同样可用
 
-`PermutationPattern` 和 `TrafficMatrixPattern` 都实现 `Pattern`，`EnvelopeModel` 不区分。
+`PermutationPattern` 和 `TrafficMatrixPattern` 都实现 `Pattern`，`OptimalValiantModel` 不区分。
 
 ```python
 graph3 = Mesh(2)
@@ -236,7 +236,7 @@ graph3 = Mesh(2)
 pp0 = PermutationPattern("swap01", (1, 0, 3, 2))  # 0↔1, 2↔3
 pp1 = PermutationPattern("cycle02", (2, 3, 1, 0))  # 0→2→1→3→0
 
-model3 = EnvelopeModel(graph3, [pp0, pp1])
+model3 = OptimalValiantModel(graph3, [pp0, pp1])
 ctx3 = Ctx()
 model3.build(ctx3, B=800.0)
 
@@ -250,25 +250,25 @@ Lr1 = sol3.variables["Lr_r1"]
 for li in range(graph3.n_links):
     assert abs(L3[li] - max(Lr0[li], Lr1[li])) < 1e-6
 
-print("✓ PermutationPattern works identically to TrafficMatrixPattern in EnvelopeModel")
+print("✓ PermutationPattern works identically to TrafficMatrixPattern in OptimalValiantModel")
 ```
 
 ---
 
-## 第四部分：SelectedEnvelopeModel —— 选择器驱动的包络模型
+## 第四部分：SelectedOptimalValiantModel —— 选择器驱动的包络模型
 
-`SelectedEnvelopeModel(topo, selector=None)` 继承 `EnvelopeModel`，构造时内部用 selector 生成代表置换——builder 不需要自己调 `select_representatives`，给拓扑 new 模型就完事。默认 selector 是 `ConjugacySelector`（共轭类代表元，当前唯一生产实现）。
+`SelectedOptimalValiantModel(topo, selector=None)` 继承 `OptimalValiantModel`，构造时内部用 selector 生成代表置换——builder 不需要自己调 `select_representatives`，给拓扑 new 模型就完事。默认 selector 是 `ConjugacySelector`（共轭类代表元，当前唯一生产实现）。
 
 ```python
-from problem.models.perf.traffic_based._envelope import SelectedEnvelopeModel
+from problem.models.perf.traffic_based._envelope import SelectedOptimalValiantModel
 from problem.models.perf.traffic_based.traffic import select_representatives
 
 graph4 = Mesh(2)
 
 # 默认 selector（共轭类）与手动 select 必须完全等价
 manual_reps = select_representatives(graph4, graph4.n_terminals)
-auto_model = SelectedEnvelopeModel(graph4)
-manual_model = EnvelopeModel(graph4, manual_reps)
+auto_model = SelectedOptimalValiantModel(graph4)
+manual_model = OptimalValiantModel(graph4, manual_reps)
 
 assert auto_model.cache_key() == manual_model.cache_key(), \
     "默认 selector 的结果必须与 select_representatives 一致"
@@ -280,8 +280,8 @@ assert [c.name for c in ctx_a.constraints] == [c.name for c in ctx_m.constraints
 
 # 显式 selector 也能用
 from problem.models.perf.traffic_based.traffic import ManualSelector
-m = SelectedEnvelopeModel(graph4, ManualSelector([(1, 0, 3, 2)]))
+m = SelectedOptimalValiantModel(graph4, ManualSelector([(1, 0, 3, 2)]))
 ctx4 = Ctx(); m.build(ctx4, B=800.0)
 assert any(c.name.startswith("r0_flow") for c in ctx4.constraints)
-print("✓ SelectedEnvelopeModel: 默认 = 共轭类代表元，与手动 select 逐约束一致")
+print("✓ SelectedOptimalValiantModel: 默认 = 共轭类代表元，与手动 select 逐约束一致")
 ```

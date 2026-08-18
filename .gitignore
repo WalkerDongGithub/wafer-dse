@@ -29,6 +29,9 @@ build/
 outputs/
 dse_results/
 
+# Cache (precomputed envelopes, etc.)
+cache/
+
 # Documents / media (not source)
 *.pdf
 

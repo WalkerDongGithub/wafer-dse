@@ -11,7 +11,11 @@ ThermalNetworkBuilder / AnalyticNetworkBuilder / plot_temperature)
 不在此导出——由 problem/builder 直接 import physical.layout.thermal_network.
 """
 
-from problem.models.perf import PerfModel, EnvelopeModel, SelectedEnvelopeModel
+from problem.models.perf import (
+    PerfModel,
+    OptimalValiantModel, SelectedOptimalValiantModel,
+    ObliviousValiantModel, SelectedObliviousValiantModel,
+)
 from problem.models.perf.traffic_based import (
     Pattern, Selector,
     PermutationPattern,
@@ -35,7 +39,9 @@ from problem.models.phys.wiring import (
 )
 
 __all__ = [
-    "PerfModel", "EnvelopeModel", "SelectedEnvelopeModel",
+    "PerfModel",
+    "OptimalValiantModel", "SelectedOptimalValiantModel",
+    "ObliviousValiantModel", "SelectedObliviousValiantModel",
     "PhysModel",
     "Pattern", "Selector",
     "PermutationPattern",

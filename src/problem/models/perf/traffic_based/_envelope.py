@@ -1,6 +1,7 @@
 """
-EnvelopeModel —— 多需求模式包络性能约束。
+OptimalValiantModel —— 最优路由下的 L 包络性能约束。
 
+f 作为决策变量，LP 优化分流策略以最小化 L——对应"最优路由下的包络"。
 对 R 个需求模式分别做 Valiant 分流，L 取各模式的最坏情况包络。
 
 数学（MATH_MODEL_COMPLETE_V2 §5.2）：对每个 r ∈ R，
@@ -27,8 +28,8 @@ if TYPE_CHECKING:
     from topology import Topology
 
 
-class EnvelopeModel(PerfModel):
-    """L_e = max_{r∈R} L^{(r)}_e —— 链路包络模型。
+class OptimalValiantModel(PerfModel):
+    """最优路由下的 L 包络——f 作为决策变量，LP 优化分流策略以最小化 L。
 
     topo: 拓扑对象，提供 terminals / links / link_index / valiant。
     patterns: 需求模式列表 R = [D^{(0)}, D^{(1)}, ...]。
@@ -127,8 +128,8 @@ class EnvelopeModel(PerfModel):
                 self._topo.n_links)
 
 
-class SelectedEnvelopeModel(EnvelopeModel):
-    """选择器驱动的包络模型 —— builder 的入口.
+class SelectedOptimalValiantModel(OptimalValiantModel):
+    """选择器驱动的最优路由包络模型 —— builder 的入口.
 
     给拓扑 + selector 就生成模型，builder 不需要自己调 select_representatives。
     默认 selector 是 ConjugacySelector（共轭类代表元，当前唯一生产实现）；

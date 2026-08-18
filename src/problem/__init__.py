@@ -19,7 +19,9 @@ from problem.ctx import Ctx, LinearC, Model, Term, VarSpec
 
 # 约束模型 + 流量选择器
 from problem.models import (
-    PerfModel, EnvelopeModel, SelectedEnvelopeModel,
+    PerfModel,
+    OptimalValiantModel, SelectedOptimalValiantModel,
+    ObliviousValiantModel, SelectedObliviousValiantModel,
     PhysModel,
     Pattern, Selector,
     PermutationPattern,
@@ -47,7 +49,9 @@ from problem.queries import (
 __all__ = [
     "Model",
     "Ctx", "VarSpec", "Term", "LinearC",
-    "PerfModel", "EnvelopeModel", "SelectedEnvelopeModel",
+    "PerfModel",
+    "OptimalValiantModel", "SelectedOptimalValiantModel",
+    "ObliviousValiantModel", "SelectedObliviousValiantModel",
     "PhysModel",
     "Pattern", "Selector",
     "PermutationPattern",

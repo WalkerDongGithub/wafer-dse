@@ -133,7 +133,7 @@ assert len(ctx.constraints) == 0, "TypeError 前不应注册任何约束"
 
 ## 5. 向量索引
 
-`L = ctx.vector("L", 3)` 声明了三个独立分量。每个 `L[i]` 是独立的 LinExpr，指向同一个变量的不同索引。EnvelopeModel 用 `L[0]..L[n_links-1]` 表示每条链路的包络负载。
+`L = ctx.vector("L", 3)` 声明了三个独立分量。每个 `L[i]` 是独立的 LinExpr，指向同一个变量的不同索引。OptimalValiantModel 用 `L[0]..L[n_links-1]` 表示每条链路的包络负载。
 
 ```python
 L = Ctx().vector("L", 3)

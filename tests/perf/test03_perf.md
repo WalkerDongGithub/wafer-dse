@@ -4,7 +4,7 @@
 
 `Pattern` 是流量需求矩阵 D_{ij} 的抽象。排列只是生成 D 的一种策略——也可以有均匀负载、热点、任意浮点矩阵。
 
-`EnvelopeModel` 只依赖 `Pattern.demand()` 接口，不关心 D 是怎么来的。
+`OptimalValiantModel` 只依赖 `Pattern.demand()` 接口，不关心 D 是怎么来的。
 
 ```python
 import sys; sys.path.insert(0, '../src')

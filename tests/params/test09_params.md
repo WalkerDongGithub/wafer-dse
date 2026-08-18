@@ -64,7 +64,7 @@ FullMesh(2,1)：2 die、2 条 die 间有向链路 + 4 条 on-die（零代价）�
 
 ```python
 import numpy as np
-from problem import Ctx, CvxSolver, Runner, EnvelopeModel, select_representatives, BumpModel, SteadyStateModel
+from problem import Ctx, CvxSolver, Runner, OptimalValiantModel, select_representatives, BumpModel, SteadyStateModel
 from physical.layout.thermal_network import DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder
 from problem.queries import BmaxQuery
 from physical.config.spec_bump import DieBumpBudget
@@ -82,7 +82,7 @@ for li, (u, v) in enumerate(topo.links):
     d2l.setdefault(du, []).append(li)
     if dv != du: d2l.setdefault(dv, []).append(li)
 
-perf = EnvelopeModel(topo, select_representatives(topo, topo.n_terminals))
+perf = OptimalValiantModel(topo, select_representatives(topo, topo.n_terminals))
 lr = np.full(topo.n_links, P.link.lane_rate_gbps)
 ppl = np.full(topo.n_links, P.link.power_per_lane_w)
 for li, (u, v) in enumerate(topo.links):
