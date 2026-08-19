@@ -40,12 +40,12 @@ if BENCH_DIR not in sys.path:
     sys.path.insert(0, BENCH_DIR)
 
 from config import load_config
-from topology import Mesh, Torus
+from topology import MeshTopology, TorusTopology
 from physical.params import ExpParams
 from contracts import RapidBaselineRow
 
 
-_TOPO_CLASSES = {"mesh": Mesh, "torus": Torus}
+_TOPO_CLASSES = {"mesh": MeshTopology, "torus": TorusTopology}
 
 # -----------------------------------------------------------------------
 # RapidChiplet-style modelling constants (NOT user-editable knobs).

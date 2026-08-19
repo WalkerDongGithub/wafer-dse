@@ -29,19 +29,19 @@ from problem.queries import BmaxQuery, FeasibilityQuery
 from layout import place
 from physical.params import ExpParams
 from diagnostics import solve_diagnostic, full_ledger, print_ledger
-from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
+from topology import MeshTopology, TorusTopology, KaryNCubeTopology, FullMeshTopology, DragonflyTopology
 
 # ── 拓扑注册表（CLI 编排层的映射，不属于模型层） ───────────────────
 _TOPOS = {
-    "mesh": Mesh,
-    "torus": Torus,
-    "kary_ncube": KaryNCube,
-    "fullmesh": FullMesh,
-    "dragonfly": Dragonfly,
+    "mesh": MeshTopology,
+    "torus": TorusTopology,
+    "kary_ncube": KaryNCubeTopology,
+    "fullmesh": FullMeshTopology,
+    "dragonfly": DragonflyTopology,
 }
 
 _SCENARIOS = {"perf", "perf+bump", "perf+bump+therm"}
-_SELECTORS = {"conjugacy"}
+
 
 
 @dataclass(frozen=True)
@@ -52,7 +52,7 @@ class ProblemSpec:
     topo_type: str
     topo_args: list
     scenario: str
-    selector: str
+
     query_type: str
     query_lo: float
     query_hi: float
@@ -80,9 +80,6 @@ def load_problem(path: str | Path) -> ProblemSpec:
     if scenario not in _SCENARIOS:
         raise ValueError(f"未知场景 '{scenario}'，可选: {sorted(_SCENARIOS)}")
 
-    selector = d.get("selector", "conjugacy")
-    if selector not in _SELECTORS:
-        raise ValueError(f"未知选择器 '{selector}'，可选: {sorted(_SELECTORS)}")
 
     q = d.get("query", {})
     query_type = q.get("type", "bmax")
@@ -92,7 +89,7 @@ def load_problem(path: str | Path) -> ProblemSpec:
     return ProblemSpec(
         params_path=params_path, params=P,
         topo_type=topo_type, topo_args=topo_args,
-        scenario=scenario, selector=selector,
+        scenario=scenario,
         query_type=query_type,
         query_lo=float(q.get("lo", 100.0)),
         query_hi=float(q.get("hi", 10000.0)),

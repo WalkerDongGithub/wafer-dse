@@ -11,7 +11,7 @@ build_scenario 是 problem.builder 的主入口:
     (physical.layout.thermal_network) — 热网络构建
   - DieBumpBudget (physical.config.spec_bump) — bump 预算
 LP 约束模板从 problem.models import:
-  - BumpModel / SteadyStateModel / SelectedOptimalValiantModel
+  - BumpModel / SteadyStateModel / ObliviousValiantModel
 """
 
 from __future__ import annotations
@@ -19,7 +19,7 @@ from __future__ import annotations
 import numpy as np
 
 from problem import (
-    SelectedOptimalValiantModel,
+    ObliviousValiantModel,
     BumpModel, SteadyStateModel,
 )
 from physical.config.spec_bump import DieBumpBudget
@@ -52,7 +52,7 @@ def build_scenario(topo, scenario: str, P: ExpParams, layout: Layout):
     d2l = die_to_links(topo, n2d)
     n_dies = layout.n_dies
 
-    perf = SelectedOptimalValiantModel(topo)  # 默认共轭类选择器
+    perf = ObliviousValiantModel(topo)
 
     if scenario == "perf":
         return [perf], {"n_dies": n_dies}

@@ -214,7 +214,7 @@ print("cache_key 结构编码 ✓")
 
 ---
 
-## 6. 接口补齐（INTERFACE_DESIGN §8）
+## 6. 接口补齐
 
 `Model.build` 统一为两参 `(ctx, B)`；`GlobalPowerModel` 补 `cache_key()`。
 

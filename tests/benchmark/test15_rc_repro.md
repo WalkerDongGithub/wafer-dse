@@ -8,7 +8,7 @@
 2. Power 代理区分 compute/memory/IO 三类 chiplet，静态 + 动态求和 vs 独立 300W 预算；
 3. Thermal 只**事后报告** `total_power / package_capacity` 比值，**绝不翻转 verdict**（独立评估不做联立的结构性特征）。
 
-本文手算全部 3 个通道，对已知的 Torus 3x3 + UCIe 12G 基准档做数值闭合。
+本文手算全部 3 个通道，对已知的 TorusTopology 3x3 + UCIe 12G 基准档做数值闭合。
 
 ---
 
@@ -18,35 +18,35 @@
 
 ```python
 import sys, os
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'benchmark', 'replication'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'benchmark'))
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', 'src'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'benchmark', 'replication'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'benchmark'))
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', 'src'))
 
-# A. Mesh 3x3 + ucie-12g: n=9 dies, lane_rate=12 Gbps
+# A. MeshTopology 3x3 + ucie-12g: n=9 dies, lane_rate=12 Gbps
 #    target_load = 9 × 64 = 576 Gbps
 #    capacity    = 9 × 2 × 12 = 216 Gbps   → capacity < target → FAIL
 #    This was the first case where perf proxy was tautologically passing.
 from rapidchiplet_checker import check_performance_independently
-from topology import Mesh, Torus
+from topology import MeshTopology, TorusTopology
 from physical.params import ExpParams
 from config import load_config
 
-P_12g = ExpParams.from_dict(load_config("config/params/ucie-12g.yaml"))
-m3 = Mesh(3)
+P_12g = ExpParams.from_dict(load_config("../config/params/ucie-12g.yaml"))
+m3 = MeshTopology(3)
 ok, info = check_performance_independently(m3, P_12g)
 assert ok is False, info  # 576 > 216 → perf should FAIL
 assert "576" in info and "216" in info, info
-print("test15 / Step1a: Mesh-3x3 + ucie-12g perf bound correctly Fails 576>216 — PASS")
+print("test15 / Step1a: MeshTopology-3x3 + ucie-12g perf bound correctly Fails 576>216 — PASS")
 
-# B. Torus 3x3 + trad-air-112g: lane_rate=106.25 Gbps
+# B. TorusTopology 3x3 + trad-air-112g: lane_rate=106.25 Gbps
 #    target_load = 9 × 64 = 576 Gbps
 #    capacity    = 9 × 2 × 106.25 = 1912.5 Gbps → passes
-P_112g = ExpParams.from_dict(load_config("config/params/trad-air-112g.yaml"))
-t3 = Torus(3)
+P_112g = ExpParams.from_dict(load_config("../config/params/trad-air-112g.yaml"))
+t3 = TorusTopology(3)
 ok, info = check_performance_independently(t3, P_112g)
 assert ok is True, info  # 1912.5 >= 576
 assert "576" in info and "1912" in info, info
-print("test15 / Step1b: Torus-3x3 + 112g perf Passes 1912≥576 — PASS")
+print("test15 / Step1b: TorusTopology-3x3 + 112g perf Passes 1912≥576 — PASS")
 ```
 
 ---
@@ -77,7 +77,7 @@ print("test15 / Step2a: Split-class power numbers match hand calculation — PAS
 
 # Scaled-up n=16 (4x4) → budget should bind for large enough static.
 # Static = 16 × (15 + 2 + 1.5) = 296W, Dynamic = 16 × 1.6 = 25.6W, Total = 321.6W > 300W → FAIL
-t4 = Torus(4)
+t4 = TorusTopology(4)
 ok, info = check_power_independently(t4, P_112g)
 assert ok is False, info
 assert "Static=296.0W" in info, info
@@ -95,19 +95,19 @@ print("test15 / Step2b: n=16 scales to 321.6W → correctly exceeds 300W budget 
 ```python
 from rapidchiplet_checker import report_thermal_independently, run_rapidchiplet_check
 
-# Case: Torus 3x3 + 112g → total_power=180.9W from Step2a, cap=250W → ratio=0.724 → ok
+# Case: TorusTopology 3x3 + 112g → total_power=180.9W from Step2a, cap=250W → ratio=0.724 → ok
 note = report_thermal_independently(t3, P_112g)
 assert "PkgRatio=0.72" in note, note
 assert "thermal-ok" in note, note
-# Case: Torus 4x4 + 112g → total_power=321.6W from Step2b, ratio=321.6/250=1.2864 → RED FLAG
+# Case: TorusTopology 4x4 + 112g → total_power=321.6W from Step2b, ratio=321.6/250=1.2864 → RED FLAG
 note = report_thermal_independently(t4, P_112g)
 assert "PkgRatio=1.29" in note, note
 assert "THERMAL-RED-FLAG" in note, note
 
 # Structural check — call run_rapidchiplet_check on a case where
 # perf + power passes, thermal red-flags.  Verdict MUST stay True.
-row = run_rapidchiplet_check("mesh", 3, "config/params/trad-air-112g.yaml")
-# Mesh-3x3 + 112g: perf=1912≥576 PASS, power=180.9≤300 PASS → verdict MUST be True
+row = run_rapidchiplet_check("mesh", 3, "../config/params/trad-air-112g.yaml")
+# MeshTopology-3x3 + 112g: perf=1912≥576 PASS, power=180.9≤300 PASS → verdict MUST be True
 assert row.rapidchiplet_feasible is True, (
     "Structural bug: independent thermal note flipped the perf+power verdict.  "
     "RC's methodology keeps channels separate — thermal NEVER flips."

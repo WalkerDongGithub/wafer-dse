@@ -27,14 +27,11 @@ if str(_project_root / "exp") not in sys.path:
     sys.path.insert(0, str(_project_root / "exp"))
 
 from problem import Ctx, CvxSolver, Runner, ResultStore
-from problem import (
-    EnvelopeModel, select_representatives,
-    BumpModel, SteadyStateModel,
-)
+
 from problem.queries import BmaxQuery
 from physical.config.spec_bump import DieBumpBudget, UBUMP_45UM
 from physical.placement import PlacementProblem, solve_grid_placement
-from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
+from topology import MeshTopology, TorusTopology, KaryNCubeTopology, FullMeshTopology, DragonflyTopology
 
 from diagnostics import (
     full_ledger, print_ledger,

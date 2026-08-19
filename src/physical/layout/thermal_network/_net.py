@@ -1,4 +1,4 @@
-"""预计算热网络 —— G⁻¹ + 与 B 无关的系数（MATH_MODEL_COMPLETE_V2 §4）.
+"""预计算热网络 —— G⁻¹ + 与 B 无关的系数（MATH_MODEL_V5_JOINT_SENSITIVITY §2(2e) + §3(3d)）.
 
 思路：P 和 T 都不进 LP。利用 G⁻¹ ≥ 0（M-矩阵），温度约束直接写在 L 上。
 

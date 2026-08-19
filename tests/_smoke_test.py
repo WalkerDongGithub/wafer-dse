@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "src"))
 
-from topology import Mesh, Torus, FullMesh, Dragonfly
+from topology import MeshTopology, TorusTopology, FullMeshTopology, DragonflyTopology
 from physical.params import load_yaml_params
 from layout import place
 from problem.builder import build_scenario
@@ -16,7 +16,7 @@ from problem.ctx import Ctx
 
 params = load_yaml_params("config/params")
 P = params["ucie-12g"]
-topo = Mesh(2)
+topo = MeshTopology(2)
 layout = place(topo, P)
 models, meta = build_scenario(topo, "perf", P, layout)
 print(f"Models: {len(models)}, n_dies={meta['n_dies']}")

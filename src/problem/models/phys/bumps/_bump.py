@@ -1,5 +1,5 @@
 """
-BumpModel —— μbump 预算分配（MATH_MODEL_COMPLETE_V4 §2.3 + §2.8）。
+BumpModel —— μbump 预算分配（MATH_MODEL_V5_JOINT_SENSITIVITY §2 + §4 C1）。
 
 支持 per-link 异构互联标准（UCIe / SerDes 不同 lane_rate 和 power_per_lane）。
 rhs = N_total(B) - N_pwr(B)，其中 N_total(B)=η·A_die(B)/p²、

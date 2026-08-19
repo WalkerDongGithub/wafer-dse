@@ -92,28 +92,6 @@ class ThermalModel(Model):               # ✓
 class SteadyStateModel(ThermalModel):    # ✓  SteadyStateThermalModel 是过度工程
 ```
 
-#### 为什么
-
-读到 `class AllDerangements(Selector)`，类名不告诉你它是个 Selector——你得往回翻 import 或继承声明。读到 `class DerangementSelector(Selector)` 则没有这个问题。不依赖 IDE、LSP、grep。名字本身就说明了一切。
-
-### 2.3 已识别的不规范命名
-
-| 当前 | 父类 | 应改为 | 说明 |
-|------|------|--------|------|
-| `TrafficMatrix` | `Pattern` | `TrafficMatrixPattern` | 是一种流量模式，名字要体现 |
-| `SConjugacyReps` | `Selector` | `ConjugacySelector` | S 前缀 + Reps 后缀都不表达 Selector |
-| `AllDerangements` | `Selector` | `DerangementSelector` | 暴力枚举"全部 derangement"的 Selector |
-
-这三个连起来读：`ConjugacySelector`、`DerangementSelector`、`ManualSelector`——全是 Selector，一眼就知道可互换。`SConjugacyReps`、`AllDerangements`、`ManualSelector` 放在一起看不出是同一族。
-
-### 2.4 不需要改的（豁免清单）
-
-以下类不参与继承体系或属于基础设施，不受后缀规则约束：
-
-- `Ctx`、`LinExpr`、`Var`、`VarSpec`、`Term`、`LinearC`、`Sense` — 数据契约 / 符号表达式 / 枚举
-- `TopoStructure`、`ThermalNetwork`、`RoutingGrid`、`DiePlacement`、`MfitStackConfig` — frozen dataclass，值对象
-- `Result`、`FeasibilityResult`、`BmaxResult`、`Runner`、`ResultStore` — 引擎基础设施
-- `_Backend`、`_DirBackend` — 私有实现类
 
 ### 2.5 命名检查清单
 
@@ -280,3 +258,42 @@ if TYPE_CHECKING:
 - [ ] 跨模块传递的值对象全部是 `@dataclass(frozen=True)`，没有裸 `dict`？
 - [ ] 没有不必要的模块级裸函数（算法本体都在类上）？
 - [ ] 每个 `.py` 文件顶部有三行中文模块 docstring？
+
+
+# 项目开发流程规范——TDD
+
+
+## 测试驱动迭代
+
+**所有模型修改必须遵循以下流程：**
+
+1. **先在 `tests/` 下写 `.md` 测试文件。** 叙述 + 可运行 Python 代码块交替。测试应该讲清楚：输入是什么、公式是什么、预期输出是什么、为什么是这个数。不依赖 solver——纯输入 → 纯输出 → assert。
+
+2. **测试通过我肉眼确认后，再写实现代码。** 如果测试本身有逻辑问题，先改测试达成共识。测试是比代码更重要的产出。
+
+3. **代码风格以 `STYLE.md` 为唯一权威。** 三段式（`__init__` 预计算 / `build` 只写约束 / `cache_key` 可哈希）与命名、类型标注、注释等约定都见 STYLE.md。
+
+4. **`run_all.py` 全绿才能提交。** `cd tests && PYTHONPATH=../src python3 run_all.py` 必须 0 失败。
+
+5. **如果文档要求的功能只有代码没有测试，直接判定功能缺失**，文档全部重要功能要求都要通过单元测试佐证实现。
+
+## 测试写法
+
+每个 `tests/<模块>/test0X_xxx.md` 是一个独立的教学单元。结构：
+
+```
+# test0X — 模块名 (src路径)
+
+## 模块定位          ← 这个模块做什么, 在整体框架中的位置
+## 第N步/案例N        ← 具体场景, 公式, 手算, 代码, assert
+```
+
+原则：
+- **娓娓道来。** 从"我们有一个..."开始，逐步加复杂度。不是堆砌 assert。
+- **手算在代码前。** 每个 assert 前面必须有手算过程——读者不需要跑代码就能看懂为什么这个 assert 是对的。
+- **不依赖 solver。** 除非测试目标就是 solver 本身。模型测试只检查约束系数、预计算值、表达式求值。
+- **LinExpr.evaluate() 可以替代 solver。** 给一组变量值，调 `evaluate()` 拿数值结果，不建 LP。
+
+## 论文一致性
+
+代码实现的模型必须和 `notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md` 中的数学表述一致。不一致时，先改文档达成共识，再改代码。

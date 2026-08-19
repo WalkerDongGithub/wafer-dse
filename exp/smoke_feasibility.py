@@ -1,10 +1,10 @@
-"""smoke test —— 在 Mesh(2) 上跑 feasibility query。"""
+"""smoke test —— 在 MeshTopology(2) 上跑 feasibility query。"""
 from _helpers import session
 from problem import Ctx, FeasibilityQuery
-from topology import Mesh
+from topology import MeshTopology
 from physical.config.spec_bump import UBUMP_45UM
 
-runner, models, cs = session(Mesh(2), UBUMP_45UM)
+runner, models, cs = session(MeshTopology(2), UBUMP_45UM)
 q = FeasibilityQuery()
 
 for B in [100, 400, 800, 1600, 3200]:

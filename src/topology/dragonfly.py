@@ -1,14 +1,14 @@
 """Dragonfly 拓扑族。
 
-Dragonfly 是面向高性能互连的分层拓扑：
+DragonflyTopology 是面向高性能互连的分层拓扑：
     - 组（group）内全互联（a 个 router，每 router p 个 terminal）
     - 组间通过全局链路连接（每 router h 个全局端口）
     - 总 group 数 = a × h + 1
 
-经典变体（当前实现的是标准 Dragonfly）：
-    - Dragonfly     —— Cray Cascade 风格，单层全局链路
-    - DragonflyPlus —— 增加 trunk link（组间直连），减少全局跳数
-    - MegaFly       —— 两层层次化 Dragonfly（group of groups）
+经典变体（当前实现的是标准 DragonflyTopology）：
+    - DragonflyTopology     —— Cray Cascade 风格，单层全局链路
+    - DragonflyPlusTopology —— 增加 trunk link（组间直连），减少全局跳数
+    - MegaFly       —— 两层层次化 DragonflyTopology（group of groups）
 """
 
 from __future__ import annotations
@@ -16,8 +16,8 @@ from __future__ import annotations
 from topology import Topology, _unique_paths
 
 
-class Dragonfly(Topology):
-    """标准 Dragonfly 拓扑。
+class DragonflyTopology(Topology):
+    """标准 DragonflyTopology 拓扑。
 
     参数：
         a: 每组 router 数
@@ -131,19 +131,19 @@ class Dragonfly(Topology):
 
 
 # ---------------------------------------------------------------------------
-# DragonflyPlus（骨架占位，未接入——论文 DSE 只用标准 Dragonfly）
+# DragonflyPlusTopology（骨架占位，未接入——论文 DSE 只用标准 DragonflyTopology）
 # ---------------------------------------------------------------------------
 
 
-class DragonflyPlus(Topology):
+class DragonflyPlusTopology(Topology):
     """Dragonfly+ 拓扑（骨架占位，未接入）。
 
-    Dragonfly+ 在标准 Dragonfly 基础上增加了 trunk link：
+    DragonflyTopology+ 在标准 DragonflyTopology 基础上增加了 trunk link：
         - 每 router 除全局端口外，还有 trunk 端口连接相邻 group。
         - 好处：减少 Valiant 中转跳数，降低延迟。
 
     骨架占位，未接入：核心方法全部 NotImplementedError，
-    不参与论文 §2.7 的组间 DSE（论文只用标准 Dragonfly）。
+    不参与论文 §2.7 的组间 DSE（论文只用标准 DragonflyTopology）。
     """
 
     def __init__(self, a: int, p: int, h: int, t: int = 1) -> None:

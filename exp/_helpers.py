@@ -2,8 +2,9 @@
 
 import numpy as np
 from problem import Ctx, CvxSolver, Runner
-from problem import EnvelopeModel, select_representatives
-from problem import BumpModel, SteadyStateModel, ThermalNetworkBuilder
+from problem import ObliviousValiantModel
+from problem import BumpModel, SteadyStateModel
+from physical.layout.thermal_network import ThermalNetworkBuilder
 from physical.config.spec_bump import DieBumpBudget
 
 
@@ -34,8 +35,7 @@ def session(topo, bump_spec, die_w=12.0, die_h=12.0, die_pwr=50.0,
 
     thermal: ThermalNetwork | None。None 则用默认（smoke test 用）。
     """
-    reps = select_representatives(topo, topo.n_terminals)
-    perf = EnvelopeModel(topo, reps)
+    perf = ObliviousValiantModel(topo)
 
     d2l = _identity_die_to_links(topo)
     nd = n_dies or len(d2l)

@@ -25,14 +25,11 @@ if str(_project_root / "src") not in sys.path:
     sys.path.insert(0, str(_project_root / "src"))
 
 from problem import Ctx, CvxSolver, Runner, ResultStore
-from problem import (
-    EnvelopeModel, select_representatives,
-    BumpModel, SteadyStateModel,
-)
+
 from problem.queries import BmaxQuery
 from problem.builder import build_scenario
 from physical.params import TOY, UCIE_16G, UCIE_24G, UCIE_32G
-from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
+from topology import MeshTopology, TorusTopology, KaryNCubeTopology, FullMeshTopology, DragonflyTopology
 
 from layout import place
 
@@ -46,17 +43,17 @@ PARAM_SETS = {
 
 # ── 拓扑清单 ────────────────────────────────────────────────────
 TOPOS = {
-    "Mesh(2)":       Mesh(2),
-    "Mesh(3)":       Mesh(3),
-    "Mesh(4)":       Mesh(4),
-    "Torus(2)":      Torus(2),
-    "Torus(3)":      Torus(3),
-    "KaryNCube(2,2)": KaryNCube(2, 2),
-    "KaryNCube(2,3)": KaryNCube(2, 3),
-    "FullMesh(2)":   FullMesh(2, 1),
-    "FullMesh(3)":   FullMesh(3, 1),
-    "Dragonfly(2,1,1)": Dragonfly(2, 1, 1),
-    "Dragonfly(2,2,1)": Dragonfly(2, 2, 1),
+    "Mesh(2)":       MeshTopology(2),
+    "Mesh(3)":       MeshTopology(3),
+    "Mesh(4)":       MeshTopology(4),
+    "Torus(2)":      TorusTopology(2),
+    "Torus(3)":      TorusTopology(3),
+    "KaryNCube(2,2)": KaryNCubeTopology(2, 2),
+    "KaryNCube(2,3)": KaryNCubeTopology(2, 3),
+    "FullMesh(2)":   FullMeshTopology(2, 1),
+    "FullMesh(3)":   FullMeshTopology(3, 1),
+    "Dragonfly(2,1,1)": DragonflyTopology(2, 1, 1),
+    "Dragonfly(2,2,1)": DragonflyTopology(2, 2, 1),
 }
 
 SCENARIOS = ["perf", "perf+bump", "perf+bump+therm"]

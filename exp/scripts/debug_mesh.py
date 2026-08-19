@@ -9,13 +9,16 @@ _project_root = Path(__file__).resolve().parent.parent.parent
 sys.path.insert(0, str(_project_root / "src"))
 
 import numpy as np
-from problem import Ctx, CvxSolver, AnalyticNetworkBuilder, ThermalNetworkBuilder
-from problem import EnvelopeModel, select_representatives
+from problem import Ctx, CvxSolver
+from problem import ObliviousValiantModel
 from problem import BumpModel, SteadyStateModel
-from problem import DiePlacement, MfitStackConfig
+from physical.layout.thermal_network import (
+    AnalyticNetworkBuilder, ThermalNetworkBuilder,
+    DiePlacement, MfitStackConfig,
+)
 from physical.config.spec_bump import BumpSpec, DieBumpBudget
 from physical.placement import PlacementProblem, solve_grid_placement
-from topology import Mesh
+from topology import MeshTopology
 
 # ═══════════════════════════════════════════════════
 # 参数 — 全部在这里改
@@ -52,11 +55,11 @@ B_TEST = 1000.0        # Gbps — 固定 B 验证可行性
 # ═══════════════════════════════════════════════════
 
 print("=" * 60)
-print("  2×2 Mesh 最小可验算实验")
+print("  2×2 MeshTopology 最小可验算实验")
 print("=" * 60)
 
 # 1. 拓扑
-topo = Mesh(MESH_SIZE)
+topo = MeshTopology(MESH_SIZE)
 # 1b. 布局 — placement solver 决定网格
 d = max(DIE_W, DIE_H)
 psol = solve_grid_placement(PlacementProblem(
@@ -139,14 +142,8 @@ print(f"  T(P0) = G⁻¹(P0+b) = {T_from_P0}")
 print(f"  ΔT_peak = {T_from_P0[0] - T_AMBIENT:.1f}K  (峰值功耗带来的温升)")
 print(f"  rhs = T_max - T(P0) = {T_MAX - T_from_P0[0]:.1f}K  (动态功耗可用温升预算)")
 
-# 4. 排列代表元
-reps = select_representatives(topo, topo.n_terminals)
-print(f"\n排列代表元: {len(reps)}")
-for r in reps:
-    print(f"  {r.label}: sigma={r.sigma}")
-
-# 5. 性能模型 + mini-sum-L 目标
-perf = EnvelopeModel(topo, reps)
+# 4. 性能模型 + mini-sum-L 目标
+perf = ObliviousValiantModel(topo)
 ctx_perf = Ctx()
 perf.build(ctx_perf, B_TEST)
 engine = CvxSolver()

@@ -36,9 +36,8 @@ class ObliviousValiantModel(PerfModel):
     f 固定为均匀分流（对每条候选路径分 D_{ij}/K_{ij}），
     D 是决策变量（Birkhoff 多面体），对每条链路 e 求 max L_e(D)。
 
-    这是"最严苛性能约束"——网络必须在 oblivious 路由下承受最坏流量模式。
-    与 OptimalValiantModel 的区别：后者把 f 当决策变量优化（最小化 L），
-    本模型 f 固定、只优化 D（最大化 L_e），故 L* 更悲观。
+    这是"最严苛性能约束"——网络必须在 oblivious 路由下承受最坏流量模式：
+    f 固定为均匀分流、只优化 D（最大化 L_e），故 L* 更悲观。
     """
 
     def __init__(self, topo: Topology) -> None:
@@ -167,13 +166,3 @@ class ObliviousValiantModel(PerfModel):
                 self._topo.__class__.__name__,
                 self._topo.n_links, lstar)
 
-
-class SelectedObliviousValiantModel(ObliviousValiantModel):
-    """builder 的入口——给拓扑直接生成 oblivious 包络模型。
-
-    不需要 selector——oblivious 路由对所有 OD 对一视同仁（均匀分流）。
-    命名与 SelectedOptimalValiantModel 对齐，便于 builder 互换性能模型。
-    """
-
-    def __init__(self, topo: Topology) -> None:
-        super().__init__(topo)

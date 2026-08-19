@@ -1,5 +1,5 @@
 """
-C4Model —— C4 bump 预算约束（MATH_MODEL_COMPLETE_V2 §3.3）。
+C4Model —— C4 bump 预算约束（MATH_MODEL_V5_JOINT_SENSITIVITY §3(3c) + §4 C2）。
 
 仅作用于组间 SerDes 链路。支持全局池 + per-pad 两种精度。
 """

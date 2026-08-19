@@ -33,7 +33,7 @@
 ## 2. 测试用例
 
 ### T1: 基础拓扑构造
-- 输入: Mesh(2), Torus(3), FullMesh(2,1), Dragonfly(2,1,1)
+- 输入: MeshTopology(2), TorusTopology(3), FullMeshTopology(2,1), DragonflyTopology(2,1,1)
 - 期望: 所有拓扑正确构造，n_terminals, n_links 合理
 
 ### T2: 参数加载
@@ -41,7 +41,7 @@
 - 期望: ExpParams 正确加载，所有字段非零
 
 ### T3: 单组合求解
-- 输入: Mesh(2) + ucie-12g + perf
+- 输入: MeshTopology(2) + ucie-12g + perf
 - 期望: BmaxQuery 返回 B_star > 0，iterations > 0
 
 ### T4: 缓存生效

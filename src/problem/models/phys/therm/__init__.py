@@ -7,8 +7,7 @@
   - L2 (WarpModel):           相邻 die 温差 ≤ ΔT_max
         （_warp_limit.py 已实现并由 test0402 覆盖，但有意不导出——
           die-die 温差代理撑不起真实翘曲物理、ΔT_max 缺文献，
-          V4 已将翘曲移出论文约束集，实现保留作技术记录；
-          见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注）
+          V5 无翘曲约束，实现保留作技术记录）
 
 物理/几何部分（DiePlacement / MfitStackConfig / ThermalNetwork /
 ThermalNetworkBuilder / AnalyticNetworkBuilder / plot_temperature）

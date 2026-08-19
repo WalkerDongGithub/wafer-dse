@@ -234,7 +234,7 @@ def full_ledger(models, L_vals: dict[int, float], B: float,
     out: dict = {"perf": None, "bump": None, "therm": None}
     for m in models:
         name = type(m).__name__
-        if name == "OptimalValiantModel":
+        if name == "ObliviousValiantModel":
             out["perf"] = perf_ledger(L_vals)
         elif name == "BumpModel":
             out["bump"] = bump_ledger(m, L_vals, B)

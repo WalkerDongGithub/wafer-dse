@@ -39,8 +39,7 @@ SerDes PHY 集成在 switch ASIC die 内，功耗进 die 级功耗 $\mathbf{P}_{
 
 ---
 
-## 1. 增补符号表（V4 §0 之外新增）
-
+## 1. 符号表
 | 符号 | 含义 | 单位 | 备注 |
 |------|------|------|------|
 | $\mathcal{E}_{\text{D2D}}, \mathcal{E}_{\text{I2I}}$ | D2D/I2I 链路集（$\subseteq \mathcal{E}_{\text{UCIe}} \cup \mathcal{E}_{\text{on-die}}$） | — | — |

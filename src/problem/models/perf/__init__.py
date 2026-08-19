@@ -2,8 +2,7 @@
 性能约束族 —— 纯路由问题，与端口带宽 B 无关。
 
 PerfModel —— 抽象基类：
-  traffic_based/  OptimalValiantModel（最优路由包络，f 为决策变量）
-                   ObliviousValiantModel（静态 oblivious Valiant 包络，V5 §7.3）
+  traffic_based/  ObliviousValiantModel（静态 oblivious Valiant 包络，V5 §7.3，f 固定）
 """
 
 from problem.ctx import Model
@@ -19,10 +18,7 @@ class PerfModel(Model):
 
 # 子模块
 from problem.models.perf.traffic_based import (  # noqa: E402
-    OptimalValiantModel, SelectedOptimalValiantModel,
-    ObliviousValiantModel, SelectedObliviousValiantModel,
+    ObliviousValiantModel,
 )
 
-__all__ = ["PerfModel",
-           "OptimalValiantModel", "SelectedOptimalValiantModel",
-           "ObliviousValiantModel", "SelectedObliviousValiantModel"]
+__all__ = ["PerfModel", "ObliviousValiantModel"]

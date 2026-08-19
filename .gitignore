@@ -7,6 +7,7 @@ __pycache__/
 .pytest_cache/
 .coverage
 htmlcov/
+tests/_test_suite.py
 
 # Virtual environments
 .venv/
@@ -19,6 +20,9 @@ env/
 # IDE
 .vscode/
 .idea/
+
+# CodeGraph index (tool-generated)
+.codegraph/
 
 # Build / dist
 dist/

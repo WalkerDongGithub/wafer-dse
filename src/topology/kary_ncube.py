@@ -1,18 +1,18 @@
 """k-ary n-cube 拓扑族。
 
-经典的 k-ary n-cube 是 Mesh 和 Torus 的 n 维推广：
+经典的 k-ary n-cube 是 MeshTopology 和 TorusTopology 的 n 维推广：
     - k：每维节点数（radix）
     - n：维度数
-    - wrap=True  → n 维 Torus（每维有环绕链路）
-    - wrap=False → n 维 Mesh（无边环绕）
+    - wrap=True  → n 维 TorusTopology（每维有环绕链路）
+    - wrap=False → n 维 MeshTopology（无边环绕）
 
 特例：
-    - KaryNCube(k=4, n=2, wrap=False) 等价于 Mesh(4)
-    - KaryNCube(k=4, n=2, wrap=True)  等价于 Torus(4)（但路由顺序不同）
-    - KaryNCube(k=2, n=3, wrap=True)  即 2-ary 3-cube（经典 3D Torus/超立方）
+    - KaryNCubeTopology(k=4, n=2, wrap=False) 等价于 MeshTopology(4)
+    - KaryNCubeTopology(k=4, n=2, wrap=True)  等价于 TorusTopology(4)（但路由顺序不同）
+    - KaryNCubeTopology(k=2, n=3, wrap=True)  即 2-ary 3-cube（经典 3D TorusTopology/超立方）
 
 路由：统一维序路由，从最高维到最低维（dim n-1 → dim 0）。
-      这与 Mesh 的先 y 后 x 一致，与 Torus 的先 x 后 y 不同。
+      这与 MeshTopology 的先 y 后 x 一致，与 TorusTopology 的先 x 后 y 不同。
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ from __future__ import annotations
 from topology import Topology
 
 
-class KaryNCube(Topology):
+class KaryNCubeTopology(Topology):
     """k-ary n-cube：n 维网格，每维 k 个节点。
 
     所有节点都是 terminal。全互联规模 = k^n。
@@ -28,26 +28,26 @@ class KaryNCube(Topology):
     Attributes:
         k: 每维节点数（radix）。
         n: 维度数。
-        wrap: True 表示 Torus（环绕链路），False 表示 Mesh（无边环绕）。
+        wrap: True 表示 TorusTopology（环绕链路），False 表示 MeshTopology（无边环绕）。
 
     Example:
-        >>> # 4x4 mesh（等价于 Mesh(4) 但路由顺序统一）
-        >>> topo = KaryNCube(k=4, n=2, wrap=False)
+        >>> # 4x4 mesh（等价于 MeshTopology(4) 但路由顺序统一）
+        >>> topo = KaryNCubeTopology(k=4, n=2, wrap=False)
         >>> topo.terminal_num()
         16
 
         >>> # 4x4 torus
-        >>> topo = KaryNCube(k=4, n=2, wrap=True)
+        >>> topo = KaryNCubeTopology(k=4, n=2, wrap=True)
         >>> topo.terminal_num()
         16
 
         >>> # 3D torus: 4×4×4 = 64 nodes
-        >>> topo = KaryNCube(k=4, n=3, wrap=True)
+        >>> topo = KaryNCubeTopology(k=4, n=3, wrap=True)
         >>> topo.terminal_num()
         64
 
         >>> # 4D mesh: 3×3×3×3 = 81 nodes (hypersquare)
-        >>> topo = KaryNCube(k=3, n=4, wrap=False)
+        >>> topo = KaryNCubeTopology(k=3, n=4, wrap=False)
         >>> topo.terminal_num()
         81
     """

@@ -1,4 +1,4 @@
-"""二维 Mesh 拓扑。
+"""二维 MeshTopology 拓扑。
 
 所有节点都是 terminal，维序路由先走 y 再走 x。
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 from topology import Topology
 
 
-class Mesh(Topology):
+class MeshTopology(Topology):
     """二维 mesh：N = size × size，全 terminal。
 
     路由：维序，先 y 后 x（dim 1 → dim 0）。

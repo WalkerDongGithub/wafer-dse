@@ -36,7 +36,7 @@ src/
 ├── layout.py         布局设计（拓扑分片 + die 摆放）
 ├── diagnostics.py    约束账本（每约束利用率/余量、绑定诊断）
 ├── config.py         YAML 配置读取
-├── topology/         拓扑定义，Topology ABC（Mesh/Torus/KaryNCube/FullMesh/Dragonfly）
+├── topology/         拓扑定义，Topology ABC（MeshTopology/TorusTopology/KaryNCubeTopology/FullMeshTopology/DragonflyTopology）
 ├── physical/
 │   ├── params.py     参数组合结构体（ExpParams：TOY + UCIE 三档）
 │   ├── config/       物理规格（spec_bump / spec_interconnect / spec_thermal / validator）
@@ -48,7 +48,7 @@ src/
     ├── builder/      编排：拓扑 + 参数 + Layout → 模型列表
     ├── ctx/          变量声明 + 约束注册（constrain(name, lhs, sense, rhs, meaning)）
     ├── models/
-    │   ├── perf/     性能包络（SelectedEnvelopeModel + 排列选择器）
+    │   ├── perf/     性能包络（ObliviousValiantModel）
     │   └── phys/
     │       ├── bumps/ μbump + C4
     │       ├── therm/ 热约束族（L0 全局 / L1 稳态 / L2 翘曲 — LP 模板）
@@ -73,9 +73,9 @@ from problem import Ctx, CvxSolver, Runner, BmaxQuery
 from problem.builder import build_scenario
 from layout import place
 from physical.params import TOY
-from topology import FullMesh
+from topology import FullMeshTopology
 
-topo = FullMesh(2, 1)
+topo = FullMeshTopology(2, 1)
 layout = place(topo, TOY)                       # 更高层：布局设计
 models, meta = build_scenario(topo, "perf+bump+therm", TOY, layout)
 
@@ -86,20 +86,18 @@ print(f"B* = {r.B_star:.0f} Gbps")             # toy: 4453（手算锚点 4500�
 
 ## 约束集
 
-论文约束集（MATH_MODEL_COMPLETE_V4）：性能包络、μbump、C4、温度极限、布线。
-翘曲已移出（die 间温差代理撑不起真实物理，见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注；实现保留作技术记录）。
+论文约束集（MATH_MODEL_V5_JOINT_SENSITIVITY）：性能包络、μbump、C4、温度极限、布线。
+翘曲已移出（die 间温差代理撑不起真实物理；V5 无翘曲约束，实现保留作技术记录）。
 
 ## 文档
 
 | 文档 | 内容 |
 |------|------|
 | [MATH_MODEL_V5_JOINT_SENSITIVITY.md](notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) | 当前数理模型总纲（V5 为代码对齐目标（唯一权威）） |
-| [INTERFACE_DESIGN.md](notes/INTERFACE_DESIGN.md) | 接口设计 + UML 类图 + 已知不一致 |
-| [plan_inter_group.md](notes/plan_inter_group.md) | 组内/组间双模型实验计划 |
-| [RENT_RULE_AND_IO_DENSITY.md](notes/literature/RENT_RULE_AND_IO_DENSITY.md) | Rent's rule / bump / RDL 文献卡 |
-| [CONJUGACY_AND_PARTITIONS.md](notes/CONJUGACY_AND_PARTITIONS.md) | 为什么 S_n 共轭类 = 整数分拆 |
+| [MATH_MODEL_COMPLETE_V4.md](notes/MATH_MODEL_COMPLETE_V4.md) | 前置总纲（V5 的前置，§0–§7） |
+| [insight.md](insight.md) | 7 条 critical insight（字节级不变） |
 | [STYLE.md](STYLE.md) | 代码风格规范（含纯 OO 规矩） |
-| [notes/archive/](notes/archive/) | V1/V2 历史文档 |
+| [notes/literature/](notes/literature/) | 文献知识库（Rent's rule / 非阻塞定义调研 / 系数证据等） |
 
 ## 测试
 

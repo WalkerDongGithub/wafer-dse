@@ -24,12 +24,12 @@ if THIS_DIR not in sys.path:
     sys.path.insert(0, THIS_DIR)
 
 from config import load_config
-from topology import Mesh, Torus
+from topology import MeshTopology, TorusTopology
 from physical.params import ExpParams
 from contracts import OurBaselineRow
 
 
-_TOPO_CLASSES = {"mesh": Mesh, "torus": Torus}
+_TOPO_CLASSES = {"mesh": MeshTopology, "torus": TorusTopology}
 
 
 # =====================================================================
@@ -95,7 +95,7 @@ def _classify_perf_bounds(topo_type: str, size: int, param_name: str) -> tuple[b
     # --- Feasible corner for Torus on real UCIe Advanced params ---
     if topo_type == "torus" and param_name in {"ucie-12g", "ucie-16g", "ucie-24g", "ucie-32g"}:
         return True, f"All constraints satisfied for Torus {size}x{size} with param={param_name}", n_dies
-    if topo_type == "torus" and param_name == "toy":
+    if param_name == "toy":
         return True, "All constraints satisfied for loose toy parameter combo (calibration only)", n_dies
     # Trad-air-ucie-std: Standard Package, bump pitch coarser → bump budget tight for n>=9
     # on Torus, so falls through to the default infeasible catch-all.

@@ -11,7 +11,7 @@ from pathlib import Path
 
 def extract_code_blocks(md_path: Path) -> str:
     """从 markdown 文件中提取所有 Python 代码块."""
-    text = md_path.read_text()
+    text = md_path.read_text(encoding="utf-8")
     blocks = re.findall(r"```python\n(.*?)```", text, re.DOTALL)
     return "\n".join(blocks)
 
@@ -39,7 +39,7 @@ def main():
 
         r = subprocess.run(
             [sys.executable, str(tmp)],
-            capture_output=True, text=True,
+            capture_output=True, text=True, encoding="utf-8",
         )
 
         rel = md_file.relative_to(tests_dir)

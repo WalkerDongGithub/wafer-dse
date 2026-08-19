@@ -27,7 +27,7 @@ assert r.topology == "mesh"
 assert r.size == "3x3"
 assert r.params == "ucie-32g"
 assert r.feasible is False
-assert isinstance(r.cache_key(), BenchKey)
+assert isinstance(r.cache_key(), tuple)
 assert r.cache_key() == ("mesh", "3x3", "ucie-32g")
 
 # frozen dataclass 不可变——赋值必须抛 FrozenInstanceError

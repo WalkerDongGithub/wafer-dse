@@ -10,21 +10,21 @@ from physical.layout import Layout
 from physical.layout.thermal_network import DiePlacement
 from physical.params import ExpParams
 from physical.placement import PlacementProblem, solve_grid_placement
-from topology import FullMesh, Dragonfly
+from topology import FullMeshTopology, DragonflyTopology
 
 
 def node_die_map(topo) -> dict[int, int]:
     """拓扑节点 → die 的分片映射.
 
-    Mesh/Torus/KaryNCube 全 terminal：1 node = 1 die。
-    FullMesh / Dragonfly：按 router 分 die（每个 die 放 1 router + p terminals）。
+    MeshTopology/TorusTopology/KaryNCubeTopology 全 terminal：1 node = 1 die。
+    FullMeshTopology / DragonflyTopology：按 router 分 die（每个 die 放 1 router + p terminals）。
     """
-    if isinstance(topo, FullMesh):
+    if isinstance(topo, FullMeshTopology):
         a, p = topo.a, topo.p
         m = {r: r for r in range(a)}
         m.update({t: (t - a) // p for t in range(a, a + a * p)})
         return m
-    if isinstance(topo, Dragonfly):
+    if isinstance(topo, DragonflyTopology):
         a, p, h = topo.a, topo.p, topo.h
         m = {}
         for gi in range(topo.g):

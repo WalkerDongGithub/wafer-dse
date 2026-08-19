@@ -9,8 +9,8 @@ Topology(ABC) 定义拓扑抽象接口：图结构 + 路由原语。
     links ─────── (terminals + det)
     link_index ── (links)
 
-pairs / paths_for_pair / link_incidence 不属于拓扑——它们是
-(topology, pattern) 的派生产物，由 OptimalValiantModel 在使用点按需计算。
+pairs / paths / link_incidence 不属于拓扑——它们是 (topology, 路由策略)
+的派生产物，由 ObliviousValiantModel 在使用点按需计算。
 """
 
 from __future__ import annotations
@@ -93,7 +93,7 @@ class Topology(ABC):
     def _terminal_nodes(self) -> list[int]:
         """所有 terminal 节点 ID，按 node_id 升序。
 
-        子类可覆写（如 Dragonfly 优化 valiant 中间节点枚举）。
+        子类可覆写（如 DragonflyTopology 优化 valiant 中间节点枚举）。
         """
         return [n for n in range(self.node_num()) if self.is_terminal(n)]
 
@@ -171,18 +171,18 @@ class Topology(ABC):
 # 子类 import（必须在 Topology 定义之后——子类依赖 Topology）
 # ═══════════════════════════════════════════════════════════════════════════
 
-from topology.dragonfly import Dragonfly, DragonflyPlus
-from topology.fullmesh import FullMesh
-from topology.kary_ncube import KaryNCube
-from topology.mesh import Mesh
-from topology.torus import Torus
+from topology.dragonfly import DragonflyTopology, DragonflyPlusTopology
+from topology.fullmesh import FullMeshTopology
+from topology.kary_ncube import KaryNCubeTopology
+from topology.mesh import MeshTopology
+from topology.torus import TorusTopology
 
 __all__ = [
     "Topology",
-    "Mesh",
-    "Torus",
-    "KaryNCube",
-    "Dragonfly",
-    "DragonflyPlus",
-    "FullMesh",
+    "MeshTopology",
+    "TorusTopology",
+    "KaryNCubeTopology",
+    "DragonflyTopology",
+    "DragonflyPlusTopology",
+    "FullMeshTopology",
 ]

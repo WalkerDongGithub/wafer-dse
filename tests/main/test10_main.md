@@ -8,7 +8,7 @@
 - **params/\*.yaml** —— 物理参数（实验设置，可复用，对应 ExpParams）
 - **problems/\*.yaml** —— 问题定义（实验实例：引用 params + 拓扑 + 场景 + 选择器 + query）
 
-toy 参数组先行：FullMesh(2,1) 的 B* 手算锚点 4500（test09 已验证），main 的完整流程必须落到这个数上。
+toy 参数组先行：FullMeshTopology(2,1) 的 B* 手算锚点 4500（test09 已验证），main 的完整流程必须落到这个数上。
 
 ## 1. 物理参数文件 → ExpParams
 
@@ -64,7 +64,7 @@ thermal: {r_vert_k_per_w: 1.0, k_interposer: 100.0, t_interposer_mm: 0.1,
           t_ambient_k: 300.0, t_max_k: 400.0}
 pkg: {interposer_w_mm: 100.0, interposer_h_mm: 100.0,
       metal_layers: 4, lanes_per_mm: 100.0, c4_pitch_mm: 1.0}
-""")
+""", encoding="utf-8")
 problem_yaml = f"""
 params: {tmp}/params/toy.yaml
 topo: {{type: fullmesh, args: [2, 1]}}

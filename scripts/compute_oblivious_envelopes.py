@@ -17,7 +17,7 @@ from pathlib import Path
 _project_root = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(_project_root / "src"))
 
-from topology import Mesh, Torus, KaryNCube, FullMesh, Dragonfly
+from topology import MeshTopology, TorusTopology, KaryNCubeTopology, FullMeshTopology, DragonflyTopology
 from problem import ObliviousValiantModel
 
 
@@ -27,15 +27,15 @@ from problem import ObliviousValiantModel
 
 TOPOLOGIES = [
     # (label, topo_instance, topo_class_name, topo_args_for_json)
-    ("mesh_2x2",      Mesh(2),                  "Mesh",      {"size": 2}),
-    ("mesh_3x3",      Mesh(3),                  "Mesh",      {"size": 3}),
-    ("torus_2x2",     Torus(2),                 "Torus",     {"size": 2}),
-    ("torus_3x3",     Torus(3),                 "Torus",     {"size": 3}),
-    ("kary_2_2",      KaryNCube(k=2, n=2),      "KaryNCube", {"k": 2, "n": 2, "wrap": True}),
-    ("kary_2_3",      KaryNCube(k=2, n=3),      "KaryNCube", {"k": 2, "n": 3, "wrap": True}),
-    ("fullmesh_4",    FullMesh(4, p=1),         "FullMesh",  {"a": 4, "p": 1}),
-    ("fullmesh_6",    FullMesh(6, p=1),         "FullMesh",  {"a": 6, "p": 1}),
-    ("dragonfly_s",   Dragonfly(a=2, p=1, h=1), "Dragonfly", {"a": 2, "p": 1, "h": 1}),
+    ("mesh_2x2",      MeshTopology(2),                  "Mesh",      {"size": 2}),
+    ("mesh_3x3",      MeshTopology(3),                  "Mesh",      {"size": 3}),
+    ("torus_2x2",     TorusTopology(2),                 "Torus",     {"size": 2}),
+    ("torus_3x3",     TorusTopology(3),                 "Torus",     {"size": 3}),
+    ("kary_2_2",      KaryNCubeTopology(k=2, n=2),      "KaryNCube", {"k": 2, "n": 2, "wrap": True}),
+    ("kary_2_3",      KaryNCubeTopology(k=2, n=3),      "KaryNCube", {"k": 2, "n": 3, "wrap": True}),
+    ("fullmesh_4",    FullMeshTopology(4, p=1),         "FullMesh",  {"a": 4, "p": 1}),
+    ("fullmesh_6",    FullMeshTopology(6, p=1),         "FullMesh",  {"a": 6, "p": 1}),
+    ("dragonfly_s",   DragonflyTopology(a=2, p=1, h=1), "Dragonfly", {"a": 2, "p": 1, "h": 1}),
 ]
 
 

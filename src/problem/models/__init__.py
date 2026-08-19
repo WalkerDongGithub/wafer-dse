@@ -13,24 +13,14 @@ ThermalNetworkBuilder / AnalyticNetworkBuilder / plot_temperature)
 
 from problem.models.perf import (
     PerfModel,
-    OptimalValiantModel, SelectedOptimalValiantModel,
-    ObliviousValiantModel, SelectedObliviousValiantModel,
-)
-from problem.models.perf.traffic_based import (
-    Pattern, Selector,
-    PermutationPattern,
-    TrafficMatrixPattern,
-    ConjugacySelector,
-    DerangementSelector,
-    ManualSelector,
-    select_representatives,
+    ObliviousValiantModel,
 )
 from problem.models.phys import (
     PhysModel,
     BumpModel, C4Model,
     ThermalModel, SteadyStateModel, GlobalPowerModel,
 )
-# 注意：WarpModel 有意不导出——已移出论文约束集（见 archive/MATH_MODEL_COMPLETE_V3.md §3.5 状态注（V4 无此约束））
+# 注意：WarpModel 有意不导出——已移出论文约束集（V5 无翘曲约束，实现保留作技术记录）
 from problem.models.phys.wiring import (
     WiringModel,
     WiringGrid,
@@ -40,15 +30,9 @@ from problem.models.phys.wiring import (
 
 __all__ = [
     "PerfModel",
-    "OptimalValiantModel", "SelectedOptimalValiantModel",
-    "ObliviousValiantModel", "SelectedObliviousValiantModel",
+    "ObliviousValiantModel",
+
     "PhysModel",
-    "Pattern", "Selector",
-    "PermutationPattern",
-    "TrafficMatrixPattern",
-    "ConjugacySelector",
-    "DerangementSelector",
-    "ManualSelector", "select_representatives",
     "BumpModel", "C4Model",
     "ThermalModel", "SteadyStateModel", "GlobalPowerModel",
     "WiringModel",

@@ -1,4 +1,4 @@
-"""二维 Torus 拓扑。
+"""二维 TorusTopology 拓扑。
 
 所有节点都是 terminal，环绕维序路由（先 x 后 y，每维选最短方向）。
 """
@@ -8,7 +8,7 @@ from __future__ import annotations
 from topology import Topology
 
 
-class Torus(Topology):
+class TorusTopology(Topology):
     """二维 torus：N = size × size，全 terminal。
 
     路由：维序，先 x 后 y（dim 0 → dim 1），每维选最短环绕方向。

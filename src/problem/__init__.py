@@ -3,7 +3,7 @@ problem —— 晶圆级交换机 DSE 的线性规划引擎 (纯数学层).
 
 架构：
   ctx/      — 变量声明与约束收集器
-  models/   — 约束模型 (perf/phys + traffic, LP 模板, 不 import physical)
+  models/   — 约束模型 (perf/phys, LP 模板, 不 import physical)
   engine/   — Solver + Runner + ResultStore
   queries/  — 查询模式（feasibility, bmax, ...）
   builder/  — 编排层: 拓扑 + 参数 + Layout → 模型列表 (Stage 4 拆分)
@@ -17,18 +17,12 @@ builder 直接 import physical.layout.thermal_network.
 # 数据契约
 from problem.ctx import Ctx, LinearC, Model, Term, VarSpec
 
-# 约束模型 + 流量选择器
+# 约束模型
 from problem.models import (
     PerfModel,
-    OptimalValiantModel, SelectedOptimalValiantModel,
-    ObliviousValiantModel, SelectedObliviousValiantModel,
+    ObliviousValiantModel,
+
     PhysModel,
-    Pattern, Selector,
-    PermutationPattern,
-    TrafficMatrixPattern,
-    ConjugacySelector,
-    DerangementSelector,
-    ManualSelector, select_representatives,
     BumpModel, C4Model,
     ThermalModel, SteadyStateModel, GlobalPowerModel,
     WiringModel,
@@ -50,15 +44,9 @@ __all__ = [
     "Model",
     "Ctx", "VarSpec", "Term", "LinearC",
     "PerfModel",
-    "OptimalValiantModel", "SelectedOptimalValiantModel",
-    "ObliviousValiantModel", "SelectedObliviousValiantModel",
+    "ObliviousValiantModel",
+
     "PhysModel",
-    "Pattern", "Selector",
-    "PermutationPattern",
-    "TrafficMatrixPattern",
-    "ConjugacySelector",
-    "DerangementSelector",
-    "ManualSelector", "select_representatives",
     "BumpModel", "C4Model",
     "ThermalModel", "SteadyStateModel", "GlobalPowerModel",
     "WiringModel",

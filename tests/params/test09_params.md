@@ -56,7 +56,7 @@ assert UCIE_SERIES[0].link.pj_per_bit < UCIE_SERIES[2].link.pj_per_bit, "16G 能
 
 ## 3. toy 场景的模型输出 vs 手算
 
-FullMesh(2,1)：2 die、2 条 die 间有向链路 + 4 条 on-die（零代价）。每 die 的 ΣL = 2（出射 1 + 入射 1）。
+FullMeshTopology(2,1)：2 die、2 条 die 间有向链路 + 4 条 on-die（零代价）。每 die 的 ΣL = 2（出射 1 + 入射 1）。
 
 **手算**：
 - 热（R_vert 主导，无耦合近似）：T_die = 300 + 1.0×(10 + 0.01·B·2) ≤ 400 → **B* ≈ 4500**（横向热导 k=100 会让热量扩散，B* 略升）
@@ -64,15 +64,15 @@ FullMesh(2,1)：2 die、2 条 die 间有向链路 + 4 条 on-die（零代价）�
 
 ```python
 import numpy as np
-from problem import Ctx, CvxSolver, Runner, OptimalValiantModel, select_representatives, BumpModel, SteadyStateModel
+from problem import Ctx, CvxSolver, Runner, ObliviousValiantModel, BumpModel, SteadyStateModel
 from physical.layout.thermal_network import DiePlacement, MfitStackConfig, ThermalNetworkBuilder, AnalyticNetworkBuilder
 from problem.queries import BmaxQuery
 from physical.config.spec_bump import DieBumpBudget
 from physical.placement import PlacementProblem, solve_grid_placement
-from topology import FullMesh
+from topology import FullMeshTopology
 
 P = TOY
-topo = FullMesh(2, 1)
+topo = FullMeshTopology(2, 1)
 n2d = {}
 for r in range(2): n2d[r] = r
 for t in range(2, 4): n2d[t] = (t - 2) // 1
@@ -82,7 +82,7 @@ for li, (u, v) in enumerate(topo.links):
     d2l.setdefault(du, []).append(li)
     if dv != du: d2l.setdefault(dv, []).append(li)
 
-perf = OptimalValiantModel(topo, select_representatives(topo, topo.n_terminals))
+perf = ObliviousValiantModel(topo)
 lr = np.full(topo.n_links, P.link.lane_rate_gbps)
 ppl = np.full(topo.n_links, P.link.power_per_lane_w)
 for li, (u, v) in enumerate(topo.links):

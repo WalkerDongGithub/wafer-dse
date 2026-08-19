@@ -10,7 +10,7 @@
 import sys; sys.path.insert(0, '../src')
 from physical.config.spec_bump import BumpSpec, DieBumpBudget
 from problem.models.phys.bumps import BumpModel
-from topology import Mesh
+from topology import MeshTopology
 from problem import Ctx
 ```
 
@@ -60,7 +60,7 @@ $B=800, lr=32, ppl=0.016, V=0.8, I=0.075$：
 $coeff = 800/32 \times (1 + 0.016/0.06) = 25 \times 1.267 = 31.667$
 
 ```python
-graph = Mesh(2)
+graph = MeshTopology(2)
 # die == node 恒等映射（当前阶段简化）
 n2d = {n: n // 2 for n in range(4)}
 d2l = {}

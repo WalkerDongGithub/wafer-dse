@@ -1,7 +1,7 @@
 """FullMesh 拓扑 — 组内全互连。
 
 a 个 die 完全互连，每个 die 有 p 个终端端口。
-用于 Dragonfly 的组内无阻塞带宽判定。
+用于 DragonflyTopology 的组内无阻塞带宽判定。
 
 节点布局:
   0 .. a-1           → die (router) 节点
@@ -16,7 +16,7 @@ from __future__ import annotations
 from topology import Topology, _unique_paths
 
 
-class FullMesh(Topology):
+class FullMeshTopology(Topology):
     """a 个 die 全互连，每个 die 挂 p 个终端."""
 
     def __init__(self, a: int, p: int = 1):
@@ -97,7 +97,7 @@ class FullMesh(Topology):
 
 # -- node_to_die 映射 -------------------------------------------------------
 
-def fullmesh_node_to_die(topo: FullMesh) -> dict[int, int]:
+def fullmesh_node_to_die(topo: FullMeshTopology) -> dict[int, int]:
     """所有节点（router + terminal）映射到 die index."""
     m = {}
     for n in range(topo.node_num()):

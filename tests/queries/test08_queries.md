@@ -16,22 +16,21 @@
 3. bmax：lo 不可行 → 立刻返回 `B_star=0`；hi 可行 → 翻倍扩展；二分到 `hi - lo <= step`，返回 lo（保守端）。
 4. 可行性关于 B 单调：B 越大约束越紧。这是二分正确的前提，测试里显式验证。
 
-**最小 session**：Mesh(2)（4 节点全 terminal）+ 性能包络 + μbump + 热网络。必须带物理模型——纯 OptimalValiantModel 下 B 不影响可行性，bmax 会无限翻倍。
+**最小 session**：MeshTopology(2)（4 节点全 terminal）+ 性能包络 + μbump + 热网络。必须带物理模型——纯 ObliviousValiantModel 下 B 不影响可行性，bmax 会无限翻倍。
 
 ```python
 import sys; sys.path.insert(0, '../src')
 import numpy as np
 from problem import Ctx, CvxSolver, Runner
-from problem import OptimalValiantModel, select_representatives, BumpModel, SteadyStateModel
+from problem import ObliviousValiantModel, BumpModel, SteadyStateModel
 from physical.layout.thermal_network import ThermalNetworkBuilder
 from problem.queries import FeasibilityQuery, BmaxQuery
-from topology import Mesh
+from topology import MeshTopology
 from physical.config.spec_bump import UBUMP_45UM, DieBumpBudget
 
-topo = Mesh(2)  # 4 节点全 terminal，4 个 die
+topo = MeshTopology(2)  # 4 节点全 terminal，4 个 die
 
-reps = select_representatives(topo, topo.n_terminals)
-perf = OptimalValiantModel(topo, reps)
+perf = ObliviousValiantModel(topo)
 
 d2l = {}
 for li, (u, v) in enumerate(topo.links):
