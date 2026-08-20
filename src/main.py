@@ -42,7 +42,9 @@ _TOPOS = {
 
 _SCENARIOS = {"perf", "perf+bump", "perf+bump+therm",
               "perf+bump+therm+wiring", "perf+bump+therm+area",
-              "perf+bump+therm+wiring+area"}
+              "perf+bump+therm+wiring+area",
+              "perf+bump+therm+rated", "perf+egress_peak+bump+therm",
+              "perf+egress_peak+bump+therm+rated"}
 
 
 

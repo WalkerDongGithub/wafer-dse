@@ -1,7 +1,7 @@
 """场景组装 —— 拓扑 + 参数 + Layout → LP 模型列表.
 
 build_scenario 是 problem.builder 的主入口，场景用 '+' 分隔的 token 表达
-（V5 v5.21 布线/面积一级化后，E3 阶梯逐级加严方向一致）：
+（V5 v5.21 布线/面积一级化 + v5.22 双旋钮，E3 阶梯逐级加严方向一致）：
 
   perf                    — 只有性能包络（B 不约束）
   perf+bump               — + μbump 预算
@@ -9,6 +9,12 @@ build_scenario 是 problem.builder 的主入口，场景用 '+' 分隔的 token 
   perf+bump+therm+wiring  — + interposer 布线（V5 §2(2d)：edge/vert/pad 三维容量）
   perf+bump+therm+area    — + die 面积上界（V5 §2(2f)：A_die(B) ≤ A_max）
   perf+bump+therm+wiring+area — E3 完整阶梯
+
+双旋钮 token（V5 §0.1 v5.22，正交可组合）：
+  egress_peak — 要求旋钮 R_peak：单对流量包络 L_e* = max c_ij^e（§7.3b），
+                替代默认 R_qos 的 Birkhoff 子 LP 包络；
+  rated       — 约束旋钮 C_rated：峰值项 β_P B 置 0（§2.8），
+                替代默认 C_peak 的峰值工况。
 
 物理/几何实体从 physical 直接 import:
   - Layout (physical.layout) — 几何实体, builder 的输入契约
@@ -59,19 +65,32 @@ def _lane_rates(topo, P: ExpParams, n2d: dict[int, int]) -> tuple[np.ndarray, np
     return lane_rate, ppl
 
 
-def _bump_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl) -> BumpModel:
-    """μbump 预算模型——V5 §2(2c) + §4 C1."""
+def _bump_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl,
+                beta_p: float | None = None) -> BumpModel:
+    """μbump 预算模型——V5 §2(2c) + §4 C1。
+
+    beta_p 覆盖（C_rated 档 β_P:=0，V5 §2.8 v5.22）：
+    None → 用 P.die.beta_p（C_peak 档）；0.0 → 额定工况。
+    """
+    if beta_p is None:
+        beta_p = P.die.beta_p
     budgets = [DieBumpBudget(f"d{i}", P.bump.spec(),
                              P.die.width_mm, P.die.height_mm,
                              P.die.static_power_w, P.die.vdd_v,
                              P.bump.utilization,
-                             P.die.d0_mm, P.die.alpha_d, P.die.beta_p)
+                             P.die.d0_mm, P.die.alpha_d, beta_p)
                for i in range(layout.n_dies)]
     return BumpModel(budgets, d2l, topo.n_links, lane_rate, ppl)
 
 
-def _therm_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl) -> SteadyStateModel:
-    """几何热网络（L1 稳态）——V5 §2(2e)。"""
+def _therm_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl,
+                 beta_p: float | None = None) -> SteadyStateModel:
+    """几何热网络（L1 稳态）——V5 §2(2e)。
+
+    beta_p 覆盖（C_rated 档 β_P:=0）：None → P.die.beta_p；0.0 → 额定工况。
+    """
+    if beta_p is None:
+        beta_p = P.die.beta_p
     stack = MfitStackConfig(k_interposer=P.thermal.k_interposer,
                             t_interposer=P.thermal.t_interposer_mm,
                             R_vert=P.thermal.r_vert_k_per_w,
@@ -79,7 +98,7 @@ def _therm_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl) -> Ste
     P0 = np.full(layout.n_dies, P.die.static_power_w)
     net = AnalyticNetworkBuilder(stack=stack, T_max=P.thermal.t_max_k).build(
         layout.placements, d2l, topo.n_links, lane_rate, ppl, P0)
-    return SteadyStateModel(net, beta_p=P.die.beta_p)
+    return SteadyStateModel(net, beta_p=beta_p)
 
 
 def _wiring_model(topo, P: ExpParams, layout: Layout, lane_rate) -> WiringModel:
@@ -119,22 +138,30 @@ def build_scenario(topo, scenario: str, P: ExpParams, layout: Layout):
     n_dies = layout.n_dies
 
     tokens = set(scenario.split("+"))
-    _KNOWN = {"perf", "bump", "therm", "wiring", "area"}
+    _KNOWN = {"perf", "bump", "therm", "wiring", "area",
+              "egress_peak", "rated"}
     unknown = tokens - _KNOWN
     if unknown:
         raise ValueError(
             f"场景 '{scenario}' 含未知 token {sorted(unknown)}，"
             f"可选: {sorted(_KNOWN)}")
 
-    perf = ObliviousValiantModel(topo)
+    # 双旋钮（V5 §0.1 v5.22）：R 只作用于性能包络（egress_peak → 单对包络），
+    # C 只作用于物理 rhs（rated → β_P:=0）
+    requirement = "peak" if "egress_peak" in tokens else "qos"
+    rated = "rated" in tokens
+
+    perf = ObliviousValiantModel(topo, requirement=requirement)
 
     models = [perf]
     if "bump" in tokens:
         lane_rate, ppl = _lane_rates(topo, P, n2d)
-        models.append(_bump_model(topo, P, layout, d2l, lane_rate, ppl))
+        models.append(_bump_model(topo, P, layout, d2l, lane_rate, ppl,
+                                  beta_p=0.0 if rated else None))
     if "therm" in tokens:
         lane_rate, ppl = _lane_rates(topo, P, n2d)
-        models.append(_therm_model(topo, P, layout, d2l, lane_rate, ppl))
+        models.append(_therm_model(topo, P, layout, d2l, lane_rate, ppl,
+                                   beta_p=0.0 if rated else None))
     if "wiring" in tokens:
         lane_rate, _ = _lane_rates(topo, P, n2d)
         models.append(_wiring_model(topo, P, layout, lane_rate))

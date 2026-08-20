@@ -31,20 +31,27 @@ if TYPE_CHECKING:
 
 
 class ObliviousValiantModel(PerfModel):
-    """静态 oblivious Valiant 路由下的 L 包络——V5 §7.3。
+    """静态 oblivious Valiant 路由下的 L 包络——V5 §7.3 / §7.3b。
 
     f 固定为均匀分流（对每条候选路径分 D_{ij}/K_{ij}），
     D 是决策变量（Birkhoff 多面体），对每条链路 e 求 max L_e(D)。
 
-    这是"最严苛性能约束"——网络必须在 oblivious 路由下承受最坏流量模式：
-    f 固定为均匀分流、只优化 D（最大化 L_e），故 L* 更悲观。
+    requirement 旋钮（V5 §0.1 v5.22 双旋钮）：
+      "qos"  — R_qos：任意 admissible 流量（双随机）下无阻塞，
+               Birkhoff 子 LP 解包络（置换矩阵最坏情形，V5 §7.3）；
+      "peak" — R_peak：仅出入口可达 B（单对流量包络，V5 §7.3b 闭式
+               L_e* = max_{(i,j)} c_ij^e ≤ 1，无需子 LP）。
     """
 
-    def __init__(self, topo: Topology) -> None:
+    def __init__(self, topo: Topology, requirement: str = "qos") -> None:
+        if requirement not in ("qos", "peak"):
+            raise ValueError(
+                f"requirement 必须是 'qos' | 'peak'，收到 '{requirement}'")
         self._topo = topo
+        self._requirement = requirement
         # precompute oblivious routing coefficients c_{ij}^e
         self._paths, self._coeffs = self._precompute()
-        # pre-solve: for each link e, max_D L_e(D) over Birkhoff polytope
+        # pre-solve: for each link e, envelope L_e*（R_qos 子 LP / R_peak 闭式）
         self._L_star: list[float] = self._solve_envelope()
 
     # ------------------------------------------------------------------
@@ -109,7 +116,17 @@ class ObliviousValiantModel(PerfModel):
     # ------------------------------------------------------------------
 
     def _solve_envelope(self) -> list[float]:
-        """对每条链路 e 解子 LP：max_D Σ c_{ij}^e D_{ij}，D ∈ Birkhoff。
+        """对每条链路 e 求包络 L_e*。
+
+        requirement="qos"：解子 LP（Birkhoff 多面体 max L_e(D)，V5 §7.3）；
+        requirement="peak"：闭式 L_e* = max_{(i,j)} c_ij^e（V5 §7.3b 单对包络）。
+        """
+        if self._requirement == "peak":
+            return [float(c.max()) for c in self._coeffs]
+        return self._solve_birkhoff_lp()
+
+    def _solve_birkhoff_lp(self) -> list[float]:
+        """对每条链路 e 解子 LP：max_D Σ c_ij^e D_ij，D ∈ Birkhoff。
 
         Birkhoff 多面体 = {D ∈ R^{N×N} : D ≥ 0, D·1 = 1, D^T·1 = 1}。
         线性目标在顶点取到最优（Birkhoff-von Neumann 定理），即某个置换矩阵 σ*。
@@ -162,7 +179,7 @@ class ObliviousValiantModel(PerfModel):
     def cache_key(self) -> tuple:
         # L* fully determines the constraints — encode it in the key
         lstar = tuple(round(x, 9) for x in self._L_star)
-        return ("oblivious_valiant",
+        return ("oblivious_valiant", self._requirement,
                 self._topo.__class__.__name__,
                 self._topo.n_links, lstar)
 
