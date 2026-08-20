@@ -35,16 +35,42 @@ class WiringModel(PhysModel):
     不写 route_dem 需求等式；容量约束直接写 Σ_{(首路径经过)} (B/lr)·L ≤ cap
     （与 C4Model 同形态）。联合模型（fixed_paths=False）保留 x 分流自由度，
     二者在存在 ≥2 条候选路径的链路上可产生分歧（预期分歧机制）。
+
+    power 走线项（V5 §2(2d) v5.25/v5.26，作者 round 21 耦合案例）：
+    Power/GND 走线占用 RDL 容量，与信号 lane 共享 edge/vert 容量——
+
+      Σ_l (B/lr_l)(1 + c_pwr·s_dyn_l)·L_l + c_pwr·(P0 + β_P·B) ≤ cap_e
+
+    P_dyn（=Σ s_dyn_l·ℓ_l）折进 L 系数（与 BumpModel 动态功耗先例一致，
+    P_dyn 是信号 lane 的直接函数，供电走线必须承担）；P0+β_P·B 为 rhs
+    扣减（固定 B 下常数，LP 结构不变，insight 7）。c_pwr_lane_per_w 默认
+    0 = 关闭（向后兼容）。两种模式（optimize/fixed）同一口径，防不公平基线。
     """
 
     def __init__(self, grid: WiringGrid,
                  link_specs: list[dict],
                  link_indices: list[int],
                  lane_rates: np.ndarray,
-                 fixed_paths: bool = False):
+                 fixed_paths: bool = False,
+                 c_pwr_lane_per_w: float = 0.0,
+                 p0_w: float = 0.0,
+                 beta_p: float = 0.0,
+                 s_dyn: np.ndarray | None = None):
         n_links = len(link_indices)
         pg = grid.path_groups
         self._fixed_paths = fixed_paths
+
+        # -- power 走线项（V5 §2(2d) v5.25）：P_dyn 折进 L 系数、P0+β_P·B 扣减 rhs --
+        self._c_pwr = float(c_pwr_lane_per_w)
+        self._p0 = float(p0_w)
+        self._beta_p = float(beta_p)
+        sd = np.zeros(n_links) if s_dyn is None else np.asarray(s_dyn, dtype=float)
+        self._s_dyn = sd
+        # per-link power 系数：1 + c_pwr·s_dyn（fixed 模式 L 系数乘子）
+        self._link_pwr: dict[int, float] = {
+            li: 1.0 + self._c_pwr * float(sd[i])
+            for i, li in enumerate(link_indices)
+        }
 
         # -- 每条链路的元数据 --
         # _link_meta = [(li, lane_rate, n_paths, path_start_idx), ...]
@@ -75,6 +101,21 @@ class WiringModel(PhysModel):
             for vi in range(grid.n_vertices)
         ]
         self._vert_cap = grid.vert_cap
+
+        # -- power 走线项：每条边/顶点经过的链路索引（P_dyn 折进 L 系数用）--
+        # 从 path_idx 反查所属链路：link_meta 的 (li, n_paths, start) 区间
+        self._path_link: dict[int, int] = {}
+        for (li, lr, n_paths, start) in self._link_meta:
+            for qi in range(n_paths):
+                self._path_link[start + qi] = li
+        self._edge_links: list[list[int]] = [
+            sorted({self._path_link[pi] for pi in incident if pi in self._path_link})
+            for incident in self._edge_incident
+        ]
+        self._vert_links: list[list[int]] = [
+            sorted({self._path_link[pi] for pi in incident if pi in self._path_link})
+            for incident in self._vert_incident
+        ]
 
         # -- 固定路径模式：首路径经过的 link 列表（无 x，直接 (B/lr)·L）--
         if fixed_paths:
@@ -107,6 +148,8 @@ class WiringModel(PhysModel):
 
     def _build_optimize(self, ctx: Ctx, B: float) -> None:
         L = ctx["L"]
+        # power 走线 rhs 扣减（V5 §2(2d) v5.25）：c_pwr·(P0 + β_P·B)
+        pwr_rhs = self._c_pwr * (self._p0 + self._beta_p * B)
 
         # 声明 x 变量
         x_vars: list = [None] * self._total_paths
@@ -124,25 +167,27 @@ class WiringModel(PhysModel):
             ctx.constrain(f"route_dem_l{li}",
                           total - (B / lr) * L[li], "==", 0.0)
 
-        # 边容量
+        # 边容量（含 power 走线项：x 已含信号 lane，加 c_pwr·s_dyn·(B/lr)·L）
         for ei, incident in enumerate(self._edge_incident):
             if not incident:
                 continue
             expr = sum(x_vars[pi] for pi in incident)
+            expr = expr + self._edge_power_expr(L, B, ei)
             ctx.constrain(f"route_edge_e{ei}", expr, "<=",
-                          float(self._edge_cap[ei]),
+                          float(self._edge_cap[ei]) - pwr_rhs,
                           meaning=f"布线边 e{ei} 通道容量用尽")
 
-        # 点容量
+        # 点容量（含 power 走线项）
         for vi, incident in enumerate(self._vert_incident):
             if not incident:
                 continue
             expr = sum(x_vars[pi] for pi in incident)
+            expr = expr + self._vert_power_expr(L, B, vi)
             ctx.constrain(f"route_vert_v{vi}", expr, "<=",
-                          float(self._vert_cap[vi]),
+                          float(self._vert_cap[vi]) - pwr_rhs,
                           meaning=f"布线顶点 v{vi} 容量用尽")
 
-        # C4 pad 容量
+        # C4 pad 容量（power 走线不进 C4 pad 信号池）
         for pi, links in enumerate(self._c4_pad_links):
             if not links:
                 continue
@@ -152,28 +197,47 @@ class WiringModel(PhysModel):
                           float(self._c4_pad_cap[pi]),
                           meaning=f"C4 pad p{pi} 布线容量用尽")
 
-    def _build_fixed(self, ctx: Ctx, B: float) -> None:
-        """固定候选路径模式：无 x、无 route_dem，容量直接 Σ (B/lr)·L ≤ cap."""
-        L = ctx["L"]
+    def _edge_power_expr(self, L, B: float, ei: int):
+        """P_dyn 折进边容量约束的 L 项：c_pwr·Σ_{链路经过 e} s_dyn·(B/lr)·L。"""
+        if self._c_pwr == 0.0:
+            return 0 * L[0]
+        return self._c_pwr * sum(
+            float(self._s_dyn[li]) * (B / float(self._lane_rates[li])) * L[li]
+            for li in self._edge_links[ei])
 
-        # 边容量（首路径直连）
+    def _vert_power_expr(self, L, B: float, vi: int):
+        """P_dyn 折进顶点容量约束的 L 项。"""
+        if self._c_pwr == 0.0:
+            return 0 * L[0]
+        return self._c_pwr * sum(
+            float(self._s_dyn[li]) * (B / float(self._lane_rates[li])) * L[li]
+            for li in self._vert_links[vi])
+
+    def _build_fixed(self, ctx: Ctx, B: float) -> None:
+        """固定候选路径模式：无 x、无 route_dem，容量直接 Σ (B/lr)(1+c_pwr·s_dyn)·L ≤ cap−c_pwr(P0+β_P·B)."""
+        L = ctx["L"]
+        pwr_rhs = self._c_pwr * (self._p0 + self._beta_p * B)
+
+        # 边容量（首路径直连，power 项折进 L 系数）
         for ei, links in enumerate(self._edge_first_links):
             if not links:
                 continue
-            expr = sum((B / float(self._lane_rates[li])) * L[li]
+            expr = sum((B / float(self._lane_rates[li]))
+                       * float(self._link_pwr.get(li, 1.0)) * L[li]
                        for li in links)
             ctx.constrain(f"route_edge_e{ei}", expr, "<=",
-                          float(self._edge_cap[ei]),
+                          float(self._edge_cap[ei]) - pwr_rhs,
                           meaning=f"布线边 e{ei} 通道容量用尽（固定路径）")
 
-        # 点容量（首路径直连）
+        # 点容量（首路径直连，power 项折进 L 系数）
         for vi, links in enumerate(self._vert_first_links):
             if not links:
                 continue
-            expr = sum((B / float(self._lane_rates[li])) * L[li]
+            expr = sum((B / float(self._lane_rates[li]))
+                       * float(self._link_pwr.get(li, 1.0)) * L[li]
                        for li in links)
             ctx.constrain(f"route_vert_v{vi}", expr, "<=",
-                          float(self._vert_cap[vi]),
+                          float(self._vert_cap[vi]) - pwr_rhs,
                           meaning=f"布线顶点 v{vi} 容量用尽（固定路径）")
 
         # C4 pad 容量（与 optimize 相同：直接 (B/lr)·L，无 x）
@@ -187,7 +251,10 @@ class WiringModel(PhysModel):
                           meaning=f"C4 pad p{pi} 布线容量用尽")
 
     def cache_key(self) -> tuple:
-        return ("wiring_v2", self._fixed_paths, self._total_paths,
+        return ("wiring_v3", self._fixed_paths, self._c_pwr,
+                self._p0, self._beta_p,
+                tuple(round(float(x), 9) for x in self._s_dyn),
+                self._total_paths,
                 tuple(tuple(ei) for ei in self._edge_incident[:10]),
                 len(self._vert_incident),
                 len(self._c4_pad_links))

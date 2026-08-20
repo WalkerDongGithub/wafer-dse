@@ -107,6 +107,7 @@ class PackageParams:
     metal_layers: int
     lanes_per_mm: float     # 真实 Cu damascene RDL ≈ 500 lines/mm/层
     c4_pitch_mm: float
+    c_pwr_lane_per_w: float = 0.0  # power 走线 lane 当量系数（V5 §2(2d) v5.25）；0 = 关闭
 
 
 @dataclass(frozen=True)

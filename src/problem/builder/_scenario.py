@@ -107,6 +107,8 @@ def _wiring_model(topo, P: ExpParams, layout: Layout, lane_rate) -> WiringModel:
     D2D 链路（die→die）在网格上生成 L 形候选路径；on-die 链路（from==to）
     在 populate_paths 中 src==dst → 空路径 → build 跳过。
     不设 c4_pad（C4 属 I2I 段，范围外）→ 无 route_c4pad 约束。
+    power 走线项（V5 §2(2d) v5.25）：c_pwr 从 P.pkg 读（0=关闭），
+    P0/β_P 从 P.die 读，s_dyn 用 ppl（每 lane 动态功耗）。
     """
     n2d = layout.node_to_die
     link_specs = [{"from_die": n2d[u], "to_die": n2d[v]}
@@ -116,7 +118,11 @@ def _wiring_model(topo, P: ExpParams, layout: Layout, lane_rate) -> WiringModel:
                              P.pkg.metal_layers, P.pkg.lanes_per_mm,
                              P.pkg.c4_pitch_mm)
     grid = populate_paths(grid, link_specs)
-    return WiringModel(grid, link_specs, list(range(topo.n_links)), lane_rate)
+    return WiringModel(grid, link_specs, list(range(topo.n_links)), lane_rate,
+                       c_pwr_lane_per_w=P.pkg.c_pwr_lane_per_w,
+                       p0_w=P.die.static_power_w,
+                       beta_p=P.die.beta_p,
+                       s_dyn=_lane_rates(topo, P, n2d)[1])
 
 
 def build_wiring_fixed(topo, P: ExpParams, layout: Layout) -> WiringModel:
@@ -126,18 +132,23 @@ def build_wiring_fixed(topo, P: ExpParams, layout: Layout) -> WiringModel:
     lane 数全部走首条候选路径，无 x 变量、容量直接 Σ (B/lr)·L ≤ cap。
     分离基线用固定选路，不能利用路径多样性 → 布线饱和时 B* 更紧
     （分歧机制，实测 Mesh(3)/KaryNCube(2,3) rel_diff>0.15，lanes=100）。
+    power 走线项与联合模型同口径（c_pwr/P0/β_P/s_dyn 同源，防不公平基线）。
     """
     n2d = layout.node_to_die
     link_specs = [{"from_die": n2d[u], "to_die": n2d[v]}
                   for (u, v) in topo.links]
-    lane_rate, _ = _lane_rates(topo, P, n2d)
+    lane_rate, ppl = _lane_rates(topo, P, n2d)
     grid = build_wiring_grid(layout.placements,
                              P.pkg.interposer_w_mm, P.pkg.interposer_h_mm,
                              P.pkg.metal_layers, P.pkg.lanes_per_mm,
                              P.pkg.c4_pitch_mm)
     grid = populate_paths(grid, link_specs)
     return WiringModel(grid, link_specs, list(range(topo.n_links)),
-                       lane_rate, fixed_paths=True)
+                       lane_rate, fixed_paths=True,
+                       c_pwr_lane_per_w=P.pkg.c_pwr_lane_per_w,
+                       p0_w=P.die.static_power_w,
+                       beta_p=P.die.beta_p,
+                       s_dyn=ppl)
 
 
 def _area_model(P: ExpParams, layout: Layout) -> DieAreaModel:
