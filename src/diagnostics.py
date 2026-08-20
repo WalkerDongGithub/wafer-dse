@@ -38,7 +38,7 @@ if TYPE_CHECKING:
 
 # 物理约束家族 = 约束名前缀 → 模型家族。顺序无关（各前缀互不重叠），
 # 但 route 放在 c4 之前是防御性的：route_c4pad_* 属于布线家族，不属于 C4。
-_PHYS_FAMILIES = ("bump", "therm", "route", "c4")
+_PHYS_FAMILIES = ("bump", "therm", "route", "c4", "area")
 
 _FEASIBLE = ("optimal", "optimal_inaccurate")
 
@@ -145,7 +145,7 @@ def solve_diagnostic(models, B: float) -> DiagnosticResult:
 # ========================================================================
 
 def constraint_family(name: str) -> str:
-    """按约束名前缀归到模型家族：bump / therm / c4 / route，其余 other。"""
+    """按约束名前缀归到模型家族：bump / therm / route / c4 / area，其余 other。"""
     for prefix in _PHYS_FAMILIES:
         if name.startswith(prefix):
             return prefix

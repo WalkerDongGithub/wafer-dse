@@ -40,7 +40,9 @@ _TOPOS = {
     "dragonfly": DragonflyTopology,
 }
 
-_SCENARIOS = {"perf", "perf+bump", "perf+bump+therm"}
+_SCENARIOS = {"perf", "perf+bump", "perf+bump+therm",
+              "perf+bump+therm+wiring", "perf+bump+therm+area",
+              "perf+bump+therm+wiring+area"}
 
 
 

@@ -5,6 +5,7 @@ PhysModel —— 抽象基类，所有物理约束的公共入口：
   bumps/  — bump 预算 (μbump + C4)
   therm/  — 热约束 (温度上限 + 翘曲极限)
   wiring/ — 布线容量
+  area/   — die 面积上界 (V5 §2(2f))
 
 本包只导出 LP 约束模板，不导出物理/几何实体——DiePlacement /
 MfitStackConfig / ThermalNetwork / ThermalNetworkBuilder /
@@ -29,10 +30,12 @@ from problem.models.phys.bumps import BumpModel, C4Model
 from problem.models.phys.therm import (
     ThermalModel, SteadyStateModel, GlobalPowerModel,
 )
+from problem.models.phys.area import DieAreaModel
 
 __all__ = [
     "PhysModel",
     "BumpModel", "C4Model",
     "ThermalModel", "SteadyStateModel", "GlobalPowerModel",
+    "DieAreaModel",
 ]
 
