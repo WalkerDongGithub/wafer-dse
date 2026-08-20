@@ -199,16 +199,12 @@ class WiringModel(PhysModel):
 
     def _edge_power_expr(self, L, B: float, ei: int):
         """P_dyn 折进边容量约束的 L 项：c_pwr·Σ_{链路经过 e} s_dyn·(B/lr)·L。"""
-        if self._c_pwr == 0.0:
-            return 0 * L[0]
         return self._c_pwr * sum(
             float(self._s_dyn[li]) * (B / float(self._lane_rates[li])) * L[li]
             for li in self._edge_links[ei])
 
     def _vert_power_expr(self, L, B: float, vi: int):
         """P_dyn 折进顶点容量约束的 L 项。"""
-        if self._c_pwr == 0.0:
-            return 0 * L[0]
         return self._c_pwr * sum(
             float(self._s_dyn[li]) * (B / float(self._lane_rates[li])) * L[li]
             for li in self._vert_links[vi])
