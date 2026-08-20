@@ -1,7 +1,7 @@
 """场景组装 —— 拓扑 + 参数 + Layout → LP 模型列表.
 
 build_scenario 是 problem.builder 的主入口，场景用 '+' 分隔的 token 表达
-（V5 v5.21 布线/面积一级化 + v5.22 双旋钮，E3 阶梯逐级加严方向一致）：
+（布线/面积一级约束 + 双旋钮，E3 阶梯逐级加严方向一致）：
 
   perf                    — 只有性能包络（B 不约束）
   perf+bump               — + μbump 预算
@@ -10,7 +10,7 @@ build_scenario 是 problem.builder 的主入口，场景用 '+' 分隔的 token 
   perf+bump+therm+area    — + die 面积上界（V5 §2(2f)：A_die(B) ≤ A_max）
   perf+bump+therm+wiring+area — E3 完整阶梯
 
-双旋钮 token（V5 §0.1 v5.22，正交可组合）：
+双旋钮 token（V5 §0.1，正交可组合）：
   egress_peak — 要求旋钮 R_peak：单对流量包络 L_e* = max c_ij^e（§7.3b），
                 替代默认 R_qos 的 Birkhoff 子 LP 包络；
   rated       — 约束旋钮 C_rated：峰值项 β_P B 置 0（§2.8），
@@ -69,7 +69,7 @@ def _bump_model(topo, P: ExpParams, layout: Layout, d2l, lane_rate, ppl,
                 beta_p: float | None = None) -> BumpModel:
     """μbump 预算模型——V5 §2(2c) + §4 C1。
 
-    beta_p 覆盖（C_rated 档 β_P:=0，V5 §2.8 v5.22）：
+    beta_p 覆盖（C_rated 档 β_P:=0，V5 §2.8）：
     None → 用 P.die.beta_p（C_peak 档）；0.0 → 额定工况。
     """
     if beta_p is None:
@@ -107,7 +107,7 @@ def _wiring_model(topo, P: ExpParams, layout: Layout, lane_rate) -> WiringModel:
     D2D 链路（die→die）在网格上生成 L 形候选路径；on-die 链路（from==to）
     在 populate_paths 中 src==dst → 空路径 → build 跳过。
     不设 c4_pad（C4 属 I2I 段，范围外）→ 无 route_c4pad 约束。
-    power 走线项（V5 §2(2d) v5.25）：c_pwr 从 P.pkg 读（0=关闭），
+    power 走线项（V5 §2(2d)）：c_pwr 从 P.pkg 读（0=关闭），
     P0/β_P 从 P.die 读，s_dyn 用 ppl（每 lane 动态功耗）。
     """
     n2d = layout.node_to_die
@@ -178,7 +178,7 @@ def build_scenario(topo, scenario: str, P: ExpParams, layout: Layout):
             f"场景 '{scenario}' 含未知 token {sorted(unknown)}，"
             f"可选: {sorted(_KNOWN)}")
 
-    # 双旋钮（V5 §0.1 v5.22）：R 只作用于性能包络（egress_peak → 单对包络），
+    # 双旋钮（V5 §0.1）：R 只作用于性能包络（egress_peak → 单对包络），
     # C 只作用于物理 rhs（rated → β_P:=0）
     requirement = "peak" if "egress_peak" in tokens else "qos"
     rated = "rated" in tokens
