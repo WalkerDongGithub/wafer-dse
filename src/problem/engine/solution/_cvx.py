@@ -90,7 +90,11 @@ class CvxSolver(Solver):
         for vn, var in cvx_vars.items():
             v = var.value
             if v is not None:
-                var_vals[vn] = v.tolist() if hasattr(v, "tolist") else [float(v)]
+                # 统一存成 list[float]：shape=1 的变量 value 可能是标量 float
+                # 或 1 元素 ndarray（cvxpy tolist() 对后者返回 float）；诊断
+                # _lhs_value 按 var_values[name][idx] 访问，必须恒为列表。
+                val = v.tolist() if hasattr(v, "tolist") else v
+                var_vals[vn] = val if isinstance(val, list) else [float(val)]
 
         duals = {}
         try:

@@ -209,6 +209,38 @@ print(f"margin≈0 + dual=0 → binding = "
 
 ---
 
+## 5. 含标量变量（x 类）的模型：solve_diagnostic 不崩溃
+
+回归锚定：WiringModel 声明标量变量 x_l{li}_q{qi}（shape=1，非向量 L）。
+CvxSolver 提取标量变量 value 曾返回 float（非 list），`_lhs_value` 按
+`var_values[name][idx]` 访问 → 'float' object is not subscriptable。
+修复：标量统一包成 `[float(v)]`（git 修复）。
+
+真实场景：perf+bump+therm+wiring（含 WiringModel），solve_diagnostic
+必须正常返回（margins 含 route_* 物理族）。
+
+```python
+from problem.builder import build_scenario
+from physical.params import UCIE_32G
+from topology import MeshTopology
+from layout import place
+
+topo = MeshTopology(2)
+P = UCIE_32G
+layout = place(topo, P)
+m_w, _ = build_scenario(topo, "perf+bump+therm+wiring", P, layout)
+diag_w = solve_diagnostic(m_w, 100.0)
+print(f"wiring 模型: feasible={diag_w.feasible}, margins={len(diag_w.margins)}, "
+      f"binding={len(diag_w.binding)}")
+assert diag_w.feasible, "小 B 应可行"
+assert len(diag_w.margins) > 0, "应有物理约束 margin"
+assert any(n.startswith("route_") for n in diag_w.margins), \
+    f"应含 route_* 族 margin，实际 {list(diag_w.margins)[:5]}"
+print("✓ 含标量变量（x 类）模型 solve_diagnostic 不崩溃")
+```
+
+---
+
 ## 结论
 
 诊断原语契约全部通过：
@@ -217,3 +249,4 @@ print(f"margin≈0 + dual=0 → binding = "
 - `margins` 只报物理约束的 rhs − lhs（手算 4/3/98 全部命中）。
 - `binding` 在 feasible 时：物理约束 margin≈0 优先（即使 dual=0），duals 非零辅助；infeasible 时强制为空，杜绝把 Farkas 证书误当绑定。
 - `constraint_family` 按前缀归到 bump/therm/c4/route 四家族，`route_c4pad_*` 归布线不归 C4。
+- 含标量变量（x 类）模型（WiringModel 场景）solve_diagnostic 正常（CvxSolver 标量提取统一 list[float]）。
