@@ -119,6 +119,27 @@ def _wiring_model(topo, P: ExpParams, layout: Layout, lane_rate) -> WiringModel:
     return WiringModel(grid, link_specs, list(range(topo.n_links)), lane_rate)
 
 
+def build_wiring_fixed(topo, P: ExpParams, layout: Layout) -> WiringModel:
+    """固定候选路径布线模型——E3B v2 分离基线布线因素（V5 §2(2d)）。
+
+    与联合模型（build_scenario 的 wiring，x_D2D 分流）相对：每条链路
+    lane 数全部走首条候选路径，无 x 变量、容量直接 Σ (B/lr)·L ≤ cap。
+    分离基线用固定选路，不能利用路径多样性 → 布线饱和时 B* 更紧
+    （分歧机制，实测 Mesh(3)/KaryNCube(2,3) rel_diff>0.15，lanes=100）。
+    """
+    n2d = layout.node_to_die
+    link_specs = [{"from_die": n2d[u], "to_die": n2d[v]}
+                  for (u, v) in topo.links]
+    lane_rate, _ = _lane_rates(topo, P, n2d)
+    grid = build_wiring_grid(layout.placements,
+                             P.pkg.interposer_w_mm, P.pkg.interposer_h_mm,
+                             P.pkg.metal_layers, P.pkg.lanes_per_mm,
+                             P.pkg.c4_pitch_mm)
+    grid = populate_paths(grid, link_specs)
+    return WiringModel(grid, link_specs, list(range(topo.n_links)),
+                       lane_rate, fixed_paths=True)
+
+
 def _area_model(P: ExpParams, layout: Layout) -> DieAreaModel:
     """die 面积上界——V5 §2(2f)：A_max ≈ interposer 面积 ÷ 芯粒数（粗上界）。"""
     a_max = (P.pkg.interposer_w_mm * P.pkg.interposer_h_mm) / layout.n_dies

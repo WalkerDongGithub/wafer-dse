@@ -13,9 +13,12 @@ exp 只做"布局 → 建模 → 跑查询 → 收集结果"的编排.
   _scenario.py   build_scenario + die_to_links (场景组装 + 链路派生)
 """
 
-from problem.builder._scenario import build_scenario, die_to_links
+from problem.builder._scenario import (
+    build_scenario, build_wiring_fixed, die_to_links,
+)
 
 __all__ = [
     "build_scenario",
+    "build_wiring_fixed",
     "die_to_links",
 ]

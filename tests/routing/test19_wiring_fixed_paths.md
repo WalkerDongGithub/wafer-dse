@@ -154,9 +154,33 @@ print(f"✓ cache_key 区分: {k_fix[:3]}... vs {k_opt[:3]}...")
 
 ---
 
+## 6. 公开接口 build_wiring_fixed（problem.builder 导出，供 exp 层直接调用）
+
+E3B v2 分离基线布线因素用公开 helper（替代私有 `_scenario._lane_rates` 配方）：
+`build_wiring_fixed(topo, P, layout)` 返回 fixed_paths=True 的 WiringModel——
+与 build_scenario 的联合 wiring 同拓扑同参数，仅路径模式不同。
+
+```python
+from problem.builder import build_wiring_fixed
+from physical.params import UCIE_32G
+from topology import MeshTopology
+from layout import place
+
+topo = MeshTopology(2)
+P = UCIE_32G
+layout = place(topo, P)
+w_pub = build_wiring_fixed(topo, P, layout)
+assert isinstance(w_pub, WiringModel)
+assert w_pub.cache_key()[1] is True, "公开 helper 应产出 fixed_paths 模式"
+print(f"✓ build_wiring_fixed 产出 fixed 模式: {w_pub.cache_key()[:3]}...")
+```
+
+---
+
 ## 结论
 
-`WiringModel(fixed_paths=True)` 提供 E3B v2 分离基线的"固定候选路径"模式：
+`WiringModel(fixed_paths=True)` 提供 E3B v2 分离基线的"固定候选路径"模式，
+公开接口 `build_wiring_fixed(topo, P, layout)`（problem.builder 导出）：
 
 - 不声明 x 变量、无 route_dem；容量约束直接写 Σ (B/lr)·L ≤ cap（与 C4Model
   同形态，无决策变量）；
