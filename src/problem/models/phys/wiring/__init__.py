@@ -29,14 +29,22 @@ class WiringModel(PhysModel):
 
     __init__ 预计算: 每条网格边/点/C4 pad 上有哪些 (link, path) 经过.
     build() 只声明 x 变量 + 写需求/容量不等式.
+
+    fixed_paths=True（E3B v2 分离基线用）：固定候选路径模式——
+    每条链路 lane 数 = (B/lr)·L_e 全部走首条候选路径，不声明 x 变量、
+    不写 route_dem 需求等式；容量约束直接写 Σ_{(首路径经过)} (B/lr)·L ≤ cap
+    （与 C4Model 同形态）。联合模型（fixed_paths=False）保留 x 分流自由度，
+    二者在存在 ≥2 条候选路径的链路上可产生分歧（预期分歧机制）。
     """
 
     def __init__(self, grid: WiringGrid,
                  link_specs: list[dict],
                  link_indices: list[int],
-                 lane_rates: np.ndarray):
+                 lane_rates: np.ndarray,
+                 fixed_paths: bool = False):
         n_links = len(link_indices)
         pg = grid.path_groups
+        self._fixed_paths = fixed_paths
 
         # -- 每条链路的元数据 --
         # _link_meta = [(li, lane_rate, n_paths, path_start_idx), ...]
@@ -68,6 +76,17 @@ class WiringModel(PhysModel):
         ]
         self._vert_cap = grid.vert_cap
 
+        # -- 固定路径模式：首路径经过的 link 列表（无 x，直接 (B/lr)·L）--
+        if fixed_paths:
+            self._edge_first_links: list[list[int]] = [
+                _collect_edge_first(ei, grid, n_links, pg)
+                for ei in range(grid.n_edges)
+            ]
+            self._vert_first_links: list[list[int]] = [
+                _collect_vertex_first(vi, grid, n_links, pg)
+                for vi in range(grid.n_vertices)
+            ]
+
         # -- C4 pad 容量: _c4_links[pi] = [link_index, ...] --
         self._c4_pad_links: list[list[int]] = [[] for _ in grid.c4_vertices]
         for i in range(n_links):
@@ -81,6 +100,12 @@ class WiringModel(PhysModel):
     # -- build ----------------------------------------------------------
 
     def build(self, ctx: Ctx, B: float) -> None:
+        if self._fixed_paths:
+            self._build_fixed(ctx, B)
+        else:
+            self._build_optimize(ctx, B)
+
+    def _build_optimize(self, ctx: Ctx, B: float) -> None:
         L = ctx["L"]
 
         # 声明 x 变量
@@ -127,8 +152,42 @@ class WiringModel(PhysModel):
                           float(self._c4_pad_cap[pi]),
                           meaning=f"C4 pad p{pi} 布线容量用尽")
 
+    def _build_fixed(self, ctx: Ctx, B: float) -> None:
+        """固定候选路径模式：无 x、无 route_dem，容量直接 Σ (B/lr)·L ≤ cap."""
+        L = ctx["L"]
+
+        # 边容量（首路径直连）
+        for ei, links in enumerate(self._edge_first_links):
+            if not links:
+                continue
+            expr = sum((B / float(self._lane_rates[li])) * L[li]
+                       for li in links)
+            ctx.constrain(f"route_edge_e{ei}", expr, "<=",
+                          float(self._edge_cap[ei]),
+                          meaning=f"布线边 e{ei} 通道容量用尽（固定路径）")
+
+        # 点容量（首路径直连）
+        for vi, links in enumerate(self._vert_first_links):
+            if not links:
+                continue
+            expr = sum((B / float(self._lane_rates[li])) * L[li]
+                       for li in links)
+            ctx.constrain(f"route_vert_v{vi}", expr, "<=",
+                          float(self._vert_cap[vi]),
+                          meaning=f"布线顶点 v{vi} 容量用尽（固定路径）")
+
+        # C4 pad 容量（与 optimize 相同：直接 (B/lr)·L，无 x）
+        for pi, links in enumerate(self._c4_pad_links):
+            if not links:
+                continue
+            expr = sum((B / float(self._lane_rates[li])) * L[li]
+                       for li in links)
+            ctx.constrain(f"route_c4pad_p{pi}", expr, "<=",
+                          float(self._c4_pad_cap[pi]),
+                          meaning=f"C4 pad p{pi} 布线容量用尽")
+
     def cache_key(self) -> tuple:
-        return ("wiring_v1", self._total_paths,
+        return ("wiring_v2", self._fixed_paths, self._total_paths,
                 tuple(tuple(ei) for ei in self._edge_incident[:10]),
                 len(self._vert_incident),
                 len(self._c4_pad_links))
@@ -161,6 +220,29 @@ def _collect_vertex(vi, grid, n_links, path_groups, link_meta):
                 if vi == u or vi == v:
                     result.append(start + qi)
                     break
+    return result
+
+
+def _collect_edge_first(ei, grid, n_links, path_groups):
+    """经过边 ei 的首路径 link 列表（fixed 模式：只走首条候选路径）."""
+    result = []
+    for i in range(min(n_links, len(path_groups))):
+        first = path_groups[i][0] if path_groups[i] else []
+        if ei in first:
+            result.append(i)
+    return result
+
+
+def _collect_vertex_first(vi, grid, n_links, path_groups):
+    """经过顶点 vi 的首路径 link 列表（fixed 模式：只走首条候选路径）."""
+    result = []
+    for i in range(min(n_links, len(path_groups))):
+        first = path_groups[i][0] if path_groups[i] else []
+        for ei in first:
+            u, v = grid.edges[ei]
+            if vi == u or vi == v:
+                result.append(i)
+                break
     return result
 
 
