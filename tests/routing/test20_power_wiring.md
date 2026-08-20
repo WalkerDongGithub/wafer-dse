@@ -108,6 +108,38 @@ print("✓ power 项收紧布线约束：功耗占用 RDL 容量的机制成立"
 
 ---
 
+## 3b. 三向牵制方向断言：β_P>0 时 power 走线随 B 顶满 RDL
+
+E7 核心机制（作者 round 21 耦合案例）：β_P>0 时 power 走线占用随 B 增长
+→ 顶满 RDL → 必须提高散热或降带宽。方向断言：B 增大 → rhs 扣减
+c_pwr·(P0 + β_P·B) 线性增大 → 布线约束更紧（更早顶满）。
+
+手算：β_P=0.2, P0=10, c_pwr=1：
+- B=100：扣减 = 1.0×(10+0.2×100) = 30 → e38 rhs = 160−30 = 130
+- B=200：扣减 = 1.0×(10+0.2×200) = 50 → e38 rhs = 160−50 = 110
+- B=300：扣减 = 1.0×(10+0.2×300) = 70 → e38 rhs = 160−70 = 90
+扣减随 B 单调增（20/B 步长）——布线容量被 power 走线逐步吃掉。
+
+```python
+w2 = WiringModel(g, specs, [0, 1], lane_rate, fixed_paths=True,
+                 c_pwr_lane_per_w=1.0, p0_w=10.0, beta_p=0.2, s_dyn=s_dyn)
+rhs_at_B = {}
+for B in [100.0, 200.0, 300.0]:
+    cB = Ctx(); cB.vector("L", 2)
+    w2.build(cB, B=B)
+    c38 = [c for c in cB.constraints if c.name == "route_edge_e38"][0]
+    rhs_at_B[B] = c38.rhs
+print(f"e38 rhs 随 B: {rhs_at_B}")
+assert rhs_at_B[100.0] == 130.0, "B=100 扣减 30"
+assert rhs_at_B[200.0] == 110.0, "B=200 扣减 50"
+assert rhs_at_B[300.0] == 90.0, "B=300 扣减 70"
+# 单调方向：B 越大 rhs 越小（power 走线占用越大）
+assert rhs_at_B[100.0] > rhs_at_B[200.0] > rhs_at_B[300.0]
+print("✓ 三向牵制方向成立：β_P>0 时 power 走线占用随 B 增长，RDL 容量逐步被顶满")
+```
+
+---
+
 ## 4. optimize 模式同样生效
 
 默认（非 fixed）联合模型也应含 power 项——同一 c_pwr 口径。
