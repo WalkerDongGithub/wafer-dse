@@ -223,17 +223,73 @@ print("✓ 双形态同一 schema：集总（stack+layers）与展开（每层 d
 
 ---
 
+## 9. heatsink 显式化（§十五）：die→TIM→heatsink→ambient 三段链
+
+`config/thermal/2p5d-two-die-heatsink-explicit.yaml`：heatsink 是**显式节点**
+（非 boundary）——die 经 tim 边到 heatsink，heatsink 经 heatsink_ambient 边
+到 ambient（环境）。作者要求看完整散热链。
+
+### 手算（两 die + heatsink，3 自由节点）
+
+- 面邻接（die0↔die1）：G_lat = 0.013846（同 §1）
+- tim 边（die→heatsink）：r_tim=0.3 → g_tim = 1/0.3 = 3.3333
+- heatsink_ambient：h=100 W/(m²·K)、A=0.0144 m² → g_hs = h·A = 1.44
+- G（3×3：die0, die1, heatsink）：
+  $$
+  G = \begin{bmatrix}
+      g_{\text{lat}}+g_{\text{tim}} & -g_{\text{lat}} & -g_{\text{tim}} \\
+      -g_{\text{lat}} & g_{\text{lat}}+g_{\text{tim}} & -g_{\text{tim}} \\
+      -g_{\text{tim}} & -g_{\text{tim}} & 2g_{\text{tim}}+g_{\text{hs}}
+  \end{bmatrix}
+  $$
+- b = [0, 0, g_hs·T_amb] = [0, 0, 432]
+
+```python
+net_h = build_thermal_from_yaml("../config/thermal/2p5d-two-die-heatsink-explicit.yaml")
+G_h = np.linalg.inv(net_h.G_inv)
+g_tim = 1.0 / 0.3
+g_hs = 100.0 * 0.0144
+G_h_expect = np.array([
+    [g_lat + g_tim, -g_lat, -g_tim],
+    [-g_lat, g_lat + g_tim, -g_tim],
+    [-g_tim, -g_tim, 2*g_tim + g_hs],
+])
+assert G_h.shape == (3, 3), "heatsink 显式 = 两 die + heatsink 三个自由节点"
+assert np.allclose(G_h, G_h_expect, atol=1e-9), "G 应与手算一致"
+assert np.all(net_h.G_inv >= 0), "M-矩阵校验"
+print(f"✓ heatsink 显式：G={G_h.round(4).tolist()} 与手算一致（tim 3.3333 + hs 1.44）")
+```
+
+---
+
+## 10. 边类型完整性：tsv/hybrid/tim/heatsink_ambient 全解析
+
+```python
+import yaml as _y
+for path, etypes in [
+    ("../config/thermal/3d-two-die-explicit.yaml", {"tsv", "vertical_chain"}),
+    ("../config/thermal/2p5d-two-die-heatsink-explicit.yaml",
+     {"tim", "heatsink_ambient"}),
+]:
+    d = _y.safe_load(open(path))
+    got = {e["type"] for e in d["edges"]}
+    assert etypes <= got, f"{path}: 应含 {etypes}，实际 {got}"
+print("✓ 边类型齐全：face_adjacency/vertical_chain/ground/tsv/hybrid/tim/heatsink_ambient")
+```
+
+---
+
 ## 结论
 
-YAML 热网络组装器（schema v1，双形态）实现：
+YAML 热网络组装器（schema v1，双形态 + heatsink 显式）实现：
 
-- `config/thermal/*.yaml`：nodes（die/stack/boundary）+ edges
-  （face_adjacency/vertical_chain/tsv/hybrid/ground…），3D/2.5D 同一结构；
-- `build_thermal_from_yaml(path) -> ThermalNetwork`：读配置 → 边类型公式库
-  （面邻接 k·overlap·t/(d/2+d/2+gap)、纵向 1/R_vert、tsv 并联 r_via/n_vias）
-  → G/b → M-矩阵校验（G⁻¹ ≥ 0）→ ThermalNetwork；
-- **双形态**（model-ruling §十四）：集总（stack.layers，R_vert 串联，纵向热
-  主导有计算价值）+ 显式展开（每层 die + tsv/hybrid 层间纵向，作者要看堆叠
-  内部传热路径）——同一 schema；
-- 手算锚点：2.5D 两 die、散热板变体、3D 集总、3D 展开（tsv 0.2 / g_vert 1.0）；
+- `config/thermal/*.yaml`：nodes（die/stack/heatsink/boundary）+ edges
+  （face_adjacency/vertical_chain/tsv/hybrid/ground/tim/heatsink_ambient），
+  3D/2.5D 同一结构；
+- `build_thermal_from_yaml(path) -> ThermalNetwork`：边类型公式库（面邻接
+  k·overlap·t/(d/2+d/2+gap)、纵向 1/R_vert、tsv 并联 r_via/n_vias、
+  tim 接触热阻、heatsink_ambient h·A）→ G/b → M-矩阵校验 → ThermalNetwork；
+- **双形态**（§十四）：集总（stack.layers）+ 显式展开（每层 die + tsv/hybrid）；
+- **heatsink 显式**（§十五）：die→tim→heatsink→heatsink_ambient→ambient 三段链；
+- 手算锚点：2.5D、散热板、3D 集总、3D 展开、heatsink 三段链；
 - 无散热路径 → 拒绝；不接 build_scenario/Model。

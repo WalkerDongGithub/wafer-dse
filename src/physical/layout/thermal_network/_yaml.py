@@ -43,8 +43,8 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
     """
     d = yaml.safe_load(Path(path).read_text(encoding="utf-8"))
 
-    # -- 节点：自由节点（die/stack，进 G）与边界节点（boundary，固定温度）--
-    free_ids: list[str] = []          # die/stack，按声明顺序 → G 索引
+    # -- 节点：自由节点（die/stack/heatsink，进 G）与边界节点（boundary，固定温度）--
+    free_ids: list[str] = []          # die/stack/heatsink，按声明顺序 → G 索引
     free_geom: list[DiePlacement] = []  # 面邻接几何（x/y/w/h）
     free_layers: dict[str, int] = {}  # stack 层数（3D 集总，v1 仅记录）
     boundary_t: dict[str, float] = {}  # boundary 节点温度
@@ -52,7 +52,7 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
     for node in d.get("nodes", []):
         nid = node["id"]
         ntype = node["type"]
-        if ntype in ("die", "stack"):
+        if ntype in ("die", "stack", "heatsink"):
             g = node.get("geometry", {})
             free_ids.append(nid)
             free_geom.append(DiePlacement(nid,
@@ -65,7 +65,8 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
         elif ntype == "boundary":
             boundary_t[nid] = float(node["temperature_k"])
         else:
-            raise ValueError(f"未知节点类型 '{ntype}'（可选 die/stack/boundary）")
+            raise ValueError(
+                f"未知节点类型 '{ntype}'（可选 die/stack/heatsink/boundary）")
 
     n = len(free_ids)
     if n == 0:
@@ -86,11 +87,7 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
                                     edge.get("k_interposer_w_mk", 150.0),
                                     edge.get("t_interposer_mm", 0.1))
             if g_lat > 0:
-                i, j = idx[a], idx[bb]
-                G[i, i] += g_lat
-                G[j, j] += g_lat
-                G[i, j] -= g_lat
-                G[j, i] -= g_lat
+                _connect(G, idx, a, bb, g_lat)
         elif etype in ("vertical_chain", "ground"):
             # 纵向集总：g = 1/R_vert（或直接 g），进对角；边界温度进 b
             src = edge["from"] if "from" in edge else edge.get("at")
@@ -106,8 +103,8 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
             t_amb = boundary_t.get(dst, d.get("t_ambient_k", 300.0))
             b[i] += g * t_amb
         elif etype in ("tsv", "hybrid"):
-            # 3D 层间纵向（model-ruling §十四 展开形态）：两 die 节点间并联
-            # R = r_via/n_vias（或直接 r_tsk），g = 1/R，进对角 + 非对角
+            # 3D 层间纵向（§十四 展开形态）：两自由节点间并联
+            # R = r_via/n_vias（或直接 r_tsv_k_per_w），g = 1/R
             a, bb = edge["between"]
             if a not in idx or bb not in idx:
                 raise ValueError(f"{etype} 引用未知节点 {a}/{bb}")
@@ -115,15 +112,39 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
                 g = 1.0 / float(edge["r_tsv_k_per_w"])
             else:
                 g = float(edge["n_vias"]) / float(edge["r_via_k_per_w"])
-            i, j = idx[a], idx[bb]
-            G[i, i] += g
-            G[j, j] += g
-            G[i, j] -= g
-            G[j, i] -= g
+            _connect(G, idx, a, bb, g)
+        elif etype in ("tim", "heatsink_ambient"):
+            # 散热链显式（§十五）：tim = die→heatsink 接触热阻 1/R_tim；
+            # heatsink_ambient = heatsink→环境 对流 h·A。to 是自由节点或 boundary。
+            a = edge["from"]
+            if a not in idx:
+                raise ValueError(f"{etype} 引用未知节点 '{a}'")
+            i = idx[a]
+            dst = edge.get("to")
+            if dst in idx:
+                # 两自由节点间（如 die→heatsink）
+                if "r_tim_k_per_w" in edge:
+                    g = 1.0 / float(edge["r_tim_k_per_w"])
+                elif "h_w_per_m2k" in edge:
+                    g = float(edge["h_w_per_m2k"]) * float(edge["area_m2"])
+                else:
+                    g = float(edge["g_w_per_k"])
+                _connect(G, idx, a, dst, g)
+            else:
+                # 到边界（heatsink→ambient）：进对角 + b 贡献
+                if "r_tim_k_per_w" in edge:
+                    g = 1.0 / float(edge["r_tim_k_per_w"])
+                elif "h_w_per_m2k" in edge:
+                    g = float(edge["h_w_per_m2k"]) * float(edge["area_m2"])
+                else:
+                    g = float(edge["g_w_per_k"])
+                G[i, i] += g
+                t_amb = boundary_t.get(dst, d.get("t_ambient_k", 300.0))
+                b[i] += g * t_amb
         else:
             raise ValueError(
                 f"未知边类型 '{etype}'（可选 face_adjacency/vertical_chain/"
-                f"ground/tsv/hybrid）")
+                f"ground/tsv/hybrid/tim/heatsink_ambient）")
 
     # -- M-矩阵校验：每节点必须有散热路径（对角元 > 0）--
     if np.any(np.diag(G) <= 0):
@@ -133,6 +154,16 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
     # -- 预计算 ThermalNetwork（G⁻¹ ≥ 0 校验在 _make_network）--
     t_max = float(d.get("t_max_k", T_JUNCTION_MAX_K))
     return ThermalNetworkBuilder.precompute(G, b, t_max, {}, 0)
+
+
+def _connect(G: np.ndarray, idx: dict[str, int],
+             a: str, b: str, g: float) -> None:
+    """两自由节点间热导装配：进对角 + 非对角（M-矩阵结构）。"""
+    i, j = idx[a], idx[b]
+    G[i, i] += g
+    G[j, j] += g
+    G[i, j] -= g
+    G[j, i] -= g
 
 
 def _face_adjacency(a: DiePlacement, bb: DiePlacement,
