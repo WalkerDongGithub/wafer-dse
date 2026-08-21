@@ -1,0 +1,54 @@
+# 2.5D 全链显式 —— die→ubump→interposer→c4→substrate→ambient（§十六）
+#
+# 传热路径（interposer/substrate 为显式节点，作者要完整散热路径）：
+#   die0 ──ubump── interposer                (die → interposer：μbump 阵列热阻)
+#   die1 ──ubump── interposer
+#   interposer ──c4── substrate              (interposer → substrate：C4 阵列)
+#   substrate ──substrate_ambient── ambient  (substrate → 环境：平面扩散+PCB 集总)
+#
+# 与集总形态（2p5d-two-die.yaml，die 级面邻接 + vertical_chain）对比：
+# 全链把 interposer/substrate 的自身温升显式化（有温度场就显式节点，
+# v1.2 是 v1.1 heatsink 哲学的层级延伸）。
+# 面内扩散（plane_diffusion）复用 face_adjacency（interposer/substrate 几何）。
+
+name: 2p5d-full-chain
+t_max_k: 358.15
+
+nodes:
+  - id: die0
+    type: die
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: die1
+    type: die
+    geometry: {x_mm: 13.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: interposer
+    type: interposer
+    geometry: {x_mm: 0.0, y_mm: -2.0, w_mm: 25.0, h_mm: 16.0}
+  - id: substrate
+    type: substrate
+    geometry: {x_mm: 0.0, y_mm: -4.0, w_mm: 30.0, h_mm: 20.0}
+  - id: ambient
+    type: boundary
+    temperature_k: 300.0
+
+edges:
+  - type: face_adjacency
+    between: [die0, die1]
+    k_interposer_w_mk: 150.0
+    t_interposer_mm: 0.1
+  - type: ubump
+    from: die0
+    to: interposer
+    r_ubump_k_per_w: 0.2
+  - type: ubump
+    from: die1
+    to: interposer
+    r_ubump_k_per_w: 0.2
+  - type: c4
+    from: interposer
+    to: substrate
+    r_c4_k_per_w: 0.3
+  - type: substrate_ambient
+    from: substrate
+    to: ambient
+    r_sub_k_per_w: 0.5

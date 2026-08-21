@@ -323,17 +323,74 @@ print(f"✓ heatsink_ambient r_sink_k_per_w：G={G_r.round(4).tolist()}（g_tim 
 
 ---
 
+## 12. 全链显式：die→ubump→interposer→c4→substrate→ambient（§十六）
+
+`config/thermal/2p5d-full-chain.yaml`：interposer/substrate 为显式节点
+（有自身温升），链段边 ubump/c4/substrate_ambient（1/R）。
+
+### 手算（两 die + interposer + substrate，4 自由节点）
+
+- 面邻接（die0↔die1）：G_lat = 0.013846
+- ubump（die→interposer）：r_ubump=0.2 → g_ub = 5.0
+- c4（interposer→substrate）：r_c4=0.3 → g_c4 = 3.3333
+- substrate_ambient：r_sub=0.5 → g_sub = 2.0
+- G（4×4：die0, die1, interposer, substrate）：
+  $$
+  G = \begin{bmatrix}
+      g_{\text{lat}}+g_{\text{ub}} & -g_{\text{lat}} & -g_{\text{ub}} & 0 \\
+      -g_{\text{lat}} & g_{\text{lat}}+g_{\text{ub}} & -g_{\text{ub}} & 0 \\
+      -g_{\text{ub}} & -g_{\text{ub}} & 2g_{\text{ub}}+g_{\text{c4}} & -g_{\text{c4}} \\
+      0 & 0 & -g_{\text{c4}} & g_{\text{c4}}+g_{\text{sub}}
+  \end{bmatrix}
+  $$
+- b = [0, 0, 0, g_sub·T_amb] = [0, 0, 0, 600]
+
+```python
+net_f = build_thermal_from_yaml("../config/thermal/2p5d-full-chain.yaml")
+G_f = np.linalg.inv(net_f.G_inv)
+g_ub = 1.0 / 0.2
+g_c4 = 1.0 / 0.3
+g_sub = 1.0 / 0.5
+G_f_expect = np.array([
+    [g_lat + g_ub, -g_lat, -g_ub, 0.0],
+    [-g_lat, g_lat + g_ub, -g_ub, 0.0],
+    [-g_ub, -g_ub, 2*g_ub + g_c4, -g_c4],
+    [0.0, 0.0, -g_c4, g_c4 + g_sub],
+])
+assert G_f.shape == (4, 4), "全链 = 两 die + interposer + substrate 四个自由节点"
+assert np.allclose(G_f, G_f_expect, atol=1e-9), "全链 G 应与手算一致"
+assert np.all(net_f.G_inv >= 0), "M-矩阵校验"
+print(f"✓ 全链显式：G={G_f.round(4).tolist()}（ubump 5.0 + c4 3.3333 + sub 2.0）")
+```
+
+---
+
+## 13. v1.2 节点/边类型：interposer/substrate + ubump/c4/substrate_ambient
+
+```python
+d_full = yaml.safe_load(open("../config/thermal/2p5d-full-chain.yaml"))
+types = {n["type"] for n in d_full["nodes"]}
+assert {"die", "interposer", "substrate", "boundary"} <= types, \
+    f"应含 die/interposer/substrate/boundary，实际 {types}"
+etypes = {e["type"] for e in d_full["edges"]}
+assert {"ubump", "c4", "substrate_ambient"} <= etypes, \
+    f"应含 ubump/c4/substrate_ambient，实际 {etypes}"
+print("✓ v1.2 节点/边类型齐全（interposer/substrate + ubump/c4/substrate_ambient）")
+```
+
+---
+
 ## 结论
 
-YAML 热网络组装器（schema v1.1）实现：
+YAML 热网络组装器（schema v1.2）实现：
 
-- `config/thermal/*.yaml`：nodes（die/stack/heatsink/boundary）+ edges
-  （face_adjacency/vertical_chain/tsv/hybrid/ground/tim/lid/heatsink_ambient），
-  3D/2.5D 同一结构；
+- `config/thermal/*.yaml`：nodes（die/stack/heatsink/interposer/substrate/
+  boundary）+ edges（face_adjacency/vertical_chain/tsv/hybrid/ground/tim/lid/
+  heatsink_ambient/ubump/c4/substrate_ambient），3D/2.5D 同一结构；
 - `build_thermal_from_yaml(path) -> ThermalNetwork`：边类型公式库（面邻接、
-  纵向 1/R_vert、tsv 并联、tim 1/R_tim、heatsink_ambient r_sink 或 h·A）
-  → G/b → M-矩阵校验 → ThermalNetwork；
-- **双形态**（§十四）+ **heatsink 显式**（§十五）：die→tim→heatsink→
-  heatsink_ambient→ambient 三段链；heatsink 自由节点（自身温升 T_hs−T_amb）；
-- 手算锚点：2.5D、散热板、3D 集总、3D 展开、heatsink 三段链、r_sink 字段；
+  纵向 1/R_vert、tsv 并联、链段边 1/R）→ G/b → M-矩阵校验 → ThermalNetwork；
+- **双形态**（§十四）+ **heatsink 显式**（§十五）+ **全链显式**（§十六：
+  interposer/substrate 节点 + ubump/c4/substrate_ambient 链段）；
+- 手算锚点：2.5D、散热板、3D 集总、3D 展开、heatsink 三段链、r_sink 字段、
+  全链三段；
 - 无散热路径 → 拒绝；不接 build_scenario/Model。
