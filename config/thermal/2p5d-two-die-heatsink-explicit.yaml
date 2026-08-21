@@ -4,11 +4,11 @@
 #   die0 ──face_adjacency── die1                (interposer 横向面邻接)
 #   die0 ──tim── heatsink                       (die → 散热板：TIM 接触热阻)
 #   die1 ──tim── heatsink
-#   heatsink ──heatsink_ambient── ambient       (散热板 → 环境：对流 h·A)
+#   heatsink ──heatsink_ambient── ambient       (散热板 → 环境：r_sink 总热阻)
 #
 # 节点类型 heatsink = 自由节点（有温度、有散热路径），非 boundary。
-# 边类型：tim（接触热阻，r_tim_k_per_w）、heatsink_ambient（对流，
-# h_w_per_m2k × 面积）。对照 2p5d-two-die-heatsink.yaml（boundary 简化版）。
+# 边类型：tim（接触热阻，r_tim_k_per_w）、heatsink_ambient（r_sink_k_per_w，
+# 散热板自身到环境总热阻，含 R_spread + R_conv 集总，model-ruling §十五）。
 
 name: 2p5d-two-die-heatsink-explicit
 t_max_k: 358.15
@@ -42,5 +42,4 @@ edges:
   - type: heatsink_ambient
     from: heatsink
     to: ambient
-    h_w_per_m2k: 100.0
-    area_m2: 0.0144       # 12×12mm die 的散热板底部面积
+    r_sink_k_per_w: 0.5

@@ -113,38 +113,37 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
             else:
                 g = float(edge["n_vias"]) / float(edge["r_via_k_per_w"])
             _connect(G, idx, a, bb, g)
-        elif etype in ("tim", "heatsink_ambient"):
-            # 散热链显式（§十五）：tim = die→heatsink 接触热阻 1/R_tim；
-            # heatsink_ambient = heatsink→环境 对流 h·A。to 是自由节点或 boundary。
+        elif etype in ("tim", "lid", "heatsink_ambient"):
+            # 散热链显式（§十五）：tim/lid = die→heatsink 段（1/R），
+            # heatsink_ambient = heatsink→环境（r_sink 或 h·A）。to 自由/边界。
             a = edge["from"]
             if a not in idx:
                 raise ValueError(f"{etype} 引用未知节点 '{a}'")
             i = idx[a]
             dst = edge.get("to")
-            if dst in idx:
-                # 两自由节点间（如 die→heatsink）
+
+            def _g(edge) -> float:
                 if "r_tim_k_per_w" in edge:
-                    g = 1.0 / float(edge["r_tim_k_per_w"])
-                elif "h_w_per_m2k" in edge:
-                    g = float(edge["h_w_per_m2k"]) * float(edge["area_m2"])
-                else:
-                    g = float(edge["g_w_per_k"])
+                    return 1.0 / float(edge["r_tim_k_per_w"])
+                if "r_sink_k_per_w" in edge:
+                    return 1.0 / float(edge["r_sink_k_per_w"])
+                if "h_w_per_m2k" in edge:
+                    return float(edge["h_w_per_m2k"]) * float(edge["area_m2"])
+                return float(edge["g_w_per_k"])
+
+            g = _g(edge)
+            if dst in idx:
+                # 两自由节点间（die→heatsink）
                 _connect(G, idx, a, dst, g)
             else:
                 # 到边界（heatsink→ambient）：进对角 + b 贡献
-                if "r_tim_k_per_w" in edge:
-                    g = 1.0 / float(edge["r_tim_k_per_w"])
-                elif "h_w_per_m2k" in edge:
-                    g = float(edge["h_w_per_m2k"]) * float(edge["area_m2"])
-                else:
-                    g = float(edge["g_w_per_k"])
                 G[i, i] += g
                 t_amb = boundary_t.get(dst, d.get("t_ambient_k", 300.0))
                 b[i] += g * t_amb
         else:
             raise ValueError(
                 f"未知边类型 '{etype}'（可选 face_adjacency/vertical_chain/"
-                f"ground/tsv/hybrid/tim/heatsink_ambient）")
+                f"ground/tsv/hybrid/tim/lid/heatsink_ambient）")
 
     # -- M-矩阵校验：每节点必须有散热路径（对角元 > 0）--
     if np.any(np.diag(G) <= 0):
