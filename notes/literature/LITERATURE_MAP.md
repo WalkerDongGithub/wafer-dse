@@ -4,6 +4,23 @@
 
 ---
 
+## 核验状态更新（2026-08-20，LiteratureSearcher Phase 1）
+
+> 本轮已对关键条目做 DBLP/CrossRef/arXiv 逐条核验；详细证据链见 `.dsh/team/artifacts/benchmark-matrix.md` 与 `.dsh/team/artifacts/gap-evidence-chain.md`，核验版 .bib 见 `.dsh/team/artifacts/paper.bib`。
+
+| 条目 | 状态变化 |
+|---|---|
+| #6 Chen ISCA'24 | ✅ 核验：ISCA 2024, pp.215-229, DOI 10.1109/ISCA59077.2024.00025 |
+| #7 Feng & Ma | ✅ 核验但 **venue 修正：SC 2024**（非 USENIX ATC 2024），DOI 10.1109/SC41406.2024.00102 |
+| #8 设计空间规模 | 有据：RapidChiplet 摘要 "hundreds of thousands of design points"（CF 2025） |
+| #9 仿真慢 | 有据（"orders of magnitude" 可引 RapidChiplet 原文；"单点数分钟"为本项目自测，不写死） |
+| #10 chiplet DSE 单维 | ✅ 坐实：RapidChiplet 原文把 thermal 外挂 HotSpot；CHARIOT/FireLink/FPIA 摘要无 thermal；**但** TickTock ISCA'25 与 Chen ISCA'24 为"部分联合"，需 xxx vs xxx 限定 |
+| #13 工具各管一维 | 有据：BookSim/Noxim(性能)、HotSpot/3D-ICE/MFIT(热)、FPIA/RapidChiplet(布局)、RedHawk(PDN) 独立存在 |
+| #14 wafer-scale 缺 DSE | 有据（检索未见，2026-08-20 为准；Chen/Feng&Ma/Wan/TickTock 均非 DSE 工具） |
+| MFIT（V5 §10 / ref.bib） | ⚠️ 引用错误修正：实为 Pfromm et al., ACM TODAES, DOI 10.1145/3765905（非 Zhang/TACO；V5 修正需 DomainExpert 确认） |
+
+---
+
 ## 第一段：晶圆级交换机的出现
 
 ### 1. "硅interposer和先进封装技术的持续进步，使晶圆级集成从学术概念进入工业量产"
@@ -52,7 +69,7 @@
 
 | 需要支撑的子论断 | 文献 | 状态 |
 |---|---|---|
-| Switch-Less Dragonfly on Wafer | Feng & Ma. ATC 2024 (USENIX) | 已有 cite:feng2024switchless |
+| Switch-Less Dragonfly on Wafer | Feng & Ma. SC 2024（IEEE, DOI 10.1109/SC41406.2024.00102）| 已有 cite:feng2024switchless（venue 已核正：SC24 非 ATC24） |
 
 ---
 

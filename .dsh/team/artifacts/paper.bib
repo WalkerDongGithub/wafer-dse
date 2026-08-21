@@ -1,0 +1,520 @@
+%===========================================================================%
+% wafer-dse paper.bib —— LiteratureSearcher Phase 1 核验版
+% 生成：2026-08-20；全部条目经 DBLP(第一源)/CrossRef/arXiv 核验
+% 核验细节与修正记录见 bib-verification-report.md
+% 待核实条目带 note={待核实: ...}
+%===========================================================================%
+
+%------------------------------- 晶圆级系统与交换机 -------------------------%
+@inproceedings{chen2024waferscale,
+  author    = {Chen, Shuangliang David and Pal, Saptadeep and Kumar, Rakesh},
+  title     = {Waferscale Network Switches},
+  booktitle = {Proceedings of the 51st Annual International Symposium on Computer Architecture (ISCA)},
+  pages     = {215--229},
+  year      = {2024},
+  doi       = {10.1109/ISCA59077.2024.00025}
+}
+
+@inproceedings{feng2024switchless_sc,
+  author    = {Feng, Yinxiao and Ma, Kaisheng},
+  title     = {Switch-Less Dragonfly on Wafers: A Scalable Interconnection Architecture based on Wafer-Scale Integration},
+  booktitle = {Proceedings of the International Conference for High Performance Computing, Networking, Storage and Analysis (SC)},
+  year      = {2024},
+  doi       = {10.1109/SC41406.2024.00102},
+  note      = {venue 修正：原 LITERATURE_MAP/旧 bib 标 USENIX ATC 2024，DBLP 实为 SC 2024}
+}
+
+@article{wan2025architectural,
+  author    = {Wan, Zhiquan and Cao, Zhipeng and Li, Shunbin and Li, Peijie and Deng, Qingwen and Wang, Weihao and Zhang, Kun},
+  title     = {Architectural Exploration for Waferscale Switching System},
+  journal   = {IEEE Transactions on Very Large Scale Integration (VLSI) Systems},
+  pages     = {512--524},
+  year      = {2025},
+  doi       = {10.1109/TVLSI.2024.3455332},
+  note      = {旧 bib 作者为 "Wan, Z. and others"、年份 2024，已补全并修正为 2025}
+}
+
+@inproceedings{yang2025ticktock,
+  author    = {Yang, Qize and Wei, Taiquan and Guan, Sihan and Li, Chengran and Shang, Haoran and Deng, Jinyi and Wang, Huizheng and others},
+  title     = {PD Constraint-aware Physical/Logical Topology Co-Design for Network on Wafer},
+  booktitle = {Proceedings of the 52nd Annual International Symposium on Computer Architecture (ISCA)},
+  pages     = {49--64},
+  year      = {2025},
+  doi       = {10.1145/3695053.3731045},
+  note      = {旧 bib 作者为 "Yang, X. and others"，已补全（DBLP 显示 7+ 作者，第 8 位起未核全）}
+}
+
+@inproceedings{yu2025cramming,
+  author    = {Yu, Xingmao and Jiang, Dingcheng and Deng, Jinyi and Liu, Jingyao and Li, Chao and Yin, Shouyi and Hu, Yang},
+  title     = {Cramming a Data Center into One Cabinet, a Co-Exploration of Computing and Hardware Architecture of Waferscale Chip},
+  booktitle = {Proceedings of the 52nd Annual International Symposium on Computer Architecture (ISCA)},
+  pages     = {631--645},
+  year      = {2025},
+  doi       = {10.1145/3695053.3731016}
+}
+
+@inproceedings{dojo2022hc,
+  author    = {Talpes, Emil and Williams, Douglas and Das Sarma, Debjit},
+  title     = {{DOJO}: The Microarchitecture of Tesla's Exa-Scale Computer},
+  booktitle = {2022 IEEE Hot Chips 34 Symposium (HCS)},
+  year      = {2022},
+  doi       = {10.1109/HCS55958.2022.9895534}
+}
+
+@article{dojo2023micro,
+  author    = {Talpes, Emil and Das Sarma, Debjit and Williams, Doug and Arora, Sahil and Kunjan, Thomas and Floering, Benjamin},
+  title     = {The Microarchitecture of {DOJO}, Tesla's Exa-Scale Computer},
+  journal   = {IEEE Micro},
+  volume    = {43},
+  number    = {1},
+  pages     = {31--42},
+  year      = {2023},
+  doi       = {10.1109/MM.2023.3258906},
+  note      = {卷期页以 CrossRef 记录为准}
+}
+
+@inproceedings{lie2023hcs,
+  author    = {Lie, Sean},
+  title     = {Inside the Cerebras Wafer-Scale Cluster: Cerebras Systems},
+  booktitle = {2023 IEEE Hot Chips 35 Symposium (HCS)},
+  pages     = {1--41},
+  year      = {2023},
+  doi       = {10.1109/HCS59251.2023.10254700}
+}
+
+@misc{cerebras_wse2,
+  title        = {Cerebras Wafer-Scale Engine {WSE-2}},
+  howpublished = {Cerebras Systems product documentation},
+  year         = {2021},
+  note         = {白名单外产品资料；论文若引 WSE-2 规格建议以 lie2023hcs 为主引}
+}
+
+%------------------------------- 网络拓扑与路由 ------------------------------%
+@inproceedings{kim2008dragonfly,
+  author    = {Kim, John and Dally, William J. and Scott, Steve and Abts, Dennis},
+  title     = {Technology-Driven, Highly-Scalable Dragonfly Topology},
+  booktitle = {Proceedings of the 35th Annual International Symposium on Computer Architecture (ISCA)},
+  pages     = {77--88},
+  year      = {2008},
+  doi       = {10.1109/ISCA.2008.19}
+}
+
+@inproceedings{benito2018valiant,
+  author    = {Benito, Mariano and Fuentes, Pablo and Vallejo, Enrique and Beivide, Ram{\'o}n},
+  title     = {Analysis and Improvement of Valiant Routing in Low-Diameter Networks},
+  booktitle = {4th IEEE International Workshop on High-Performance Interconnection Networks in the Exascale and Big-Data Era (HiPINEB)},
+  pages     = {1--8},
+  year      = {2018},
+  doi       = {10.1109/HIPINEB.2018.00009}
+}
+
+@article{navaridas2025proxy,
+  author    = {Navaridas, Javier and Pascual, Jose Antonio},
+  title     = {Improving the performance of Dragonfly networks through restrictive Proxy routing strategies},
+  journal   = {Computer Networks},
+  volume    = {265},
+  pages     = {111334},
+  year      = {2025},
+  doi       = {10.1016/j.comnet.2025.111334}
+}
+
+%------------------------------- oblivious 路由先例 --------------------------%
+@inproceedings{valiant1981universal,
+  author    = {Valiant, Leslie G. and Brebner, Gordon J.},
+  title     = {Universal Schemes for Parallel Communication},
+  booktitle = {Proceedings of the 13th Annual ACM Symposium on Theory of Computing (STOC)},
+  pages     = {263--277},
+  year      = {1981},
+  doi       = {10.1145/800076.802479}
+}
+
+@article{valiant1982siam,
+  author    = {Valiant, Leslie G.},
+  title     = {A Scheme for Fast Parallel Communication},
+  journal   = {SIAM Journal on Computing},
+  volume    = {11},
+  number    = {2},
+  pages     = {350--361},
+  year      = {1982},
+  doi       = {10.1137/0211028}
+}
+
+@inproceedings{racke2002focs,
+  author    = {R{\"a}cke, Harald},
+  title     = {Minimizing Congestion in General Networks},
+  booktitle = {Proceedings of the 43rd Annual IEEE Symposium on Foundations of Computer Science (FOCS)},
+  pages     = {43--52},
+  year      = {2002},
+  doi       = {10.1109/SFCS.2002.1181881},
+  note      = {venue 为 FOCS 2002，非 STOC（写作勿标错）}
+}
+
+@inproceedings{racke2008stoc,
+  author    = {R{\"a}cke, Harald},
+  title     = {Optimal hierarchical decompositions for congestion minimization in networks},
+  booktitle = {Proceedings of the 40th Annual ACM Symposium on Theory of Computing (STOC)},
+  pages     = {255--264},
+  year      = {2008},
+  doi       = {10.1145/1374376.1374415}
+}
+
+@article{azar2004jcss,
+  author    = {Azar, Yossi and Cohen, Edith and Fiat, Amos and Kaplan, Haim and R{\"a}cke, Harald},
+  title     = {Optimal oblivious routing in polynomial time},
+  journal   = {Journal of Computer and System Sciences},
+  volume    = {69},
+  number    = {3},
+  pages     = {383--394},
+  year      = {2004},
+  doi       = {10.1016/j.jcss.2004.04.010},
+  note      = {会议版 STOC 2003；卷期页以 CrossRef 记录为准（69(3)）}
+}
+
+%------------------------------- 交换网络理论 --------------------------------%
+@article{clos1953,
+  author    = {Clos, Charles},
+  title     = {A Study of Non-Blocking Switching Networks},
+  journal   = {Bell System Technical Journal},
+  volume    = {32},
+  number    = {2},
+  pages     = {406--424},
+  year      = {1953},
+  doi       = {10.1002/j.1538-7305.1953.tb01433.x}
+}
+
+@book{benes1965,
+  author    = {Bene{\v s}, V{\'a}clav E.},
+  title     = {Mathematical Theory of Connecting Networks and Telephone Traffic},
+  publisher = {Academic Press},
+  year      = {1965}
+}
+
+@article{mckeown1999tcom,
+  author    = {McKeown, Nick and Mekkittikul, Adisak and Anantharam, Venkat and Walrand, Jean C.},
+  title     = {Achieving 100\% throughput in an input-queued switch},
+  journal   = {IEEE Transactions on Communications},
+  volume    = {47},
+  number    = {8},
+  pages     = {1260--1267},
+  year      = {1999},
+  doi       = {10.1109/26.780463}
+}
+
+@article{mckeown1999islip,
+  author    = {McKeown, Nick},
+  title     = {The {iSLIP} scheduling algorithm for input-queued switches},
+  journal   = {IEEE/ACM Transactions on Networking},
+  volume    = {7},
+  number    = {2},
+  pages     = {188--201},
+  year      = {1999},
+  doi       = {10.1109/90.769767}
+}
+
+@inproceedings{chang2000infocom,
+  author    = {Chang, Cheng-Shang and Chen, Wen-Jyh and Huang, Hsiang-Yi},
+  title     = {Birkhoff-von {Neumann} input-buffered crossbar switches for guaranteed-rate services},
+  booktitle = {Proceedings of IEEE INFOCOM 2000},
+  pages     = {1614--1623},
+  year      = {2000},
+  doi       = {10.1109/INFCOM.2000.832560}
+}
+
+@article{chang2001tcom,
+  author    = {Chang, Cheng-Shang and Chen, Wen-Jyh and Huang, Hsiang-Yi},
+  title     = {Birkhoff-von {Neumann} input-buffered crossbar switches for guaranteed-rate services},
+  journal   = {IEEE Transactions on Communications},
+  volume    = {49},
+  number    = {7},
+  pages     = {1145--1147},
+  year      = {2001},
+  doi       = {10.1109/26.935153}
+}
+
+@article{birkhoff1946tres,
+  author    = {Birkhoff, Garrett},
+  title     = {Tres observaciones sobre el algebra lineal},
+  journal   = {Universidad Nacional de Tucum{\'a}n, Revista Serie A},
+  volume    = {5},
+  pages     = {147--151},
+  year      = {1946}
+}
+
+@incollection{vonneumann1953,
+  author    = {von Neumann, John},
+  title     = {A Certain Zero-Sum Two-Person Game Equivalent to the Optimal Assignment Problem},
+  booktitle = {Contributions to the Theory of Games, Volume II},
+  series    = {Annals of Mathematics Studies},
+  volume    = {28},
+  pages     = {5--12},
+  publisher = {Princeton University Press},
+  year      = {1953}
+}
+
+@misc{ngo2012lpnonblocking,
+  author    = {Ngo, Hung Q. and Rudra, Atri and Le, Anh N. and Nguyen, Thanh-Nhan},
+  title     = {Analyzing Nonblocking Switching Networks using Linear Programming (Duality)},
+  howpublished = {arXiv preprint arXiv:1204.3180},
+  year      = {2012},
+  note      = {会议版 INFOCOM 2010（researchr.org 记 NgoRLN10）待核实；暂以 arXiv 全文版引用}
+}
+
+%------------------------------- Chiplet DSE 工具 ----------------------------%
+@inproceedings{rapidchiplet2025,
+  author    = {Iff, Patrick and Bruggmann, Benigna and Morel, Blaise and Besta, Maciej and Benini, Luca and Hoefler, Torsten},
+  title     = {RapidChiplet: A Toolchain for Rapid Design Space Exploration of Inter-Chiplet Interconnects},
+  booktitle = {Proceedings of the 22nd ACM International Conference on Computing Frontiers (CF)},
+  year      = {2025},
+  doi       = {10.1145/3719276.3725170},
+  note      = {发表版标题为 Inter-Chiplet Interconnects（arXiv 版为 Chiplet Architectures）；作者顺序按 arXiv，CF 版待 DBLP 复核}
+}
+
+@misc{rapidchiplet2023arxiv,
+  author    = {Iff, Patrick and Bruggmann, Benigna and Morel, Blaise and Besta, Maciej and Benini, Luca and Hoefler, Torsten},
+  title     = {RapidChiplet: A Toolchain for Rapid Design Space Exploration of Chiplet Architectures},
+  howpublished = {arXiv preprint arXiv:2311.06081},
+  year      = {2023}
+}
+
+@article{firelink2025,
+  author    = {Li, Kai and Zeng, Kun and Rong, Peitao and Chen, Zhiqiang and Zhang, Tian and Wang, Yongwen},
+  title     = {{FireLink}: An Evaluation Framework for Chiplet Design Space Exploration},
+  journal   = {Journal of Computer Research and Development},
+  volume    = {62},
+  number    = {5},
+  pages     = {1108--1122},
+  year      = {2025},
+  doi       = {10.7544/issn1000-1239.202440082}
+}
+
+@article{chariot2026,
+  author    = {TBD},
+  title     = {{CHARIOT}: A Communication-Aware Exploration Framework for 2.5D/3D Silicon Interposer Design},
+  journal   = {ACM Transactions on Design Automation of Electronic Systems},
+  year      = {2026},
+  doi       = {10.1145/3815192},
+  note      = {作者列表待核实（DOI 10.1145/3815192 已核验存在）}
+}
+
+@article{fpia2024,
+  author    = {Jiao, Bo and Xu, Lei and Yu, Xinyu and Yang, Haitao and Zhu, Haozhe and Wang, Yu and Zhu, Jundong and Wen, Dexin and others},
+  title     = {{FPIA}: Communication-Aware Multi-Chiplet Integration With Field-Programmable Interconnect Fabric on Reusable Silicon Interposer},
+  journal   = {IEEE Transactions on Circuits and Systems I: Regular Papers},
+  volume    = {71},
+  number    = {9},
+  pages     = {4156--4168},
+  year      = {2024},
+  doi       = {10.1109/TCSI.2024.3419579},
+  note      = {DBLP 显示 9+ 作者，第 9 位起未核全}
+}
+
+%------------------------------- 热建模与物理约束 ----------------------------%
+@article{hotspot2006,
+  author    = {Huang, Wei and Ghosh, Shougata and Velusamy, Sivakumar and Sankaranarayanan, Karthik and Skadron, Kevin and Stan, Mircea R.},
+  title     = {{HotSpot}: A Compact Thermal Modeling Methodology for Early-Stage {VLSI} Design},
+  journal   = {IEEE Transactions on Very Large Scale Integration (VLSI) Systems},
+  volume    = {14},
+  number    = {5},
+  pages     = {501--513},
+  year      = {2006},
+  doi       = {10.1109/TVLSI.2006.876103}
+}
+
+@inproceedings{3dice2010,
+  author    = {Sridhar, Arvind and Vincenzi, Alessandro and Ruggiero, Martino and Brunschwiler, Thomas and Atienza, David},
+  title     = {{3D-ICE}: Fast compact transient thermal modeling for {3D} {ICs} with inter-tier liquid cooling},
+  booktitle = {Proceedings of the 2010 IEEE/ACM International Conference on Computer-Aided Design (ICCAD)},
+  pages     = {463--470},
+  year      = {2010},
+  doi       = {10.1109/ICCAD.2010.5653749},
+  note      = {venue 为 ICCAD 2010，非 DATE 2010}
+}
+
+@article{mfit2025,
+  author    = {Pfromm, Lukas and Kanani, Alish and Sharma, Harsh and Solanki, Parth and Tervo, Eric and Park, Jaehyun and Doppa, Janardhan Rao and Pande, Partha Pratim and Ogras, {\"U}mit Y.},
+  title     = {{MFIT}: Multi-FIdelity Thermal Modeling for 2.5D and 3D Multi-Chiplet Architectures},
+  journal   = {ACM Transactions on Design Automation of Electronic Systems},
+  volume    = {31},
+  number    = {1},
+  pages     = {4:1--4:27},
+  year      = {2025},
+  doi       = {10.1145/3765905},
+  note      = {修正：原 V5 §10 / 旧 bib 写 "Zhang et al., ACM TACO 2025" 有误；实为 Pfromm et al., ACM TODAES（arXiv:2410.09188）。参考文献侧（原 V5 §10，现 notes/IMPLEMENTATION_MAP.md）已随 v5.20 修正闭环（2026-08-21）}
+}
+
+@book{berman1994nonnegative,
+  author    = {Berman, Abraham and Plemmons, Robert J.},
+  title     = {Nonnegative Matrices in the Mathematical Sciences},
+  publisher = {SIAM},
+  year      = {1994}
+}
+
+%------------------------------- 仿真器与工具 --------------------------------%
+@inproceedings{booksim2013,
+  author    = {Jiang, Nan and Becker, Daniel U. and Michelogiannakis, George and Balfour, James D. and Towles, Brian and Shaw, David E. and Kim, John and Dally, William J.},
+  title     = {A detailed and flexible cycle-accurate Network-on-Chip simulator},
+  booktitle = {Proceedings of the 2013 IEEE International Symposium on Performance Analysis of Systems and Software (ISPASS)},
+  pages     = {86--96},
+  year      = {2013},
+  doi       = {10.1109/ISPASS.2013.6557149}
+}
+
+@article{noxim2017,
+  author    = {Catania, Vincenzo and Mineo, Andrea and Monteleone, Salvatore and Palesi, Maurizio and Patti, Davide},
+  title     = {Cycle-Accurate Network on Chip Simulation with {Noxim}},
+  journal   = {ACM Transactions on Modeling and Computer Simulation},
+  volume    = {27},
+  number    = {1},
+  pages     = {4:1--4:25},
+  year      = {2017},
+  note      = {venue 为 ACM TOMACS（非 TACO）；作者列表待 DBLP 复核}
+}
+
+@inproceedings{dsent2012,
+  author    = {Sun, Chen and Chen, Chia-Hsin Owen and Kurian, George and Wei, Lan and Miller, Jason and Agarwal, Anant and Peh, Li-Shiuan and Stojanovi{\'c}, Vladimir},
+  title     = {{DSENT} - A Tool Connecting Emerging Photonics with Electronics for Opto-Electronic Networks-on-Chip Modeling},
+  booktitle = {Proceedings of the 2012 IEEE/ACM Sixth International Symposium on Networks-on-Chip (NoCS)},
+  year      = {2012},
+  doi       = {10.1109/NoCS.2012.31}
+}
+
+%------------------------------- 布局算法（interposer/chiplet） ---------------%
+@article{murata1996seqpair,
+  author    = {Murata, Hiroshi and Fujiyoshi, Kunihiro and Nakatake, Shigetoshi and Kajitani, Yoji},
+  title     = {VLSI module placement based on rectangle-packing by the sequence-pair},
+  journal   = {IEEE Transactions on Computer-Aided Design of Integrated Circuits and Systems},
+  volume    = {15},
+  number    = {12},
+  pages     = {1518--1524},
+  year      = {1996},
+  doi       = {10.1109/43.552084}
+}
+
+@inproceedings{tap2p5d2021,
+  author    = {Ma, Yenai and Delshadtehrani, Leila and Demirkiran, Cansu and Abell{\'a}n, Jos{\'e} L. and Joshi, Ajay and Coskun, Ayse K.},
+  title     = {{TAP-2.5D}: A Thermally-Aware Chiplet Placement Methodology for 2.5D Systems},
+  booktitle = {2021 Design, Automation \& Test in Europe Conference \& Exhibition (DATE)},
+  pages     = {1246--1251},
+  year      = {2021},
+  doi       = {10.23919/DATE51398.2021.9474011},
+  note      = {第 6 作者以出版方为准（DBLP 显示 5 人，待核实）}
+}
+
+@inproceedings{atplace2p5d2024,
+  author    = {Wang, Qipan and Li, Xueqing and Jia, Tianyu and Lin, Yibo and Wang, Runsheng and Huang, Ru},
+  title     = {{ATPlace2.5D}: Analytical Thermal-Aware Chiplet Placement Framework for Large-Scale 2.5D-IC},
+  booktitle = {Proceedings of the 2024 IEEE/ACM International Conference on Computer-Aided Design (ICCAD)},
+  pages     = {39:1--39:9},
+  year      = {2024},
+  doi       = {10.1145/3676536.3676648}
+}
+
+@inproceedings{chiou2023chiplet,
+  author    = {Chiou, Hong-Wen and Jiang, Jia-Hao and Chang, Yu-Teng and Lee, Yu-Min and Pan, Chi-Wen},
+  title     = {Chiplet Placement for 2.5D IC with Sequence Pair Based Tree and Thermal Consideration},
+  booktitle = {Proceedings of the 28th Asia and South Pacific Design Automation Conference (ASP-DAC)},
+  pages     = {7--12},
+  year      = {2023},
+  doi       = {10.1145/3566097.3567911}
+}
+
+@inproceedings{tdpnavigator2025,
+  author    = {Hou, Yubo and Zhuang, Furen and Kundu, Partha Pratim and Ata Kircali, Sezin and Wang, Jie and Rotaru, Mihai and Rahul, Dutta and James, Ashish},
+  title     = {{TDPNavigator-Placer}: Thermal- and Wirelength-Aware Chiplet Placement in 2.5D Systems Through Multi-Agent Reinforcement Learning},
+  booktitle = {2025 IEEE 27th Electronics Packaging Technology Conference (EPTC)},
+  year      = {2025},
+  doi       = {10.1109/EPTC67330.2025.11392651}
+}
+
+@misc{chiplettpart2025,
+  title        = {ChipletPart: Scalable Cost-Aware Partitioning for 2.5D Systems},
+  howpublished = {arXiv preprint arXiv:2507.19819},
+  year         = {2025},
+  note         = {作者/发表状态待核实}
+}
+
+@inproceedings{liu2014interposerfloorplan,
+  author    = {Liu, Wen-Hao and Chang, Min-Sheng and Wang, Ting-Chi},
+  title     = {Floorplanning and Signal Assignment for Silicon Interposer-based 3D ICs},
+  booktitle = {Proceedings of the 51st Annual Design Automation Conference (DAC)},
+  pages     = {5:1--5:6},
+  year      = {2014},
+  doi       = {10.1145/2593069.2593142}
+}
+
+@inproceedings{chen2025survey2p5d,
+  author    = {Chen, Shixin and Zhang, Hengyuan and Ling, Zichao and Zhai, Jianwang and Yu, Bei},
+  title     = {The Survey of 2.5D Integrated Architecture: An EDA perspective},
+  booktitle = {Proceedings of the 30th Asia and South Pacific Design Automation Conference (ASP-DAC)},
+  pages     = {285--293},
+  year      = {2025},
+  doi       = {10.1145/3658617.3703134}
+}
+
+@inproceedings{kannan2015interposer,
+  author    = {Kannan, Ajaykumar and Enright Jerger, Natalie and Loh, Gabriel H.},
+  title     = {Enabling interposer-based disintegration of multi-core processors},
+  booktitle = {Proceedings of the 48th Annual IEEE/ACM International Symposium on Microarchitecture (MICRO)},
+  pages     = {546--558},
+  year      = {2015},
+  doi       = {10.1145/2830772.2830808}
+}
+
+@inproceedings{kim2019codesign,
+  author    = {Kim, Jinwoo and Murali, Gauthaman and Park, Heechun and Qin, Eric and Kwon, Hyoukjun and Venkataramani, Venkatesh and others},
+  title     = {Architecture, Chip, and Package Co-design Flow for 2.5D IC Design Enabling Heterogeneous IP Integration},
+  booktitle = {Proceedings of the 56th Annual Design Automation Conference (DAC)},
+  pages     = {178},
+  year      = {2019},
+  doi       = {10.1145/3316781.3317775},
+  note      = {DBLP 显示 7+ 作者，第 7 位起未核全}
+}
+
+%------------------------------- 优化与数学基础 ------------------------------%
+@article{diamond2016cvxpy,
+  author    = {Diamond, Steven and Boyd, Stephen},
+  title     = {{CVXPY}: A Python-embedded modeling language for convex optimization},
+  journal   = {Journal of Machine Learning Research},
+  volume    = {17},
+  number    = {83},
+  pages     = {1--5},
+  year      = {2016}
+}
+
+@techreport{goulart2024clarabel,
+  author    = {Goulart, Paul J. and Chen, Yuwen},
+  title     = {{CLARABEL}: An interior-point solver for conic programs},
+  institution = {arXiv preprint},
+  year      = {2024},
+  note      = {arXiv 号待核实}
+}
+
+@book{bertsekas1997nonlinear,
+  author    = {Bertsekas, Dimitri P.},
+  title     = {Nonlinear Programming},
+  edition   = {2nd},
+  publisher = {Athena Scientific},
+  year      = {1997}
+}
+
+@book{dally2004principles,
+  author    = {Dally, William J. and Towles, Brian},
+  title     = {Principles and Practices of Interconnection Networks},
+  publisher = {Morgan Kaufmann},
+  year      = {2004}
+}
+
+%------------------------------- 标准（白名单外产品文档） ---------------------%
+@manual{ucie2.0-2024,
+  title        = {Universal Chiplet Interconnect Express (UCIe) Specification, Revision 2.0},
+  organization = {UCIe Consortium},
+  year         = {2024},
+  note         = {Available at https://www.uciexpress.org；功耗 0.25--0.6 pJ/bit 与 bump pitch 数字需以规范原文为准}
+}
+
+@manual{oif-cei,
+  title        = {OIF-CEI: Common Electrical I/O (CEI) Electrical and Jitter Interoperability Agreements},
+  organization = {Optical Internetworking Forum (OIF)},
+  year         = {2024},
+  note         = {版本号待核实（旧 bib 写 OIF-CEI-05.1 需确认）}
+}

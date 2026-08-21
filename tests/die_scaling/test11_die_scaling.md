@@ -1,8 +1,8 @@
-# test11 — die 缩放模型 (V4 §2.8)
+# test11 — die 缩放模型 (V5 §2.8)
 
 ## 模块定位
 
-V4 §2.8 把 die 的物理尺寸和峰值功耗建模为端口带宽 B 的仿射函数：
+V5 §2.8 把 die 的物理尺寸和峰值功耗建模为端口带宽 B 的仿射函数：
 
 $$
 d(B) = d_0 + \alpha_d \cdot B,
@@ -153,7 +153,7 @@ print(f"B=50 时: {sum(t.coeff for t in c2.terms):.1f} L ≤ {c2.rhs:.0f} ✓")
 
 $G=[1.0]$, $b=[1.0 \cdot 300]=[300]$, $G^{-1}=[1.0]$。
 
-热约束 rhs（V4 §4）：
+热约束 rhs（V5 §2.8，$P_{peak}(B)$ 进 rhs）：
 
 $$
 rhs(B) = T_{max} - G^{-1}(P_{peak}(B) \cdot 1 + b)

@@ -55,3 +55,7 @@ docs/paper/Tmp/
 
 # 实验输出
 exp/output/
+
+# Team runtime state (not source)
+.dsh/rollback/
+.dsh/cache/

@@ -28,18 +28,14 @@ from problem import Ctx, CvxSolver, Runner, ResultStore
 
 from problem.queries import BmaxQuery
 from problem.builder import build_scenario
-from physical.params import TOY, UCIE_16G, UCIE_24G, UCIE_32G
+from physical.params import load_yaml_params
 from topology import MeshTopology, TorusTopology, KaryNCubeTopology, FullMeshTopology, DragonflyTopology
 
 from layout import place
 
 # ── 参数组合（论文绘图、讨论围绕这些展开） ────────────────────────
-PARAM_SETS = {
-    "toy": TOY,
-    "ucie-16g": UCIE_16G,
-    "ucie-24g": UCIE_24G,
-    "ucie-32g": UCIE_32G,
-}
+# 单一来源 = config/params/*.yaml（禁止硬编码）；全 16 组按文件名接线。
+PARAM_SETS = load_yaml_params(str(_project_root / "config" / "params"))
 
 # ── 拓扑清单 ────────────────────────────────────────────────────
 TOPOS = {
@@ -97,9 +93,32 @@ def main():
     print("-" * 100)
 
     for name, topo in TOPOS.items():
-        layout = place(topo, P)  # 布局是更高层的设计决策，先做
+        try:
+            layout = place(topo, P)  # 布局是更高层的设计决策，先做
+        except Exception as ex:
+            # 布局不可行（如 dies 超出网格容量）→ 三场景全记 error 行
+            for sc in SCENARIOS:
+                rows.append({
+                    "topo": name, "n_terminals": topo.n_terminals,
+                    "n_links": topo.n_links, "n_dies": "",
+                    "scenario": sc, "B_star": "", "iterations": "",
+                    "n_binding": "", "binding": "", "solve_time_s": "",
+                    "error": f"placement: {ex}",
+                })
+            print(f"{name:<18} placement 失败: {ex}")
+            continue
         for sc in SCENARIOS:
-            models, meta = build_scenario(topo, sc, P, layout)
+            try:
+                models, meta = build_scenario(topo, sc, P, layout)
+            except Exception as ex:
+                rows.append({
+                    "topo": name, "n_terminals": topo.n_terminals,
+                    "n_links": topo.n_links, "n_dies": "",
+                    "scenario": sc, "B_star": "", "iterations": "",
+                    "n_binding": "", "binding": "", "solve_time_s": "",
+                    "error": f"scenario: {ex}",
+                })
+                continue
             if sc == "perf":
                 # 纯性能模型 B 不约束 → B* 无界，bmax 会无限翻倍，跳过
                 print(f"{name:<18} {sc:<16} {'unbounded':>9} {'-':>5} "
@@ -115,11 +134,23 @@ def main():
                     "n_binding": "",
                     "binding": "",
                     "solve_time_s": "",
+                    "error": "",
                 })
                 continue
             t0 = time.perf_counter()
-            r = bmax.solve(runner, lambda b: (Ctx(), models),
-                           lo=100, hi=50000, step=200, log_file=str(log_path))
+            try:
+                r = bmax.solve(runner, lambda b: (Ctx(), models),
+                               lo=100, hi=50000, step=200,
+                               log_file=str(log_path))
+            except Exception as ex:
+                rows.append({
+                    "topo": name, "n_terminals": topo.n_terminals,
+                    "n_links": topo.n_links, "n_dies": meta["n_dies"],
+                    "scenario": sc, "B_star": "", "iterations": "",
+                    "n_binding": "", "binding": "", "solve_time_s": "",
+                    "error": f"solve: {ex}",
+                })
+                continue
             elapsed = time.perf_counter() - t0
 
             # B* 处瓶颈诊断——用 min ΣL 解（无目标求解 duals 不可靠）
@@ -149,14 +180,19 @@ def main():
                 "n_binding": len(binding),
                 "binding": phys_s,
                 "solve_time_s": f"{elapsed:.2f}",
+                "error": "",
             })
 
     out_path = out_dir / f"matrix_{params_name}.csv"
+    fieldnames = ["topo", "n_terminals", "n_links", "n_dies", "scenario",
+                  "B_star", "iterations", "n_binding", "binding",
+                  "solve_time_s", "error"]
     with open(out_path, "w", newline="") as f:
-        w = csv.DictWriter(f, fieldnames=list(rows[0].keys()))
+        w = csv.DictWriter(f, fieldnames=fieldnames)
         w.writeheader()
         w.writerows(rows)
-    print(f"\nCSV → {out_path}  ({len(rows)} rows)")
+    n_err = sum(1 for r in rows if r.get("error"))
+    print(f"\nCSV → {out_path}  ({len(rows)} rows, {n_err} error)")
 
 
 if __name__ == "__main__":

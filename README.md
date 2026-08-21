@@ -1,6 +1,6 @@
 # Wafer DSE
 
-晶圆级交换机设计空间探索——用线性规划判定"给定拓扑、布局和物理参数，最大无阻塞带宽 B* 是多少？"
+晶圆级交换机设计空间探索——用线性规划判定"给定拓扑、布局和物理参数，最大可承诺的额定出入口带宽 B* 是多少？"
 
 ## 快速开始
 
@@ -93,9 +93,8 @@ print(f"B* = {r.B_star:.0f} Gbps")             # toy: 4453（手算锚点 4500�
 
 | 文档 | 内容 |
 |------|------|
-| [MATH_MODEL_V5_JOINT_SENSITIVITY.md](notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) | 当前数理模型总纲（V5 为代码对齐目标（唯一权威）） |
-| [MATH_MODEL_COMPLETE_V4.md](notes/MATH_MODEL_COMPLETE_V4.md) | 前置总纲（V5 的前置，§0–§7） |
-| [insight.md](insight.md) | 7 条 critical insight（字节级不变） |
+| [MATH_MODEL_V5_JOINT_SENSITIVITY.md](notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md) | 唯一权威模型文档（V5，符号表自包含；代码对齐目标） |
+| [insight.md](insight.md) | 7 条 critical insight（字节级不变）——全项目核心意图，V5 为其完整形式化 |
 | [STYLE.md](STYLE.md) | 代码风格规范（含纯 OO 规矩） |
 | [notes/literature/](notes/literature/) | 文献知识库（Rent's rule / 非阻塞定义调研 / 系数证据等） |
 

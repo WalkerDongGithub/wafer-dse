@@ -1,7 +1,7 @@
 """FullMesh 拓扑 — 组内全互连。
 
 a 个 die 完全互连，每个 die 有 p 个终端端口。
-用于 DragonflyTopology 的组内无阻塞带宽判定。
+用于 DragonflyTopology 的组内额定出入口带宽判定。
 
 节点布局:
   0 .. a-1           → die (router) 节点

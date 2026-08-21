@@ -6,13 +6,15 @@
 
 | 文档 | 作用 |
 |---|---|
-| `notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md` | V5 数理模型，代码语义唯一权威 |
-| `insight.md` | 7 条 critical insight，字节级不变 |
+| `notes/MATH_MODEL_V5_JOINT_SENSITIVITY.md` | V5 数理模型，**全文唯一权威模型文档**（符号表自包含） |
+| `insight.md` | 7 条 critical insight，字节级不变——全项目核心意图 |
 | `STYLE.md` | 代码风格唯一权威 |
+
+> 注：V4 符号表已并入 V5（v5.17）并删除——**无前置模型文档**，找不到 V4 文件是正常的。
 
 ## 项目概述
 
-晶圆级交换机设计空间探索工具。LP 引擎求解「拓扑 + 路由 + 封装工艺」组合的无阻塞带宽 B* 与功耗/热可行性。
+晶圆级交换机设计空间探索工具。LP 引擎求解「拓扑 + 路由 + 封装工艺」组合的额定出入口带宽 B*（有 QoS 保证）与功耗/热可行性。
 
 ## 技术栈与命令
 
@@ -38,7 +40,7 @@ src/
 config/                物理参数 + 问题定义 YAML
 tests/                 测试（.md 驱动）
 exp/                   实验编排
-notes/                 V5 + V4 符号表 + literature
+notes/                 V5（唯一权威模型文档）+ literature
 docs/paper/            LaTeX（下游产物）
 benchmark/             对标复现
 ```
@@ -63,6 +65,9 @@ benchmark/             对标复现
 
 ## 关键注意
 
+- `insight.md` 是全项目核心意图（字节级不变）：本文档、代码、测试、论文与 `STYLE.md` 均贯彻之；V5 是其形式化。
+- insight 的**权威解读**见 `notes/INSIGHT_READING.md`（作者意图，2026-08-20 记录）——insight.md 原文口语化/跳跃，解读以此文件为准。
 - 代码服务 V5，非 `docs/paper/` LaTeX（下游产物）；冲突 → 改代码。
+- 论文生产团队（team-manage 平级会话）见 `prompt/team/` 角色卡 + `notes/PAPER_TEAM_WORKFLOW.md`（总纲）；master = 用户主会话。
 - 求解器只依赖 `Topology` ABC 公开方法，不依赖具体拓扑实现。
 - 实验/测试随机性需可复现（固定种子）。

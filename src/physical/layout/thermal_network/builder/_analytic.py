@@ -1,7 +1,8 @@
 """解析式热网络构建器 —— MFIT 式面邻接 + 集总垂直路径.
 
-参考 Zhang et al., "MFIT: Multi-Fidelity Thermal Modeling for 2.5D
-and 3D Chiplet Systems," ACM TACO 2025 的节点离散化与串联热导公式，
+参考 MFIT: Multi-Fidelity Thermal Modeling for 2.5D
+and 3D Multi-Chiplet Architectures, ACM TODAES (DOI 10.1145/3765905;
+arXiv:2410.09188) 的节点离散化与串联热导公式，
 简化为 die 级粒度 + 集总 R_vert（不依赖 MFIT 代码）。
 """
 
