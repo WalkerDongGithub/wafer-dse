@@ -1,0 +1,33 @@
+# 3D 展开形态 —— 两 die 上下堆叠（每层一个 die 节点，层间 tsv）
+#
+# 传热路径（显式展开，作者要看堆叠内部）：
+#   die_top ──vertical_chain── ambient       (顶层直接散热)
+#   die_top ──tsv── die_bottom               (层间纵向：R_tsv = r_via/n_vias 并联)
+#
+# 与 3d-stack-two-lumped.yaml（集总，stack.layers）对比：
+# 同一 3D 堆叠，双形态表达——集总 = 一条垂直线链压成单 R_vert；
+# 展开 = 每层 die 节点 + 层间 tsv/hybrid 边（层间横向 face_adjacency 同 2.5D）。
+
+name: 3d-two-die-explicit
+t_max_k: 358.15
+
+nodes:
+  - id: die_bottom
+    type: die
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: die_top
+    type: die
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: ambient
+    type: boundary
+    temperature_k: 300.0
+
+edges:
+  - type: tsv
+    between: [die_bottom, die_top]
+    n_vias: 10
+    r_via_k_per_w: 50.0      # R_tsv = 50/10 = 5 K/W → g = 0.2 W/K
+  - type: vertical_chain
+    from: die_top
+    to: ambient
+    r_vert_k_per_w: 1.0

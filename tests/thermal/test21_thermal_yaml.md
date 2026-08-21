@@ -173,15 +173,67 @@ print("✓ 组装器纯 ThermalNetwork 构造，不依赖 problem.models")
 
 ---
 
+## 7. 3D 展开形态：每层 die 节点 + 层间 tsv 边（schema 双形态）
+
+`config/thermal/3d-two-die-explicit.yaml`：stack 展开为每层一个 die 节点，
+层间纵向用 tsv 边（R_tsv = r_via/n_vias 并联），顶层 vertical_chain 到 ambient。
+
+### 手算
+
+两 die 上下堆叠（同 x/y 位置）：die_bottom（层 0，几何 0,0,12,12）、
+die_top（层 1，同位置），tsv 连接两者：n_vias=10、r_via=50 → R_tsv=5、
+g_tsv=0.2。die_top → ambient vertical_chain R=1.0（g=1.0）。
+die_bottom 无直接散热路径（热量经 tsv 到 top 再到 ambient）——G 2×2：
+
+$$
+G = \begin{bmatrix} g_{\text{tsv}} & -g_{\text{tsv}} \\ -g_{\text{tsv}} & g_{\text{tsv}}+g_{\text{vert}} \end{bmatrix}
+  = \begin{bmatrix} 0.2 & -0.2 \\ -0.2 & 1.2 \end{bmatrix}
+$$
+
+b = [0, g_vert·T_amb] = [0, 300]。
+
+```python
+net_x = build_thermal_from_yaml("../config/thermal/3d-two-die-explicit.yaml")
+G_x = np.linalg.inv(net_x.G_inv)
+g_tsv = 1.0 / 5.0
+G_x_expect = np.array([[g_tsv, -g_tsv],
+                       [-g_tsv, g_tsv + 1.0]])
+assert G_x.shape == (2, 2), "展开形态 = 每层 die 节点"
+assert np.allclose(G_x, G_x_expect, atol=1e-9), "G 应与手算一致"
+assert np.all(net_x.G_inv >= 0), "M-矩阵校验"
+print(f"✓ 3D 展开（tsv 层间纵向）：G={G_x.round(4).tolist()} 与手算一致")
+```
+
+---
+
+## 8. schema 双形态统一：集总 stack 与显式展开共用同一结构
+
+集总（stack.layers 记录）与展开（每层 die + tsv 边）都是
+nodes+edges 结构，仅节点/边类型不同——同一 schema。
+
+```python
+d_lump = yaml.safe_load(open("../config/thermal/3d-stack-two-lumped.yaml"))
+d_expl = yaml.safe_load(open("../config/thermal/3d-two-die-explicit.yaml"))
+assert set(d_lump) == set(d_expl) == {"name", "t_max_k", "nodes", "edges"}
+assert d_expl["nodes"][0]["type"] == "die" and d_expl["nodes"][1]["type"] == "die"
+tsv_edges = [e for e in d_expl["edges"] if e["type"] == "tsv"]
+assert len(tsv_edges) == 1, "展开形态应有 tsv 层间边"
+print("✓ 双形态同一 schema：集总（stack+layers）与展开（每层 die+tsv）")
+```
+
+---
+
 ## 结论
 
-YAML 热网络组装器（schema v1）实现：
+YAML 热网络组装器（schema v1，双形态）实现：
 
 - `config/thermal/*.yaml`：nodes（die/stack/boundary）+ edges
-  （face_adjacency/vertical_chain/…），3D/2.5D 同一结构；
+  （face_adjacency/vertical_chain/tsv/hybrid/ground…），3D/2.5D 同一结构；
 - `build_thermal_from_yaml(path) -> ThermalNetwork`：读配置 → 边类型公式库
-  （面邻接 k·overlap·t/(d/2+d/2+gap)、纵向 1/R_vert）→ G/b → M-矩阵校验
-  （G⁻¹ ≥ 0）→ ThermalNetwork；
-- 手算锚点：2.5D 两 die（G_lat=0.013846, g_vert=0.6667）、散热板变体
-  （R_vert=0.8 → G 对角更大）、3D 集总（R_vert=2.4 串联）；
+  （面邻接 k·overlap·t/(d/2+d/2+gap)、纵向 1/R_vert、tsv 并联 r_via/n_vias）
+  → G/b → M-矩阵校验（G⁻¹ ≥ 0）→ ThermalNetwork；
+- **双形态**（model-ruling §十四）：集总（stack.layers，R_vert 串联，纵向热
+  主导有计算价值）+ 显式展开（每层 die + tsv/hybrid 层间纵向，作者要看堆叠
+  内部传热路径）——同一 schema；
+- 手算锚点：2.5D 两 die、散热板变体、3D 集总、3D 展开（tsv 0.2 / g_vert 1.0）；
 - 无散热路径 → 拒绝；不接 build_scenario/Model。

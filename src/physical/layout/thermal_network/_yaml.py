@@ -105,6 +105,21 @@ def build_thermal_from_yaml(path: str | Path) -> "ThermalNetwork":
             dst = edge.get("to")
             t_amb = boundary_t.get(dst, d.get("t_ambient_k", 300.0))
             b[i] += g * t_amb
+        elif etype in ("tsv", "hybrid"):
+            # 3D 层间纵向（model-ruling §十四 展开形态）：两 die 节点间并联
+            # R = r_via/n_vias（或直接 r_tsk），g = 1/R，进对角 + 非对角
+            a, bb = edge["between"]
+            if a not in idx or bb not in idx:
+                raise ValueError(f"{etype} 引用未知节点 {a}/{bb}")
+            if "r_tsv_k_per_w" in edge:
+                g = 1.0 / float(edge["r_tsv_k_per_w"])
+            else:
+                g = float(edge["n_vias"]) / float(edge["r_via_k_per_w"])
+            i, j = idx[a], idx[bb]
+            G[i, i] += g
+            G[j, j] += g
+            G[i, j] -= g
+            G[j, i] -= g
         else:
             raise ValueError(
                 f"未知边类型 '{etype}'（可选 face_adjacency/vertical_chain/"
