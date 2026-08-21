@@ -247,10 +247,16 @@ class WiringModel(PhysModel):
                           meaning=f"C4 pad p{pi} 布线容量用尽")
 
     def cache_key(self) -> tuple:
-        return ("wiring_v3", self._fixed_paths, self._c_pwr,
+        # 容量数组必须进 key：edge/vert/C4 pad 容量随 lanes_per_mm / 金属层数 /
+        # interposer 尺寸变化——缺它则容量参数变化时缓存串键（数据污染，
+        # DataSteward 质询 2026-08-21）。v4：bump 版本号，旧 v3 键作废。
+        return ("wiring_v4", self._fixed_paths, self._c_pwr,
                 self._p0, self._beta_p,
                 tuple(round(float(x), 9) for x in self._s_dyn),
                 self._total_paths,
+                tuple(round(float(x), 6) for x in self._edge_cap),
+                tuple(round(float(x), 6) for x in self._vert_cap),
+                tuple(round(float(x), 6) for x in self._c4_pad_cap),
                 tuple(tuple(ei) for ei in self._edge_incident[:10]),
                 len(self._vert_incident),
                 len(self._c4_pad_links))

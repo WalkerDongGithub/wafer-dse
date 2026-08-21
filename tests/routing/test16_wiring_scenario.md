@@ -174,6 +174,36 @@ print(f"✓ cache_key = {k[:3]}... 可哈希")
 
 ---
 
+## 7. cache_key 含容量数组（DataSteward 质询回归：容量参数变化不串键）
+
+回归锚定（DataSteward 质询 2026-08-21）：cache_key 曾缺 edge/vert/C4
+pad 容量数组——lanes_per_mm / 金属层数 / interposer 尺寸变化时缓存串键、
+数据污染（实测 lanes=50 命中 lanes=500 条目返回 5363 应 ~685）。修复：
+容量数组进 key（wiring_v4，旧 v3 键作废）。
+
+```python
+from dataclasses import replace
+from physical.params import UCIE_32G
+from problem.builder import build_wiring_fixed
+
+# 同一拓扑，UCIE 布局；不同 lanes_per_mm → cache_key 必须不同
+layout_u = place(topo, UCIE_32G)
+w_500 = build_wiring_fixed(topo, UCIE_32G, layout_u)
+P50 = replace(UCIE_32G, pkg=replace(UCIE_32G.pkg, lanes_per_mm=50.0))
+w_50 = build_wiring_fixed(topo, P50, layout_u)
+k_500, k_50 = w_500.cache_key(), w_50.cache_key()
+print(f"lanes=500 vs 50 key 相同? {k_500 == k_50}")
+assert k_500 != k_50, "容量参数（lanes_per_mm）变化必须产生不同 cache_key"
+assert k_500[0] == "wiring_v4", "版本号应为 v4（旧 v3 键作废）"
+
+# 幂等：同参数两次构造 key 相同
+w_500b = build_wiring_fixed(topo, UCIE_32G, layout_u)
+assert w_500b.cache_key() == k_500
+print("✓ cache_key 含容量数组：容量参数变化不串键（wiring_v4）")
+```
+
+---
+
 ## 结论
 
 `build_scenario` 的 `+wiring` 档位接入成功：token 解析保持三旧场景逐位不变
