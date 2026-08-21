@@ -1,0 +1,38 @@
+# 2.5D interposer 热网络 —— 两 die + ambient
+#
+# 传热路径（一眼看懂）：
+#   die0 ──face_adjacency── die1        (interposer 横向面邻接，k·overlap·t/(d/2+d/2+gap))
+#   die0 ──vertical_chain── ambient     (纵向集总 R_vert → 散热板/环境)
+#   die1 ──vertical_chain── ambient
+#
+# schema v1：nodes（die/stack/boundary）+ edges（face_adjacency/vertical_chain/
+# tsv/hybrid/ground）；3D/2.5D 同一结构，节点/边类型不同。
+# 单位：几何 mm，热导 W/K，热阻 K/W，温度 K。
+
+name: 2p5d-two-die
+t_max_k: 358.15
+
+nodes:
+  - id: die0
+    type: die
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: die1
+    type: die
+    geometry: {x_mm: 13.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: ambient
+    type: boundary
+    temperature_k: 300.0
+
+edges:
+  - type: face_adjacency
+    between: [die0, die1]
+    k_interposer_w_mk: 150.0
+    t_interposer_mm: 0.1
+  - type: vertical_chain
+    from: die0
+    to: ambient
+    r_vert_k_per_w: 1.5
+  - type: vertical_chain
+    from: die1
+    to: ambient
+    r_vert_k_per_w: 1.5

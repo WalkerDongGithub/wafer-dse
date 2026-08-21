@@ -1,0 +1,187 @@
+# test21 — YAML 热网络组装器 (config/thermal/*.yaml → ThermalNetwork)
+
+## 模块定位
+
+master 指令：一个能翻译成 G·T = P + b 的配置工具。物理配置在
+`config/thermal/*.yaml`，`build_thermal_from_yaml(path)` 组装 ThermalNetwork。
+
+- **schema v1**：nodes（die/stack/boundary）+ edges（face_adjacency /
+  vertical_chain / tsv / hybrid / ground）；3D/2.5D 同一结构；
+- **边界**：boundary 节点 → b = g·T_amb；vertical_chain → 纵向集总 g = 1/R_vert
+  （对角项 + b 贡献）；face_adjacency → 横向面邻接（非对角 + 对角）；
+- **M-矩阵校验保留**（ThermalNetworkBuilder._make_network：G⁻¹ ≥ 0）；
+- **不接 build_scenario/Model**——纯 ThermalNetwork 构造。
+
+公式（thermal-g-construction.md 已核验）：
+- 面邻接：$G_{\text{lat}} = k \cdot \text{overlap} \cdot t / (\frac{d_i}{2}+\frac{d_j}{2}+\text{gap})$
+- 纵向：$g_{\text{vert}} = 1/R_{\text{vert}}$，$b = g_{\text{vert}} \cdot T_{\text{amb}}$
+
+```python
+import sys; sys.path.insert(0, '../src')
+import numpy as np
+from physical.layout.thermal_network import (
+    build_thermal_from_yaml, ThermalNetwork,
+)
+```
+
+---
+
+## 1. 2.5D 两 die + ambient：手算 G/b
+
+`config/thermal/2p5d-two-die.yaml`：die0(0,0,12,12)、die1(13,0,12,12)、
+k=150 W/mK、t=0.1mm、gap=1mm、R_vert=1.5、T_amb=300。
+
+### 手算
+
+- **面邻接**（die0↔die1，y 方向相邻，overlap = 共享边长 = 12mm = 0.012m）：
+  $$
+  G_{\text{lat}} = \frac{150 \times 0.012 \times 0.0001}{\frac{0.012}{2}+\frac{0.012}{2}+0.001}
+                 = \frac{1.8\times10^{-4}}{0.013} = 0.013846\ \text{W/K}
+  $$
+- **纵向**（每 die）：$g_{\text{vert}} = 1/1.5 = 0.666667$ W/K
+- **G**（2×2）：
+  $$
+  G = \begin{bmatrix} 0.666667+0.013846 & -0.013846 \\ -0.013846 & 0.666667+0.013846 \end{bmatrix}
+  $$
+- **b** = g_vert·T_amb = 0.666667 × 300 = 200.0（每 die）
+- M-矩阵校验：G 严格对角占优（对角 0.6805 > 行非对角和 0.0138）→ G⁻¹ ≥ 0
+
+```python
+net = build_thermal_from_yaml("../config/thermal/2p5d-two-die.yaml")
+assert isinstance(net, ThermalNetwork)
+G_inv = net.G_inv
+assert G_inv.shape == (2, 2)
+# 手算 G（由 G⁻¹ 反推验证：G = inv(G_inv)）
+G = np.linalg.inv(G_inv)
+g_lat = 150.0 * 0.012 * 0.0001 / (0.012/2 + 0.012/2 + 0.001)
+g_vert = 1.0 / 1.5
+G_expect = np.array([[g_vert + g_lat, -g_lat],
+                     [-g_lat, g_vert + g_lat]])
+print(f"G_lat = {g_lat:.6f}, G = {G.round(6).tolist()}")
+assert np.allclose(G, G_expect, atol=1e-9), "G 应与手算一致"
+assert np.all(G_inv >= 0), "G⁻¹ 必须非负（M-矩阵）"
+print("✓ 2.5D 两 die：G 与手算逐位一致，M-矩阵校验通过")
+```
+
+---
+
+## 2. 散热板变体：R_vert 更小 → b 同源、G 对角更大
+
+`config/thermal/2p5d-two-die-heatsink.yaml`：同一布局，vertical_chain 走
+heatsink（R_vert=0.8），T_coolant=300。
+
+### 手算
+
+- 面邻接不变：G_lat = 0.013846
+- 纵向：g_vert = 1/0.8 = 1.25（比 1.5 档大 → 散热能力更强）
+- G 对角 = 1.25 + 0.013846 = 1.263846；b = 1.25 × 300 = 375
+
+```python
+net_hs = build_thermal_from_yaml("../config/thermal/2p5d-two-die-heatsink.yaml")
+G_hs = np.linalg.inv(net_hs.G_inv)
+g_vert_hs = 1.0 / 0.8
+G_hs_expect = np.array([[g_vert_hs + g_lat, -g_lat],
+                        [-g_lat, g_vert_hs + g_lat]])
+assert np.allclose(G_hs, G_hs_expect, atol=1e-9)
+# 散热板档 vs 默认档：同 P 下结温更低（G 对角更大 = 更易散热）
+assert G_hs[0, 0] > G[0, 0], "散热板 R_vert 小 → G 对角大 → 结温低"
+print(f"✓ 散热板变体：G 对角 {G_hs[0,0]:.4f} > 默认 {G[0,0]:.4f}（散热更强）")
+```
+
+---
+
+## 3. 3D 集总：每 stack 一个节点，R_vert = 层串联和
+
+`config/thermal/3d-stack-two-lumped.yaml`：stack 类型（layers=2），
+R_vert=2.4（=1.2+1.2 串联）。
+
+### 手算
+
+- 面邻接（stack0↔stack1，层聚合横向）：G_lat = 0.013846（同 2.5D）
+- 纵向：g_vert = 1/2.4 = 0.416667
+- G 对角 = 0.416667 + 0.013846 = 0.430513
+
+```python
+net_3d = build_thermal_from_yaml("../config/thermal/3d-stack-two-lumped.yaml")
+assert net_3d.G_inv.shape == (2, 2), "3D 集总 = 每 stack 一个节点 → 2×2"
+G_3d = np.linalg.inv(net_3d.G_inv)
+g_vert_3d = 1.0 / 2.4
+G_3d_expect = np.array([[g_vert_3d + g_lat, -g_lat],
+                        [-g_lat, g_vert_3d + g_lat]])
+assert np.allclose(G_3d, G_3d_expect, atol=1e-9)
+assert np.all(net_3d.G_inv >= 0)
+print(f"✓ 3D 集总：2 节点（每 stack），G 与手算一致（g_vert={g_vert_3d:.6f}）")
+```
+
+---
+
+## 4. schema 统一性：3D/2.5D 同一结构（节点类型不同，edges 结构同一）
+
+```python
+import yaml
+for path in ["../config/thermal/2p5d-two-die.yaml",
+             "../config/thermal/3d-stack-two-lumped.yaml"]:
+    d = yaml.safe_load(open(path))
+    assert set(d) >= {"name", "t_max_k", "nodes", "edges"}
+    assert all({"id", "type"} <= set(n) for n in d["nodes"])
+    assert all("type" in e for e in d["edges"])
+print("✓ 2.5D/3D 同一 schema：name/t_max_k/nodes/edges 结构一致")
+```
+
+---
+
+## 5. 边界校验：无散热路径 → M-矩阵破坏 → 报错
+
+没有 boundary/vertical 边的 die 无散热路径 → G 对角为 0 → 非对角占优 →
+ThermalNetwork 构造必须拒绝（G⁻¹ 非非负）。
+
+```python
+import tempfile, pathlib
+bad_yaml = """
+name: bad
+t_max_k: 358.15
+nodes:
+  - {id: die0, type: die, geometry: {x_mm: 0, y_mm: 0, w_mm: 12, h_mm: 12}}
+edges:
+  - {type: face_adjacency, between: [die0], k_interposer_w_mk: 150.0,
+     t_interposer_mm: 0.1}
+"""
+p = pathlib.Path(tempfile.mkdtemp()) / "bad.yaml"
+p.write_text(bad_yaml)
+try:
+    build_thermal_from_yaml(str(p))
+    print("FAIL: 无散热路径应报错")
+    assert False
+except (ValueError, RuntimeError) as e:
+    print(f"✓ 无散热路径 → 拒绝: {type(e).__name__}")
+```
+
+---
+
+## 6. 纯 ThermalNetwork 构造（不接 build_scenario/Model）
+
+组装器返回 ThermalNetwork（含 G_inv/rhs_ambient/link_coeff），可被
+SteadyStateModel 消费（若后续接入），但本模块自身不 import problem.models。
+
+```python
+import inspect
+src = inspect.getsource(build_thermal_from_yaml)
+assert "build_scenario" not in src and "problem.models" not in src, \
+    "组装器不接 build_scenario/Model（纯 ThermalNetwork 构造）"
+print("✓ 组装器纯 ThermalNetwork 构造，不依赖 problem.models")
+```
+
+---
+
+## 结论
+
+YAML 热网络组装器（schema v1）实现：
+
+- `config/thermal/*.yaml`：nodes（die/stack/boundary）+ edges
+  （face_adjacency/vertical_chain/…），3D/2.5D 同一结构；
+- `build_thermal_from_yaml(path) -> ThermalNetwork`：读配置 → 边类型公式库
+  （面邻接 k·overlap·t/(d/2+d/2+gap)、纵向 1/R_vert）→ G/b → M-矩阵校验
+  （G⁻¹ ≥ 0）→ ThermalNetwork；
+- 手算锚点：2.5D 两 die（G_lat=0.013846, g_vert=0.6667）、散热板变体
+  （R_vert=0.8 → G 对角更大）、3D 集总（R_vert=2.4 串联）；
+- 无散热路径 → 拒绝；不接 build_scenario/Model。

@@ -9,6 +9,7 @@
   _mfit_system.py   DiePlacement / MfitStackConfig (几何 + 热参数)
   _net.py           ThermalNetwork (预计算结果容器, init=False)
   _heatmap.py       per-die 温度可视化 (matplotlib, 几何渲染)
+  _yaml.py          build_thermal_from_yaml (config/thermal/*.yaml → ThermalNetwork)
   builder/          构建器多态：ABC 在 __init__，每个子类一个文件
                       _analytic.py — AnalyticNetworkBuilder
 
@@ -21,6 +22,7 @@ from physical.layout.thermal_network._mfit_system import (
     DiePlacement, MfitStackConfig,
 )
 from physical.layout.thermal_network._net import ThermalNetwork
+from physical.layout.thermal_network._yaml import build_thermal_from_yaml
 from physical.layout.thermal_network.builder import (
     ThermalNetworkBuilder, AnalyticNetworkBuilder,
 )
@@ -28,5 +30,6 @@ from physical.layout.thermal_network.builder import (
 __all__ = [
     "DiePlacement", "MfitStackConfig",
     "ThermalNetwork",
+    "build_thermal_from_yaml",
     "ThermalNetworkBuilder", "AnalyticNetworkBuilder",
 ]

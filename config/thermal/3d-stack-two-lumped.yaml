@@ -1,0 +1,40 @@
+# 3D 堆叠集总近似 —— 两 stack（每 stack = 2 层 die，垂直线链集总）
+#
+# 传热路径（3D 集总：纵向热主导、层间横向弱耦合 → 每 stack 一个节点，
+# R_vert = 各层 R_vert 串联和，thermal-g-construction §2）：
+#   stack0 ──face_adjacency── stack1    (层聚合横向面邻接，同一 interposer)
+#   stack0 ──vertical_chain── ambient   (R_vert = R_layer1 + R_layer2 串联)
+#   stack1 ──vertical_chain── ambient
+#
+# 与 2.5D 同一 schema：nodes 用 stack 类型（含 layers），edges 结构不变。
+# 3D 完整多层形态（K×N 节点 + tsv/hybrid 边）为扩展方向，v1 先做集总。
+
+name: 3d-stack-two-lumped
+t_max_k: 358.15
+
+nodes:
+  - id: stack0
+    type: stack
+    layers: 2
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: stack1
+    type: stack
+    layers: 2
+    geometry: {x_mm: 13.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: ambient
+    type: boundary
+    temperature_k: 300.0
+
+edges:
+  - type: face_adjacency
+    between: [stack0, stack1]
+    k_interposer_w_mk: 150.0
+    t_interposer_mm: 0.1
+  - type: vertical_chain
+    from: stack0
+    to: ambient
+    r_vert_k_per_w: 2.4      # = 1.2 + 1.2（两层串联，集总）
+  - type: vertical_chain
+    from: stack1
+    to: ambient
+    r_vert_k_per_w: 2.4

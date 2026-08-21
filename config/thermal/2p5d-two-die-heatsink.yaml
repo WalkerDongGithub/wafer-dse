@@ -1,0 +1,39 @@
+# 2.5D + 散热板（heatsink）变体 —— 两 die 经散热板散热
+#
+# 传热路径（vs 2p5d-two-die：vertical_chain 改走 heatsink 中间边界）：
+#   die0 ──face_adjacency── die1        (interposer 横向面邻接)
+#   die0 ──vertical_chain── heatsink    (纵向：die → 散热板，R_vert 更小 = 强散热)
+#   die1 ──vertical_chain── heatsink
+#   heatsink(boundary) 温度 = 冷却剂温度 T_coolant = 300 K
+#
+# 与 2p5d-two-die 的差异只在 vertical_chain 的 to 节点与 R_vert：
+# 散热板路径 R_vert 更小（0.8 vs 1.5）→ 散热能力更强 → 同功耗下结温更低。
+# 这是"散热逻辑可见"的演示：边界节点（heatsink/ambient）即散热声明。
+
+name: 2p5d-two-die-heatsink
+t_max_k: 358.15
+
+nodes:
+  - id: die0
+    type: die
+    geometry: {x_mm: 0.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: die1
+    type: die
+    geometry: {x_mm: 13.0, y_mm: 0.0, w_mm: 12.0, h_mm: 12.0}
+  - id: heatsink
+    type: boundary
+    temperature_k: 300.0
+
+edges:
+  - type: face_adjacency
+    between: [die0, die1]
+    k_interposer_w_mk: 150.0
+    t_interposer_mm: 0.1
+  - type: vertical_chain
+    from: die0
+    to: heatsink
+    r_vert_k_per_w: 0.8
+  - type: vertical_chain
+    from: die1
+    to: heatsink
+    r_vert_k_per_w: 0.8
