@@ -1,18 +1,18 @@
-# §5.5 灵敏度叙事示范 + 写作侧审阅（WritingPolisher 贡献）
+# §5.4 灵敏度叙事示范 + 写作侧审阅（WritingPolisher 贡献）
 
-> WritingPolisher，2026-08-21。**不覆盖** DomainExpert 主持的 `sensitivity-design.md`（方法内容归它）；本文件只补 master 指派我的两块：① 叙事形态示范文字（§5.5 灵敏度节 + 案例框，等 DomainExpert 定稿方法后落地）；② 写作/严谨性侧审阅意见（供 DomainExpert 参考，非裁决）。
+> WritingPolisher，2026-08-21。**不覆盖** DomainExpert 主持的 `sensitivity-design.md`（方法内容归它）；本文件只补 master 指派我的两块：① 叙事形态示范文字（§5.4 灵敏度节 + 案例框，等 DomainExpert 定稿方法后落地）；② 写作/严谨性侧审阅意见（供 DomainExpert 参考，非裁决）。
 > 术语：unlocking rate（解锁率）/ binding constraint family（绑定约束族）/ shadow price（影子价格）——**DomainExpert 2026-08-21 全部认可，已固化入 terminology-ledger v0.4**。
 > 审阅状态：**4 条意见 DomainExpert 全部采纳**（2026-08-21，已并入 sensitivity-design.md §3.2/§3.3/§4），本文件 §3 仅为归档记录。
 
 ---
 
-## 1. §5.5 示范文字（英文论文散文，数字已按 E7/E8 实测回填）
+## 1. §5.4 示范文字（英文论文散文，数字已按 E7/E8 实测回填）
 
 > 结构 = 分析 → 定位瓶颈 → 可行动结论。**框架 = KKT 乘子 / 包络定理**（作者 round 21+ 指令 A：模型整体非线性，固定 B 子问题才是 LP）。**数字来源**：E7 完整版（data-report 附录 E，Mesh(3)/lanes=50 布线饱和域）与 E8 定稿（附录 D，热绑定一阶误差 0.2%）；单位 Gbps，与 data-report 口径一致。待 DomainExpert 定稿方法后落地正文。
 
 ---
 
-**5.5 Sensitivity Analysis: Which Knob Unlocks a Design Point?**
+**5.4 Sensitivity Analysis: Which Knob Unlocks a Design Point?**
 
 The inner model is nonlinear in $B$; only its fixed-$B$ subproblem is a linear program. At the optimum, the sensitivity of $B^*$ to a physical parameter $\theta$ follows from the envelope theorem for constrained optimization: at a KKT point $(x^*, \lambda^*, \mu^*)$, $dV/d\theta = \partial L/\partial\theta = \lambda^{\top}(\partial g/\partial\theta) + \mu^{\top}(\partial h/\partial\theta)$, where $\lambda$, $\mu$ are the KKT multipliers of the active inequality and equality constraints and $g$, $h$ are the constraint functions. Each multiplier is the marginal value of one unit of its constraint's right-hand side; multiplying by how much a knob moves the affected constraints gives an \emph{unlocking rate} per knob—the first-order gain in $B^*$ per unit of knob investment. When the fixed-$B$ subproblem is used, KKT multipliers reduce to LP dual variables (shadow prices) and the formula is exact for that subproblem; in the general nonlinear case the estimate is first-order, and we confirm it by re-solving at the relaxed point (first-order error 0.2\% at a thermal-bound point). Monotonicity of $B^*$ in constraint relaxation bounds the direction of every result.
 
@@ -65,10 +65,10 @@ The actionable conclusion is prescriptive and point-dependent. At this wiring-sa
 - [x] 审阅意见闭环：DomainExpert 全部采纳（2026-08-21）——max-B LP 路径 B 已入 §8 附录素材、系数旋钮公式已并入 §3.2、取整边界已入 §3.3、示例数字已标注 [示例，待回填]
 - [x] 术语固化：unlocking rate / binding constraint family / shadow price → terminology-ledger v0.4
 - [ ] **作者 round 21+ 指令 A**：sensitivity-design.md 框架改为 **KKT/包络定理**（DomainExpert 更新）；本文件示范文字已按 KKT 重写；3.1/3.2 标注被 A 吸收
-- [ ] DomainExpert 整合时合并本文件（§5.5 示范文字 + 案例框骨架）进 sensitivity-design.md / 论文
-- [ ] **数据回填完成**：§5.5 示范文字已按 E7/E8 实测替换 [X] 占位（E7：c_pwr 2→0.5 → +40% 解锁、R_vert 零释放、c_pwr 0→2→10 → −28%/−57%；E8：ppl −1% → +1.11%、一阶误差 0.2%）；此前初测锚点 ppl +3.63% 已被 E8 定稿 +1.11% 取代
+- [ ] DomainExpert 整合时合并本文件（§5.4 示范文字 + 案例框骨架）进 sensitivity-design.md / 论文
+- [ ] **数据回填完成**：§5.4 示范文字已按 E7/E8 实测替换 [X] 占位（E7：c_pwr 2→0.5 → +40% 解锁、R_vert 零释放、c_pwr 0→2→10 → −28%/−57%；E8：ppl −1% → +1.11%、一阶误差 0.2%）；此前初测锚点 ppl +3.63% 已被 E8 定稿 +1.11% 取代
 - [ ] c_pwr 物理取值待参数评审（0.5/2/10 试点）；单位 Gbps 与 data-report 口径一致（落地前最后核对）
-- [ ] DomainExpert 定稿方法表述后落地 §5.5 正文
+- [ ] DomainExpert 定稿方法表述后落地 §5.4 正文
 - [ ] EvalDesigner：表 X 结构 + 判据（"排序方向一致、一阶误差 < 阈值"）
 - [ ] DataSteward：小验证扩展（热绑定/布线绑定设计点 + 系数旋钮细步长）
 

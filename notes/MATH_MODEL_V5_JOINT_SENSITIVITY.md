@@ -54,7 +54,8 @@ SerDes PHY 集成在 switch ASIC die 内，功耗进 die 级功耗 $\mathbf{P}_{
 | $B$ | 端口（出入口）额定带宽（有 QoS 保证：端口负载 ≤ $B$ 时无阻塞） | Gbps | 决策标量；即"扩展比的基准" |
 | $\mathbf{L}_{\text{D2D}}, \mathbf{L}_{\text{I2I}}$ | 链路**扩展比**向量：链路实际带宽 $= B\,L_e$ | — | **无量纲** |
 | $\mathbf{L}_{\text{D2D}}^{*}, \mathbf{L}_{\text{I2I}}^{*}$ | 扩展比包络（§7 预解，仅依赖拓扑与性能要求） | — | 与 $B$ 无关，主 LP 的下界输入 |
-| $\boldsymbol{\ell}_{\text{D2D}}, \boldsymbol{\ell}_{\text{I2I}}$ | D2D/I2I 信号 lane 数向量 | — | $\boldsymbol{\ell} = \left(\mathbf{S}^{\text{bw}}\right)^{-1}(B\,\mathbf{L})$ |
+| $\boldsymbol{\ell}_{\text{D2D}}^{bw}, \boldsymbol{\ell}_{\text{I2I}}^{\mathrf{bw}}$ | D2D/I2I 信号 lane 数向量 | — | $\boldsymbol{\ell} = \left(\mathbf{S}^{\text{bw}}\right)^{-1}(B\,\mathbf{L})$ |
+| 
 | $\mathbf{T}_{\text{die}}, \mathbf{T}_{\text{inter}}, \mathbf{T}_{\text{sub}}$ | 温度向量（下标表物理层级：die/inter/sub） | K | 三层独立温度场 |
 | $\mathbf{P}_{\text{die}}, \mathbf{P}_{\text{inter}}$ | 功耗向量（下标表层级；$\mathbf{P}_{\text{inter}}$ 由 §4 (C3) 定义） | W | $\mathbf{P}_{\text{die}} = \mathbf{P}_{\text{die}}^{\text{peak}}(B) + \mathbf{P}_{\text{D2D}}^{\text{dyn}} + \mathbf{P}_{\text{I2I}}^{\text{dyn}}$ |
 | $\mathbf{P}_{\text{die}}^{\text{peak}}(B)$ | die 峰值功耗：$\mathbf{P}_{\text{die}}^{\text{peak}}(B) = P_0 + \beta_P B$ | W | **线性**（§2.8 die 缩放）；由材料/工艺决定 |
@@ -80,7 +81,9 @@ SerDes PHY 集成在 switch ASIC die 内，功耗进 die 级功耗 $\mathbf{P}_{
 | $\mathcal{P}$ | 静态 oblivious 路由矩阵（$\mathbf{L} = \mathcal{P}\,\mathbf{f}$） | — | 设计期固定 |
 | $K_{ij}$ | OD 对 $(i,j)$ 的候选路径数 | — | §7.3 |
 | $d_0, \alpha_d$ | die 基线边长 / 边长随 $B$ 增长率 | mm, mm/Gbps | §2.8 |
-| $c_{\text{pwr}}$ | power 走线 lane 当量系数（Power/GND 走线对 RDL 容量的占用） | — | §2 (2d)；参数 YAML `c_pwr_lane_per_w`，默认 0 = 关闭 |
+| $I_{\text{metal}}$ | RDL 金属每 lane 载流能力（功耗 lane 用） | mA | §2 (2d')；参数 YAML |
+| $\mathbf{n}_{\text{wiring}}^{\text{pwr}}(B)$ | die 侧功耗 lane 数向量（Power/GND 供电走线占 RDL） | — | $n_v^{\text{pwr}} = \lceil P_{\text{die},v}^{\text{peak}}(B)/(V_{dd} I_{\text{metal}}) \rceil$（§2 (2d')） |
+| $\mathbf{W}_{\text{pwr}}$ | die 功耗 lane → RDL edge/vert 容量占用映射 | — | 与 $\mathbf{W}$ 同构（§2 (2d)） |
 | $T_{\max}$ | 温度上限（结温；sub 层上限可独立设定，见 §6） | K | — |
 
 **注**：
@@ -105,16 +108,22 @@ $$
 &\quad \mathbf{P}_{\text{die}} = \mathbf{P}_{\text{die}}^{\text{peak}}(B) + \mathbf{P}_{\text{D2D}}^{\text{dyn}} + \mathbf{P}_{\text{I2I}}^{\text{dyn}} \\
 &\quad \mathbf{P}_{\text{D2D}}^{\text{dyn}} = \mathbf{M}_{\text{D2D} \to \text{die}}\,\mathbf{S}_{\text{D2D}}^{\text{dyn}}\,\boldsymbol{\ell}_{\text{D2D}} \\
 &\quad \mathbf{P}_{\text{I2I}}^{\text{dyn}} = \mathbf{M}_{\text{I2I} \to \text{die}}\,\mathbf{S}_{\text{I2I}}^{\text{dyn}}\,\boldsymbol{\ell}_{\text{I2I}} \\
-& \text{(2d) interposer 布线（多商品流，$\mathbf{x}_{\text{D2D}}$ 为 lane 布线决策）：}\\
+& \text{(2d) interposer 布线（多商品流，$\mathbf{x}_{\text{D2D}}$ 为 lane 布线决策；容量由信号 lane 与功耗 lane 共享）：}\\
 &\quad \mathbf{M}_{\text{route} \to \text{D2D}}\,\mathbf{x}_{\text{D2D}} = \boldsymbol{\ell}_{\text{D2D}} \\
-&\quad \mathbf{W}\,\mathbf{x}_{\text{D2D}} \le \mathbf{C} \\
+&\quad \mathbf{W}\,\mathbf{x}_{\text{D2D}} + \mathbf{W}_{\text{pwr}}\,\mathbf{n}_{\text{wiring}}^{\text{pwr}}(B) \le \mathbf{C} \\
 &\qquad \left(\mathbf{W} = \begin{bmatrix}\mathbf{W}_{\text{edge}} \\ \mathbf{W}_{\text{vert}} \\ \mathbf{W}_{\text{pad}}\end{bmatrix},\;\;\mathbf{C} = \begin{bmatrix}\mathbf{C}_{\text{edge}} \\ \mathbf{C}_{\text{vert}} \\ \mathbf{C}_{\text{pad}}\end{bmatrix}\right) \\
+& \text{(2d') 功耗 lane（Power/GND 供电走线占 RDL；与 C1 电源 μbump 同口径）：}\\
+&\quad n_{\text{wiring},v}^{\text{pwr}}(B) = \left\lceil \frac{P_{\text{die},v}^{\text{peak}}(B)}{V_{dd}\,I_{\text{metal}}} \right\rceil \\
+&\qquad \left(P_{\text{die},v}^{\text{peak}}(B) = P_{0,v} + \beta_{P,v} B，\text{同 C1/§2.8}；I_{\text{metal}} 为 RDL 金属每 lane 载流能力（参数 YAML）\right)
 & \text{(2e) 热方程（块矩阵，die 与 interposer 温度场耦合）：}\\
 &\quad \mathbf{G}_{\text{die}}\begin{bmatrix}\mathbf{T}_{\text{die}} \\ \mathbf{T}_{\text{inter}}\end{bmatrix} = \begin{bmatrix}\mathbf{P}_{\text{die}} \\ \mathbf{0}\end{bmatrix} + \begin{bmatrix}\mathbf{b}_{\text{die}} \\ \mathbf{b}_{\text{inter}}\end{bmatrix} \\
 &\quad \begin{bmatrix}\mathbf{T}_{\text{die}} \\ \mathbf{T}_{\text{inter}}\end{bmatrix} \le T_{\max}\mathbf{1} \\
 & \text{(2f) die 面积上界：}\\
 &\quad A_{\text{die}}(B) = d(B)^2 \le A_{\max} \\
 &\qquad \left(A_{\max} \text{ 随布局而定（粗上界 } \approx A_{\text{interposer}}/N_{\text{dies}}\text{）；由 §2.8 } d(B) = d_0 + \alpha_d B \Rightarrow \alpha_d B \le \sqrt{A_{\max}} - d_0\right) \\
+& \text{(2g) die 侧 μbump 预算（信号 lane 与电源 μbump 共享 die 的 μbump 总量）：}\\
+&\quad \mathbf{M}_{\text{D2D} \to \text{die}}\,\boldsymbol{\ell}_{\text{D2D}} + \mathbf{M}_{\text{I2I} \to \text{die}}\,\boldsymbol{\ell}_{\text{I2I}} + \mathbf{N}_{\text{die}}^{\text{pwr}}(B) \le \mathbf{N}_{\text{die}}^{\text{total}}(B) \\
+&\qquad \left(N_{\text{die},v}^{\text{pwr}}(B) = \left\lceil \frac{P_{\text{die},v}^{\text{peak}}(B)}{V_{dd}\,I_{\text{bump}}} \right\rceil = \left\lceil \frac{P_{0,v} + \beta_{P,v} B}{V_{dd}\,I_{\text{bump}}} \right\rceil,\;\; N_{\text{die},v}^{\text{total}}(B) = \frac{\eta\,A_{\text{die},v}(B)}{p^2} = \frac{\eta\,(d_{0,v} + \alpha_{d,v} B)^2}{p^2}\right) \\
 & \mathbf{L}_{\text{D2D}} \ge 0 \\
 & \mathbf{x}_{\text{D2D}} \ge 0
 \end{aligned}
@@ -123,8 +132,9 @@ $$
 **说明**：
 - **find 列表不含 $\mathbf{b}$**：$\mathbf{b}_{\text{die}}$ 是常数，$\mathbf{b}_{\text{inter}}$ 由 §4 (C4) 定义，二者都不是自由变量。
 - **(2b) 的量纲**：$\boldsymbol{\ell} = \left(\mathbf{S}^{\text{bw}}\right)^{-1}(B\,\mathbf{L})$——$B\,L_e$ 是链路实际带宽（Gbps），除以每 lane 比特率得到 lane 数。$\mathbf{L}$ 本身无量纲。
-- **(2d) 布线的物理意义**：power/gnd 与信号走线共享 interposer RDL 资源——**布线预算/布线面积共享纳入主优化模型**（布线饱和常先于 bump 成为绑定约束）。（power 走线占用 RDL 容量的约束式见 `notes/IMPLEMENTATION_MAP.md` §3。）
+- **(2d) 布线的物理意义**：power/gnd 与信号走线共享 interposer RDL 资源——**布线预算/布线面积共享纳入主优化模型**（布线饱和常先于 bump 成为绑定约束）。**容量由信号 lane 与功耗 lane 共享**（(2d')）：功耗 lane 数随 die 峰值功耗增长，$n_{\text{wiring},v}^{\text{pwr}}(B) = \lceil P_{\text{die},v}^{\text{peak}}(B)/(V_{dd}\,I_{\text{metal}}) \rceil$（与 C1 电源 μbump 同口径，固定 $B$ 下为常数 → LP 结构不变；$I_{\text{metal}}$ 为 RDL 金属每 lane 载流能力，参数 YAML）。$\mathbf{W}_{\text{pwr}}$ 将每 die 的功耗 lane 映射到其占用的 RDL edge/vert 容量（最简：die 网格顶点的入射边；可按 die 供电足迹细化）；**pad 容量只计信号 lane**（C4 供电由 (3c)/C2 承担）。
 - **(2f) 面积上界的物理意义**：die 面积有硬上界（布局确定后每 die 最大尺寸固定；粗上界 ≈ interposer 面积 ÷ 芯粒数）。面积上界与布线共享是跨约束共享资源的耦合要素。
+- **(2g) μbump 预算的物理意义**：die 侧信号 lane（D2D 与 I2I SerDes 出 die 侧）与电源 μbump 共享 die 的 μbump 总量——I2I 链路挤压 D2D 信号预算（跨层耦合，见 §4 C1）。电源 μbump 数 $N_{\text{die},v}^{\text{pwr}}(B) = \lceil P_{\text{die},v}^{\text{peak}}(B)/(V_{dd} I_{\text{bump}}) \rceil$（§2.8 die 缩放）；总预算 $N_{\text{die},v}^{\text{total}}(B) = \eta A_{\text{die},v}(B)/p^2$（面积阵列，随 $B$ 二次增长）。
 
 ### 2.6 热导矩阵 $\mathbf{G}_{\text{die}}$ 和 $\mathbf{G}_{\text{sub}}$
 
@@ -204,8 +214,8 @@ $$
 $$
 \boxed{
 \begin{aligned}
-\textbf{(C1) μbump 跨层分配（die 侧共享资源）：}\\
-& \mathbf{M}_{\text{D2D} \to \text{die}}\,\boldsymbol{\ell}_{\text{D2D}} + \mathbf{M}_{\text{I2I} \to \text{die}}\,\boldsymbol{\ell}_{\text{I2I}} + \mathbf{N}_{\text{die}}^{\text{pwr}} \le \mathbf{N}_{\text{die}}^{\text{total}}(B) \\[6pt]
+\textbf{(C1) μbump 跨层分配（die 侧共享资源，约束本体见 §2 (2g)）：}\\
+& \mathbf{M}_{\text{D2D} \to \text{die}}\,\boldsymbol{\ell}_{\text{D2D}} + \mathbf{M}_{\text{I2I} \to \text{die}}\,\boldsymbol{\ell}_{\text{I2I}} + \mathbf{N}_{\text{die}}^{\text{pwr}} \le \mathbf{N}_{\text{die}}^{\text{total}}(B) \quad \text{（= §2 (2g)）} \\[6pt]
 \textbf{(C2) C4 电源数跨层（电源 C4 依赖 Interposer 总功耗）：}\\
 & \mathbf{N}_{\text{C4}}^{\text{pwr}} = \left(\mathbf{S}_{\text{C4}}^{\text{pwr}}\right)^{-1}\,\mathbf{P}_{\text{inter}} \\[6pt]
 \textbf{(C3) die → Interposer（功耗聚合）：}\\

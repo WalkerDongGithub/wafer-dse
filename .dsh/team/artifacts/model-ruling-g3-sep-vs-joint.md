@@ -126,11 +126,12 @@
 
 ## 十、C3' 终判：通过——主张成立（2026-08-21，fixed_paths 重跑）
 
-**数据**（DataSteward 72 配置，`sep_vs_joint_v2_fixedpath_ucie-32g.csv`）：**10/72 构型 rel_diff > 1%，C3' 通过**。
+**数据**（DataSteward 72 配置，`sep_vs_joint_v2_fixedpath_ucie-32g.csv`）：**10/72 构型 rel_diff > 1%，C3' 通过**（缓存键修复 c5aa79f 后冷跑定稿）。
 
 **分歧机制（核验通过，防"不公平基线"攻击）**：
-- 分歧出现在**多路径拓扑**：Mesh(3) rel=0.80（B_joint=5363 vs B_sep=1075，默认参数即分歧）、KaryNCube(2,3) rel=0.087；
-- 机制 = "**固定首路径拥塞 vs 联合绕行**"：分离基线布线因素用固定首路径（lane 集中 → 布线容量先饱和 → B\*_wiring_sep 低），联合模型优化 x_D2D 绕行分散 lane → 布线容量不饱和 → B\*_joint 由 therm 决定。这是分离决策的正当语义（各因素独立固定方案、不共享联合优化自由度），非刻意劣化（固定首路径 = 设计者预先选定的布线方案，不因流量调整）。
+- **真分歧在布线饱和域（lanes=100）**：Mesh(3) rel=0.154（B_joint=1270 vs B_sep=1075）、Torus(3) 0.190、KaryNCube(2,3) 0.352/0.266；默认域 KaryNCube(2,3) 0.087（8 条两路径链路固定首路径默认容量即拥塞）；
+- 机制 = "**固定首路径拥塞 vs 联合绕行**"：分离基线布线因素用固定首路径（lane 集中 → 布线容量先饱和 → B\*_wiring_sep 低），联合模型优化 x_D2D 绕行分散 lane → 布线容量不饱和 → B\*_joint 更高。这是分离决策的正当语义（各因素独立固定方案、不共享联合优化自由度），非刻意劣化（固定首路径 = 设计者预先选定的布线方案，不因流量调整）。
+- **口径修正（2026-08-21，缓存键修复 c5aa79f）**：旧"Mesh(3) 默认域 rel=0.80（B_joint=5363 vs B_sep=1075）"系**缓存污染**（缓存键未含容量数组，lanes 变化串键）——默认域真值无分歧（wiring_sep=5558、sep=5363=therm）；真分歧 Mesh(3) lanes=100 joint=1270 与 CodeEngineer 原测值一致。**强分歧与耦合显现域一致 = 布线饱和域（lanes=100）**（与 E7 耦合域发现一致）。
 - **与 C4' 互补**：C3' 机制（固定路径拥塞）在多路径拓扑成立；C4' 机制（布线饱和先于 bump）在 Dragonfly 单路径拓扑成立——两种耦合机制互补，共同支撑"分离决策在布线/面积下产生分歧"。
 
 **定稿（§八 结果处理：重跑通过 → 主张成立）**：
@@ -190,3 +191,82 @@ $$ \sum_{l \in \text{经过 } e} \frac{B}{\text{lr}_l}\left(1 + c_{\text{pwr}} s
 3. **耦合域如实界定（D4 Conservative）**：不是所有参数域展示 power 耦合，耦合域 = 布线饱和 + β_P 小——数据说话，不夸大。
 
 **执行**：DataSteward 按定稿口径重排 coupling CSV（演示域 β_P=0/小 + lanes 50-100）；EvalDesigner E7 变量表同步（β_P 档改小/0）。
+
+---
+
+## 十四、3D 堆叠表示定案（2026-08-21，master 询问 + 作者反馈）
+
+**作者反馈**：3D 堆叠图只画集总 stack 节点（R=2.4 两层串联），看不到堆叠内部传热路径——"只考虑 stack 就行了吗？还是怎么"。
+
+**对照 thermal-g-construction §2（两形态 + 适用条件）**：
+- 集总近似：每堆叠一条垂直线链（g_vert=1/ΣR_vert^(l)）——适用条件：纵向热主导、层间横向弱耦合；
+- 完整多层：K×N 节点 + 层间 tsv/hybrid 边 + 各层横向——适用条件：层间横向耦合不可忽略、需逐层结温。
+
+**定案：推荐 (c) 双形态**（图展示展开、schema 两者都支持）：
+1. **图（FigureArtist）**：3D 图画**展开多层节点**——每层 die 节点 + 层间 tsv/hybrid 边 + 层间横向，标注集总 R_vert 值（=Σ层 R，如 2.4）——作者要看到内部传热路径；
+2. **schema（CodeEngineer）**：集总（现有 stack.layers）与显式展开都支持——stack 类型保留（纵向热主导时计算用），新增展开形态（每层 die 节点 + tsv/hybrid 边 + 层间横向边）；
+3. **理由**：① 作者意图 = 图表达内部路径（集总图看不到）；② 集总在纵向热主导下有计算价值（保留不删）；③ 双形态与 thermal-g-construction §2 的"完整 vs 集总 + 适用条件"框架一致；
+4. **适用条件**：计算默认集总（纵向热主导）；图/论文展示展开；若需逐层结温（每层 T_max 独立约束）用完整形态。
+
+**schema v1 最小补齐（CodeEngineer）**：
+- 展开形态：nodes 用 die（每层一个）+ edges 用 tsv/hybrid（层间纵向，需字段 n_vias/r_via 或 r_tsv_k_per_w）+ face_adjacency（层间横向，可复用现有）；
+- stack.layers 字段保留（集总形态的层数记录）；
+- 示例：补 `3d-stack-two-explicit.yaml`（K×N + tsv/hybrid 边演示完整多层）。
+
+---
+
+## 十五、heatsink 建模维度定案（2026-08-21，作者：散热板本身是建模维度）
+
+**作者明确**：加散热板不是"边界处换个 R 值"，而是传热网络里一个**显式环节**——die → TIM/lid → heatsink → ambient 垂直链。现有 2p5d-two-die-heatsink.yaml 把 heatsink 当 boundary（固定温度）不满足此意图。
+
+**定案（schema v1.1）**：
+1. **heatsink 表达 = 中间节点 + 链段类型**（非 boundary）：
+   - 新增节点类型 `heatsink`（自由节点，进 G；含几何/热阻属性）；
+   - 链段边类型：`tim`（die→heatsink，TIM 段 R_tim）、`lid`（可选，die→lid→heatsink）、`heatsink_ambient`（heatsink→ambient，g_sink 或 r_sink）；
+   - 边界节点 ambient 保留（温度固定）。
+2. **2p5d-two-die-heatsink.yaml 应改成的节点结构**：
+   ```
+   nodes:
+     - die0 (type: die, geometry)
+     - die1 (type: die, geometry)
+     - heatsink (type: heatsink, geometry: {...})   # 显式节点，非 boundary
+     - ambient (type: boundary, temperature_k: 300)
+   edges:
+     - face_adjacency: [die0, die1]
+     - tim: die0 → heatsink (r_tim_k_per_w)
+     - tim: die1 → heatsink (r_tim_k_per_w)
+     - heatsink_ambient: heatsink → ambient (r_sink_k_per_w)   # 散热板自身到环境
+   ```
+   传热路径显式：die → TIM → heatsink → ambient（三段垂直链可见）。
+3. **v1.1 最小字段**：节点类型 `heatsink`（geometry 复用）+ 边类型 `tim`/`lid`/`heatsink_ambient`（各带 r_xxx_k_per_w）；heatsink 自身热阻可并入 r_sink 或分段（v1.1 先 r_sink 集总 + tim/lid 段）。
+4. **与 3D 定案合并（schema v1.1 表示裁决总览）**：
+   - 节点类型：die / stack（集总，layers）/ **heatsink（新增，中间散热环节）** / boundary（环境固定温度）；
+   - 边类型：face_adjacency（横向）/ vertical_chain（纵向集总）/ **tim/lid（die→heatsink 段）** / **heatsink_ambient（heatsink→环境）** / tsv / hybrid（3D 层间）/ ground；
+   - 3D 双形态（§十四）：集总 stack + 显式展开（每层 die + tsv/hybrid）；
+   - M-矩阵校验不变：每自由节点 ≥1 散热路径（heatsink 自身需 heatsink_ambient 边）。
+
+---
+
+## 十六、schema v1.2：interposer/substrate 显式节点化（2026-08-21，作者完整散热路径要求）
+
+**作者要求**：完整散热路径 die→μbump→interposer→C4→substrate→ambient（+ heatsink 支路）；interposer/substrate 目前只作面邻接介质/链段，非节点。问是否显式节点化（与 heatsink 同哲学：实体有自身热阻温升 → 显式节点）。
+
+**裁决**：
+1. **interposer = 显式节点（推荐）**：
+   - 依据（catalog C3 + dimensions §2）：interposer 有横向扩散热阻（die 间面邻接的介质，大平面热扩散）+ 纵向（μbump 上、C4 下）——自身温度场显著（die 间热耦合经它传导），有温升应显式；
+   - 逻辑：die→μbump→**interposer 节点**→C4→substrate 链显式（interposer 温度可查）；与 heatsink 节点化同哲学；
+   - 局限：die 级粗粒度可集总（interposer 并入面邻接 k_eff + R_vert 链段）——显式节点在需查 interposer 温度/耦合时启用；
+   - **推荐：v1.2 加 interposer 节点类型（显式模式）**，保留集总（die 级面邻接 + 链段）为默认。
+2. **substrate = 显式节点（可选，作者要完整链则显式）**：
+   - 依据（catalog E1）：substrate 平面扩散 + 到 PCB/ambient——路径末端，温升相对小；
+   - 逻辑：完整链 die→…→C4→**substrate 节点**→substrate_ambient→ambient（作者要全链可见）；
+   - 局限：2.5D 中 substrate 温升小可集总（并入 b 或 R_sub 链段）；晶圆级无 substrate 概念（die 直接背面冷却）；
+   - **推荐：v1.2 加 substrate 节点类型（显式模式，可选）**，默认集总。
+
+**v1.2 最小字段**：
+- 节点类型：**interposer**（geometry + 横向扩散 R_spread + 纵向链段）、**substrate**（平面扩散 + substrate_ambient）；
+- 边类型：**ubump**（die→interposer，r_ubump_k_per_w）、**c4**（interposer→substrate，r_c4_k_per_w）、**substrate_ambient**（substrate→ambient，r_sub_k_per_w 或 h·A）、plane_diffusion（interposer/substrate 面内——可复用 face_adjacency 或新类型）；
+- 示例：**2p5d-full-chain.yaml**（die→ubump→interposer→c4→substrate→ambient 全链 + 可选 heatsink 支路）；晶圆级示例（die 网格 + 背面冷却，无 interposer/substrate——背面冷却即 substrate_ambient 的晶圆级形态）；
+- M-矩阵校验不变：interposer/substrate 节点各需散热路径（到下级或 ambient）。
+
+**与 FigureArtist 对齐**：图 2 全链（die→μbump→interposer→C4→substrate→ambient）interposer/substrate 画为显式节点（与 heatsink 同哲学），支路标注物理路径类型（传导/对流/边界）。

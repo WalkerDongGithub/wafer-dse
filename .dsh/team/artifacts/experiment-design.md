@@ -32,7 +32,6 @@
 | E2 | 3 | 要求旋钮 × 约束旋钮 → B\* 单调性（灵敏度） | §5.5（图 6） | ❌ 旋钮无模型 | 模型缺口（§4 G2） | Gate③ 定 |
 | E3 | 4 | 消融阶梯 + 耦合 vs 分离决策 | §5.4（图 5） | 阶梯 ✅ / 分离基线 ❌ | 分离基线脚本（§4 G3） | DataSteward（阶梯）/ 缺口 |
 | E4 | 5 | 严格 vs 放宽约束 → B\* 上推 + 排序保序 | §5.3 + §6.1 | 条件 ✅（依赖 E2 或场景近似） | 同 G2（若补则共用） | DataSteward |
-| E5 | 6 | 扩展比包络不变性（**首选图**） | §5.2（图 3） | ✅ solve_envelope 可跑 | 无 | DataSteward |
 | E6 | 7 | 规模 vs 求解时间 + 二分迭代 | §5.6 | ✅ BmaxQuery 可跑 | 规模扫描脚本（exp 层） | DataSteward |
 | EC | 内部 | die 缩放（α_d, β_P ≠ 0）可行性单调性验证 | **不上论文** | ✅ 接口齐（test11 锚点） | 单调性扫描脚本 | DataSteward → master |
 | E7 | 4（作者核心轴） | 功耗—散热—布线/性能 三向耦合演示 | §5.4（耦合牵制面板） | ❌ 模型缺口（power-trace 项未入 WiringModel） | **G7** | 待 G7（DomainExpert 拍板 + CodeEngineer 实现） |
@@ -60,7 +59,7 @@
 - **规模控制（DataSteward 确认）**：全量 run_matrix = 88 次 BmaxQuery（perf 跳过）；小拓扑 <1s/组合，Mesh(4)（16 dies）可达数分钟-十分钟级/组合——**正文优先小拓扑**（Mesh(2/3)、Torus(2/3)、FullMesh(2/3)）× ucie 谱系，Mesh(4) 单列排队。
 - **预期**：B\* 在同端口数组内有区分度；加约束后 B\* 单调不增；绑定约束随场景层级从 bump 迁移到 therm。
 - **判定标准（可测）**：
-  - C1 区分度：每个含 ≥2 个**非同构**拓扑的端口数组内，B\* 至少 2 个不同值且 max/min 比值 > 1.1。**端口数 4 组例外（已修订，DataSteward 实测确认）**：Mesh(2)、Torus(2)、KaryNCube(2,2) 为图同构（2×2 网格 = 2×2 环 = 2-ary 2-cube，同度数同边数），B\* 逐位相同属必然（3 参数组实测逐位一致：11211/14914/17838）——该**同构一致性本身是有效性检验**（B\* 是拓扑的良定义函数，与 E5 不变性精神一致），该组 C1 判"不适用（同构）"而非失败。
+  - C1 区分度：每个含 ≥2 个**非同构**拓扑的端口数组内，B\* 至少 2 个不同值且 max/min 比值 > 1.1。**端口数 4 组例外（已修订，DataSteward 实测确认）**：Mesh(2)、Torus(2)、KaryNCube(2,2) 为图同构（2×2 网格 = 2×2 环 = 2-ary 2-cube，同度数同边数），B\* 逐位相同属必然（3 参数组实测逐位一致：11211/14914/17838）——该**同构一致性本身是有效性检验**（B\* 是拓扑的良定义函数），该组 C1 判"不适用（同构）"而非失败。
   - C2 排序稳健：跨参数组（16g/24g/32g）同端口数组 B\* 秩的 Spearman ρ ≥ 0.9。
   - C3 场景单调：∀ 拓扑，B\*(perf+bump) ≥ B\*(perf+bump+therm)（约束加严 B\* 不增）。
   - C4 Conservative：报告热约束显著压制 B\* 的构型（衰减比 < 0.5 者）及其绑定约束，不回避。
@@ -114,9 +113,9 @@
     - C5' 机制归因（可选）：run_ledger 账本确认 RDL 共享/面积抢占来源，排除伪影。
     - 结果处理：**通过 → 主张成立（§5.4 双阶段定稿）**；**不通过 → 如实报告，主张限缩（数据说话）**。
     - **v2 实测（DataSteward 2026-08-20，git 5008ed0+459a6ed，附录 B）**：单调性抽查 ✅ PASS（6/6 无可行性带，§七 预期符合）；**C4' ✅ 通过**——Dragonfly(2,1,1)/(2,2,1) 默认参数 wiring(7897/3998) 先于 therm(8287/4193) 绑定（**"布线饱和先于 bump/therm"有数据支撑**），α=0.01 面积绑定（joint=area 上界 1464-4388）。
-    - **C3' 终判 ✅ 通过（fixed_paths 重跑，git f680fc5，2026-08-20）**：分离布线因素换 `WiringModel(fixed_paths=True)` 重跑（72 行 = 9 拓扑 × {default, lanes100} × α_d∈{0,0.001,0.01,0.05}）——**10/72 配置 rel_diff>0.01**（≥2 判据满足），分歧 rel GM=0.264、max=0.80。分歧构型：Mesh(3) rel=0.80（α=0/0.001 两域；α=0.01 时 0.27）、KaryNCube(2,3) rel=0.087。**默认参数（lanes=500）即分歧，无需收紧**——机制=规格预期 (c) **路径多样性**：Mesh(3) 对角链路 2 条 L 形候选路径，固定首路径默认容量即拥塞（sep=1075），联合 x_D2D 绕行（joint=5363）。**insight 4 双阶段主张成立（§5.4 定稿）**。
+    - **C3' 终判 ✅ 通过（fixed_paths 重跑，缓存键修复 c5aa79f 后冷跑修正，2026-08-21）**：分离布线因素换 `WiringModel(fixed_paths=True)` 重跑（72 行 = 9 拓扑 × {default, lanes100} × α_d∈{0,0.001,0.01,0.05}）——**10/72 配置 rel_diff>0.01**（≥2 判据满足）。⚠️ **明细修正**：旧"Mesh(3) 默认域 rel=0.80"系缓存污染（真值：默认域无分歧，wiring_sep=5558、sep=5363=therm）；**真分歧 = 布线饱和域 lanes=100**（Mesh(3) 0.154、Torus(3) 0.190、KaryNCube 0.352/0.266）+ **默认域 KaryNCube(2,3) 0.087**（8 条两路径链路，固定首路径默认容量即拥塞）。**强分歧需布线饱和域（lanes=100）——与 E7 耦合显现域发现完全一致**（布线饱和域是耦合/分歧的共同显现域）。机制 = 规格预期 (c) 路径多样性（固定首路径拥塞 vs 联合 x_D2D 绕行）。**insight 4 双阶段主张成立（§5.4 定稿）**。
     - **v2 参数域扩展（DataSteward 2026-08-20，72 配置）**：α_d=0.05 + wiring_tight（lanes_per_mm 500→50）全 rel_diff=0（C3' 在扩域下仍不通过——等价性非参数调优伪影，跨域稳健）；C4' 44 行通过（Dragonfly 真实参数布线先于 bump/therm；α_d≥0.01 面积绑定）。**诚实边界：布线绑定域 = Dragonfly 类拓扑**——稀疏拓扑（Mesh/Torus）即使 lanes_per_mm 收紧 100×（5/mm）仍不绑定（余量充足）；绑定迁移账本 `ladder_migration_v2.csv`（bump→therm→route→area）。
-    - **结构性张力（EvalDesigner 2026-08-20 预判，已被 decisive test 证伪）**：预判"布线绑定域=单路径拓扑重合、多路径拓扑不绑定"——基于 optimize-sep 数据（Mesh(3) B_wiring_sep=7117 非绑定）。**fixed_paths 重跑证伪该预判**：Mesh(3) 是多路径拓扑且**固定首路径在默认容量（lanes=500）即拥塞**（sep 布线因素绑定 1075），"路径多样性 × 布线饱和"在默认参数域共存——**布线绑定与否取决于路径构造（fixed 首路径 vs optimize 分流），而非仅拓扑族**（DataSteward 纠正，采纳）。
+    - **结构性张力（EvalDesigner 2026-08-20 预判，已被 decisive test 证伪）**：预判"布线绑定域=单路径拓扑重合、多路径拓扑不绑定"——基于 optimize-sep 数据（Mesh(3) B_wiring_sep=7117 非绑定）。**fixed_paths 重跑证伪该预判**（缓存键修复 c5aa79f 后冷跑修正）：固定首路径拥塞在**布线饱和域 lanes=100** 出现（Mesh(3)/Torus(3)/KaryNCube 分歧），默认域仅 KaryNCube(2,3)（8 条两路径链路）拥塞——**布线绑定与否取决于路径构造（fixed 首路径 vs optimize 分流）× 布线饱和域，而非仅拓扑族**（DataSteward 纠正，采纳）。
     - **双机制互补（DomainExpert §十）**：C3' 分歧机制（固定路径拥塞 vs 联合绕行）源于**优化自由度差异**，在多路径拓扑成立（Mesh(3)/KaryNCube(2,3)）；C4'（布线饱和先于 bump/therm）在 Dragonfly 单路径拓扑成立。**两种耦合机制互补，insight 4 主张双重证据**（分歧实证 + 真绑定识别）。
     - **机制补充（DomainExpert §九）**：布线饱和需两条件——① lane 需求接近布线容量（B 高）② 路径集中。ucie-32g 热约束主导（B\* 被压 ~4-5%）→ lane 需求低 → 布线永不饱和；Dragonfly 布线饱和恰因 B\* 相对高（热不主导）+ 路径集中——**稀缺是结构性的，非数据伪影**。
     - **限缩预案（model-ruling §九）**：**未触发**——C3' 终判通过（fixed_paths 重跑 10/72 分歧），§5.4 双阶段主张成立定稿：v1 等价性边界（附录）+ v2 分歧实证（正文：路径多样性机制 + 分歧幅度/构型）+ C4' 真绑定识别（正文含拓扑域界定：布线绑定域=Dragonfly 类、面积绑定 α_d≥0.01）+ 统一求解价值。可选翻案探索（KaryNCube(4,3)+microfluidic+wiring 收紧）不再需要。
@@ -143,22 +142,6 @@
 - **归一化**：上推比 B\*_relaxed/B\*_strict 跨拓扑几何均值。
 - **论文落点**：§5.3（与 E1 联合叙述）+ §6.1 Discussion（限定"很可能/先验搜集"，不承诺真实物理必然可行——INSIGHT_READING insight 5）。
 - **输出物**：复用 E1/E2 输出 + `pushup_<params>.csv`（上推比 + 保序秩）。
-
-### E5 — 扩展比包络不变量（insight 6，**首选图**）
-
-- **动机**：insight 6——链路扩展比剥离 B 后构成包络 L\*，只依赖拓扑 + 路由 + 要求模型，与 B 及物理参数无关；物理-拓扑解耦的桥梁（C3 核心）。**先例=验证**（LiteratureSearcher 核验，进 Related Work §3.3 而非防先例）：oblivious 路由负载因子/dilation——Valiant & Brebner, STOC 1981, DOI 10.1145/800076.802479；Räcke, FOCS 2002（**非 STOC**）, DOI 10.1109/SFCS.2002.1181881；Räcke, STOC 2008, DOI 10.1145/1374376.1374415；Azar/Cohen/Fiat/Kaplan/Räcke, JCSS 2004（LP 可多项式求最优 oblivious 路由，与包络 LP 同构先例）, DOI 10.1016/j.jcss.2004.04.010；BvN 最坏流量=置换矩阵（Chang et al., INFOCOM 2000, pp.1614-1623, DOI 10.1109/INFCOM.2000.832560）。我们区分"概念先例"与"集成贡献"（物理-拓扑解耦桥梁 + BvN 逐链路 LP + 晶圆级落地）。
-- **变量**：物理参数组 ≥ 4 组（`toy`、`ucie-16g`、`ucie-24g`、`ucie-32g`；扩展：`3d-tsv-1um`、`optical-cpo`）；拓扑 ≥ 4 种（Mesh(3)、Torus(3)、FullMesh(3)、Dragonfly(2,1,1) 等）；同一拓扑固定路由与要求模型。
-- **基线**：无外部基线；对照 = 参数组间（不变量演示）。
-- **步骤**：对每个拓扑，`ObliviousValiantModel(topo).solve_envelope()` 得 L\* 向量（长度 n_links）；跨参数组逐元素比较（该接口只依赖 topo，物理参数不参与——DataSteward 确认 `FeasibilityResult.envelope_L` 亦直接给出逐链路 L，**无需新 query**）。
-- **预期**：同拓扑下 L\* 逐参数组逐链路数值相等；不同拓扑 L\* 不同（不变量是"对物理参数不变"，非"跨拓扑相同"）。
-- **判定标准（可测）**：
-  - C1：∀ 拓扑、∀ 参数组对，max_e |L\*_a[e] − L\*_b[e]| ≤ 1e-9（数值相等）。
-  - C2：不同拓扑的 L\* 有差异（至少一对拓扑 max_e |ΔL\*| > 0.01），证明"不变的是物理无关性，不是拓扑无关性"。
-  - C3（如适用）：D2D/I2I 两段包络分别报告。
-- **归一化**：无需（直接数值相等判据）。
-- **论文落点**：§5.2（图 3，首选图：每拓扑 L\* 按链路索引作图，多参数组曲线重合）。
-- **可行性**：✅ `solve_envelope()` 直接可跑；无缺口。
-- **输出物**：`envelope_<topo>.csv`（链路索引 × 参数组 → L\*）；图 3 源数据。
 
 ### E6 — 全局最优可多项式求解：规模 vs 时间（insight 7）
 
@@ -240,11 +223,11 @@
 | 数据口径红线 | **`exp/output/` 2026-08-18 数据集不可引用**（Windows 机器生成、早于 V5 定稿与 Valiant 包络数值修正，同组合 B\* 差 350 倍）；论文所有数字按当前代码全量重跑（跑前清混合年代缓存）；正式输出附加 git 短 hash + params 名锁定口径（DataSteward 定案） | 可追溯原则 |
 | 软件/版本 | Python ≥ 3.9（实测 3.13）、numpy、cvxpy 1.9.2、pyyaml；求解器 CLARABEL/HIGHS/OSQP/SCIPY/SCS | 如实报告 |
 
-**审计表（每面板一行；E1/E5/E6/EC 数据已产出，回填依据 `.dsh/team/artifacts/data-report-e1-e5-e6-ec.md`，git 46833c1）**：
+**审计表（每面板一行；E1/E6/EC 数据已产出，回填依据 `.dsh/team/artifacts/data-report-e1-e5-e6-ec.md`，git 46833c1）**：
 
 | 面板 | 基准集与版本 | n（组合数） | 归一化基准 | 几何均值口径 | 误差/区间定义 | 重复次数 | 状态 |
 |---|---|---|---|---|---|---|---|
-| 图 3 包络 | 拓扑 5 × 参数 4 | 逐链路 × 参数组 | 无（相等判据） | 不适用 | 不适用 | 1（确定性） | ✅ 数据齐（组内 max\|ΔL\*\|=0；跨拓扑 9/10 DIFF） |
+| 图 3 包络（**概念图，非实验**——包络不变是构造保证，作者定案不设实验/判据；图位保留概念示意） | — | — | — | — | — | — | 不适用（概念图） |
 | 图 4 排序 | 拓扑 11 × 参数 3 | 逐组合 | B\*（同端口数组内） | 比率类几何均值 | 不适用（确定性） | 1 | ✅ 数据齐（C2 ρ=1.000、C3 单调 PASS；C1 已修订——4 端口组同构例外；图 4 须标注热主导语义） |
 | 图 5 耦合 | 拓扑 9 × 场景 5+（`+wiring`/`+area`）+ E7 耦合面板 | 逐组合 | B\*_bump 档 | 衰减比几何均值 | 不适用 | 1 | **E3B 双阶段定稿**（v1 等价性 ✅ 附录 + v2 C3' ✅ 10/72 分歧 + C4' ✅ 39 行）+ **E7 耦合牵制面板 ✅**（power 走线 c_pwr 0→2→10：685→490→295；散热零释放 R_vert 恒 490——被 power 布线顶住；降功耗 +40% 解锁）——§5.4 数据齐 |
 | 图 6 灵敏度（升级为解锁量条形图 + 表 X，DomainExpert sensitivity-design.md v0.3 KKT/包络定理） | 旋钮 × 解锁量（E8，2 构型）+ E2 knob_matrix 实证面板 | 逐旋钮 / 逐组合 | 弹性 ΔB\*/B\* per 1% 旋钮（κ_j；λ 绑定确认） | 不适用（条形排名） | 不适用 | 1 | ✅ **E8 定稿**（step=2 一阶误差 ≤0.7%；热绑定→ppl/R_vert 榜首、布线饱和域→c_pwr 榜首——per-point prescription；表 X D1-D4 回填；E2 实证面板） |
@@ -259,7 +242,7 @@
 
 | 编号 | 描述 | 影响实验/insight | 阻塞正文 | 建议 | 状态 |
 |---|---|---|---|---|---|
-| G1 | 无 | — | 否 | E1/E5/E6/EC 直接由 DataSteward 执行 | **执行中**（DataSteward 已接令） |
+| G1 | 无 | — | 否 | E1/E6/EC 直接由 DataSteward 执行 | **执行中**（DataSteward 已接令） |
 | G2 | 要求旋钮（R_peak 仅出入口峰值）与约束旋钮（C_rated 额定功耗）无模型/场景实现（V5 §0.1 固定最严档） | E2（§5.5 灵敏度，正文）、E4 放宽档 | **是**（§5.5） | 模型缺口，**倾向补**（DomainExpert 预判）：CodeEngineer 场景参数化或 P_peak(B) 开关；实现成本 Gate③ 评估。**近似预研**：冷却变体 `ucie-32g-air`/`ucie-32g-microfluidic`（R_vert 2.5 vs 0.4）可作约束悲观度参数级演示（非同一旋钮，不作正文替代） | **✅ 实现完成（CodeEngineer git 5008ed0，EvalDesigner 验收 5/5，test18 全绿）**；DataSteward 出 knob_matrix 数据中；约束旋钮可测效果依赖 β_P>0（预研 490/11211/33627 确认）；§5.5 正文依赖数据回填 |
 | G3 | 分离决策基线无实现（性能定 L → 独立判 bump/热/几何 → 可行域交集） | E3B（§5.4 耦合 vs 分离，正文） | **是**（§5.4 对比部分） | 优先 DataSteward exp 层实现（顺序解多次 LP，非新 query）；接口受限再上报 CodeEngineer | **Gate③ ✅（已回执）**：DataSteward 实现（exp 层，已接令）；**不需要 CodeEngineer 进场** |
 | G4 | ~~C4/WiringGrid 未接入、限缩 claim~~ **V5 v5.21 作者推翻：布线 (2d) edge/vert/pad 三维容量 + 面积 (2f) A_die≤A_max 一级化，纳入主线**（CodeEngineer 接入 `build_scenario` 中；C4 电源 (3c)+sub 热 (3d) 仍为规范级） | E3 阶梯（`+wiring`/`+area` 级）+ E3B 分离基线（布线/面积独立判定）——**E3B 重设计核心** | **是**（§5.4，待接入完成） | CodeEngineer 接入 wiring/area 进 build_scenario（🚧 进行中）；DataSteward 扩展 run_sep_vs_joint 为布线/面积版并重跑 | **纳入主线（接入中）** |
@@ -277,7 +260,7 @@
 | 参数/配置 | `config/params/*.yaml`、`config/problems/*.yaml`（唯一参数源） | public repository |
 | 实验脚本 | `exp/run_matrix.py`、`run_ledger.py`、smoke、新增扫描脚本 | public repository |
 | 结果数据 | `exp/output/*.csv/json`（matrix/ledger/envelope/scalability/knob 等） | public repository |
-| figure source data | 图 3-6 源数据表 | public repository（与结果数据同 release 或 Supplementary） |
+| figure source data | 图源数据表（图 3 包络为概念图、无实验数据） | public repository（与结果数据同 release 或 Supplementary） |
 | 第三方受限数据 | **无**（物理参数来自公开标准 UCIe 1.1/2.0、OIF-CEI-112G-VSR——引用而非重分发） | 不适用 |
 
 ### 5.2 仓库与标识符计划
@@ -329,11 +312,11 @@ envelope and scalability sweeps), and result tables, and was evaluated with Pyth
 
 ### 5.6 协作提醒（非本职，转达用）
 
-- **MFIT 引文已核验修正并闭环（2026-08-20）**：V5 §10 原引用 "MFIT（Zhang et al., ACM TACO 2025）"有误，正确为 **Pfromm et al., *MFIT: Multi-Fidelity Thermal Modeling for 2.5D and 3D Multi-Chiplet Architectures*, ACM TODAES（DOI 10.1145/3765905；arXiv:2410.09188），完整 9 位作者：Lukas Pfromm, Alish Kanani, Harsh Sharma, Parth Solanki, Eric Tervo, Jaehyun Park, Janardhan Rao Doppa, Partha Pratim Pande, Ümit Y. Ogras**（DBLP 第一源 + ccf-ref-verifier 三源核验）；另 Feng & Ma Switch-Less Dragonfly 应为 **SC 2024** 非 ATC 2024。**闭环状态（三处一致）**：V5 §10 由 DomainExpert 拍板（**V5 v5.20**，代码 docstring 同改）；bib 侧由 LiteratureSearcher 修正（`paper.bib`）；本文档 E3B/E5 已按修正后引文撰写。无遗留。
+- **MFIT 引文已核验修正并闭环（2026-08-20）**：V5 §10 原引用 "MFIT（Zhang et al., ACM TACO 2025）"有误，正确为 **Pfromm et al., *MFIT: Multi-Fidelity Thermal Modeling for 2.5D and 3D Multi-Chiplet Architectures*, ACM TODAES（DOI 10.1145/3765905；arXiv:2410.09188），完整 9 位作者：Lukas Pfromm, Alish Kanani, Harsh Sharma, Parth Solanki, Eric Tervo, Jaehyun Park, Janardhan Rao Doppa, Partha Pratim Pande, Ümit Y. Ogras**（DBLP 第一源 + ccf-ref-verifier 三源核验）；另 Feng & Ma Switch-Less Dragonfly 应为 **SC 2024** 非 ATC 2024。**闭环状态（三处一致）**：V5 §10 由 DomainExpert 拍板（**V5 v5.20**，代码 docstring 同改）；bib 侧由 LiteratureSearcher 修正（`paper.bib`）；本文档 E3B 已按修正后引文撰写。无遗留。
 
 ## 6. consult-team 记录（Phase 2 开工前）
 
-- 咨询：DomainExpert（5 条，**已收齐验收**）；DataSteward（其 3 问已答 + 我的 5 问/追问 (a)-(e) 已由其 `data-inventory.md` 覆盖，**已收齐**）；LiteratureSearcher（4 条，**已回 + Phase 1 交付已落盘**——`benchmark-matrix.md` / `gap-evidence-chain.md` / `related-work-draft.md` / `paper.bib` / `bib-verification-report.md`；基线引文、RapidChiplet 铁证、部分覆盖警示已并入本文档 E3B/E5/E6）。
+- 咨询：DomainExpert（5 条，**已收齐验收**）；DataSteward（其 3 问已答 + 我的 5 问/追问 (a)-(e) 已由其 `data-inventory.md` 覆盖，**已收齐**）；LiteratureSearcher（4 条，**已回 + Phase 1 交付已落盘**——`benchmark-matrix.md` / `gap-evidence-chain.md` / `related-work-draft.md` / `paper.bib` / `bib-verification-report.md`；基线引文、RapidChiplet 铁证、部分覆盖警示已并入本文档 E3B/E6/E7）。
 - 边界确认：实验设计文档归 EvalDesigner；执行归 DataSteward；缺口上报 DomainExpert（Gate③）；正文归 DomainExpert+WritingPolisher——无冲突（DomainExpert 确认）。
 - 关键采纳（DataSteward 数据侧）：legacy 08-18 数据不可引用（350× gap）；LP 确定性无需 seed、git hash 锁定口径；包络 `envelope_L` 无需新 query；run_matrix 全量 88 次 BmaxQuery、Mesh(4) 重拓扑单独排队；**11 组 YAML 已接线**（run_matrix 改 `load_yaml_params` 全量 16 组，每组合 try/except 落 error 列不中断）；α_d/β_P 由 EC 脚本程序化覆盖（未动共享 YAML）。
 - 关键采纳（LiteratureSearcher 引文侧）：分离链条 = BookSim→HotSpot/MFIT→FPIA/RapidChiplet→RedHawk 链式判定；RapidChiplet 原文铁证（thermal 外挂 HotSpot）；TickTock/Chen/Yu 部分覆盖须 "xxx vs xxx" 措辞；MFIT 引文修正为 Pfromm TODAES（bib 侧已改，V5 §10 文本侧归 DomainExpert 拍板）。
@@ -342,16 +325,34 @@ envelope and scalability sweeps), and result tables, and was evaluated with Pyth
 
 ## 7. 待定项
 
+> 定稿声明（2026-08-21，作者纪律广播）：本文档**即定稿**——不再新增实验/判据/调研；只做 Evaluation 章判据通过/失败陈述（见附录），审稿发现问题再补。可做可不做的不做。
+
 - [x] DataSteward (a)-(e)：已由其 `data-inventory.md` 覆盖（矩阵时长/确定性/ledger 可跑/包络接口/planned 场景）。
-- [x] **E1/E5/E6/EC 数据已产出**（DataSteward，git 46833c1，`.dsh/team/artifacts/data-report-e1-e5-e6-ec.md`）：E1 C2 ρ=1.000/C3 单调 PASS、C4 热主导如实报告（therm≈bump 4%）；E5 组内 0 差异/跨拓扑 9/10 DIFF（图 3 数据齐）；E6 迭代 8≈log2(249.5)、规模-时间多项式轮廓；EC 18 组合零反转（内部，二分前提稳健）。E1 C1 已修订（4 端口组图同构例外 + 同构一致性为有效性检验）；图 4 热主导语义标注已加。
+- [x] **E1/E6/EC 数据已产出**（DataSteward，git 46833c1，`.dsh/team/artifacts/data-report-e1-e5-e6-ec.md`）：E1 C2 ρ=1.000/C3 单调 PASS、C4 热主导如实报告（therm≈bump 4%）；E6 迭代 8≈log2(249.5)、规模-时间多项式轮廓；EC 18 组合零反转（内部，二分前提稳健）。E1 C1 已修订（4 端口组图同构例外 + 同构一致性为有效性检验）；图 4 热主导语义标注已加。
 - [x] G2/G3/G6 Gate③ 裁决回执（DomainExpert 主持，master 暂定可推翻，2026-08-20）：G1 执行中 / G3 DataSteward 实现（无需 CodeEngineer）/ G2 补（master 放行 CodeEngineer，创建条件已满足）/ G6 定案不做——落盘 §4。
 - [x] **G4 裁决被作者推翻（V5 v5.21，2026-08-20）**：布线 (2d)/面积 (2f) 一级化、纳入主线，CodeEngineer 接入 `build_scenario` 中（🚧）——限缩 claim 撤销，§4 G4 行已更新。
-- [x] **E3B v2 C3' 终判 ✅ 通过**（fixed_paths 重跑，git f680fc5，2026-08-20）：10/72 分歧（rel GM 0.264/max 0.80，Mesh(3) 0.80/KaryNCube(2,3) 0.087），机制=路径多样性（固定首路径拥塞 1075 vs 联合绕行 5363）；C4' ✅ 39 行 route/area 绑定；单调性抽查 PASS。**insight 4 双阶段主张成立，§5.4 定稿**（v1 等价性边界附录 + v2 分歧实证正文 + C4' 真绑定识别）；§九 限缩预案未触发。
+- [x] **E3B v2 C3' 终判 ✅ 通过**（fixed_paths 重跑，缓存键修复 c5aa79f 后冷跑修正，2026-08-21）：10/72 分歧（真分歧 = 布线饱和域 lanes=100：Mesh(3) 0.154/Torus(3) 0.190/KaryNCube 0.352·0.266 + 默认域 KaryNCube(2,3) 0.087；旧"Mesh(3) 默认域 0.80"系缓存污染已废）；机制=路径多样性（固定首路径拥塞 vs 联合绕行）；C4' ✅ 39 行 route/area 绑定；单调性抽查 PASS。**insight 4 双阶段主张成立，§5.4 定稿**（v1 等价性边界附录 + v2 分歧实证正文 + C4' 真绑定识别）；§九 限缩预案未触发。
 - [x] 11 组 YAML 接线（run_matrix 全量 `load_yaml_params` 16 组，已实测 ucie-12g 可跑、trad-air-ucie-std 错误正确落 error 行）；α_d/β_P 档位由 EC 脚本程序化覆盖（未动共享 YAML，无需独立档位文件）。
 - [x] **CodeEngineer（G2 双旋钮）交付完成**（git 5008ed0，run_all 19/19 全绿，test18 双旋钮断言；EvalDesigner 验收 5/5 通过；预研 490/11211/33627 复跑一致）。knob_matrix_<params>.csv 已产出（附录 C）。
 - [ ] **E7（作者核心轴，2026-08-21）**：功耗—散热—布线/性能三向耦合演示（设计已落盘 §2 E7，方向级判据 D1-D4，小规模；三轴：散热↔带宽✅可跑 / 降性能↔布线饱和 / 三方牵制相图）——**G7 已拍板解除**（DomainExpert model-ruling §十一/V5 v5.25：edge/vert rhs 扣减 c_pwr·P_die(B)）→ CodeEngineer 实现 → DataSteward 跑 coupling_<params>.csv。
 - [x] **E8（作者补充指令，灵敏度杀手锏）**：验证完成闭环（SensitivityQuery 暂不建；细步长有限差分 step=20-50）——热绑定一阶误差 0.2%（ppl -1%→+1.11%/-5%→+5.31%）、布线绑定结构旋钮例外（c4_pitch 离散、lanes_per_mm 非解锁）；S1-S5/D1-D4 全回填、表 X 数据齐（sensitivity-design.md §3.2 含离散旋钮例外）；图 6 解锁量条形图 + E2 实证双面板数据齐。
 - [x] **布局算法支撑（作者【4】，LiteratureSearcher 交付 2026-08-21）**：layout-algorithms-note.md + paper.bib +10 条布局引用（seqpair/TAP2.5D/ATPlace2.5D/TDPNavigator/ChipletPart/interposer floorplan/2.5D EDA 综述等），related-work §3.2b 已并入；布线资源引用（liu2014interposerfloorplan、chen2025survey2p5d）已并入 E3B/E7。
 - [x] **E3B 旧判据修订（q-aa6aa76c 等价性验证）**：已被 E3B 重设计（V5 v5.21）取代——旧等价性结论保留为"无布线/面积子集"边界刻画（附录素材），C3 已恢复"分歧计数 ≥ 1"。
-- [x] LiteratureSearcher 对标矩阵全文已落盘并核对（`benchmark-matrix.md` / `gap-evidence-chain.md` / `related-work-draft.md` / `paper.bib` / `bib-verification-report.md`，2026-08-20）：矩阵结论与本文档一致（insight 4 部分覆盖需限定 / insight 6 先例=验证 / insight 7 部分覆盖不引复杂性战争）；基线引文、RapidChiplet 铁证、CHARIOT/FireLink/FPIA 启发式对象已并入 E3B/E5/E6；Gate② 材料就绪，待 master 审查。
+- [x] LiteratureSearcher 对标矩阵全文已落盘并核对（`benchmark-matrix.md` / `gap-evidence-chain.md` / `related-work-draft.md` / `paper.bib` / `bib-verification-report.md`，2026-08-20）：矩阵结论与本文档一致（insight 4 部分覆盖需限定 / insight 6 先例=验证 / insight 7 部分覆盖不引复杂性战争）；基线引文、RapidChiplet 铁证、CHARIOT/FireLink/FPIA 启发式对象已并入 E3B/E6/E7；Gate② 材料就绪，待 master 审查。
 - [ ] 投稿前回填 §5.3 方括号字段（仓库/DOI/tag/AE 范围）。
+
+---
+
+## 附录：判据通过/失败陈述（供 WritingPolisher 写 Evaluation 章）
+
+> 2026-08-21 定稿版。每实验：判据 → 通过/失败 → 一句话证据。审稿发现问题再补。
+
+| 实验（论文节） | 判据结果 | 一句话证据 |
+|---|---|---|
+| E1 排序（§5.3） | C1 ✅（4 端口组图同构例外，同构一致性作有效性检验）；C2 ✅ ρ=1.000；C3 ✅ 场景单调；C4 ✅ 热主导如实 | 同端口数组 B\* 有区分度；跨参数组排序秩相关 1.0；加约束 B\* 不增；therm 档≈bump 档 4% |
+| E2 双旋钮（§5.5） | M1 ✅ / M2 ✅ / M3 ✅ | 单调逐构型成立；要求放宽上推 GM≈2.64×、约束放宽（β_P>0）17.9-28.6×；4 档偏序无交叉 |
+| E3 耦合（§5.4） | v1 ✅ 等价性（诚实基线）；v2 C3' ✅ 10/72 分歧（布线饱和域 lanes=100 + KaryNCube 默认域）；C4' ✅ 39 行真绑定；C5' ✅ 归因 | 无布线/面积子集分离≡联合（附录）；固定首路径拥塞 vs 联合绕行（强分歧在布线饱和域）；Dragonfly 布线先于 therm |
+| E6 规模（§5.6） | C1 ✅ / C2 ✅ / C3 ✅ | 迭代 8≈log2(249.5)；Mesh 0.05→2.29s、Torus 0.04→7.07s 多项式轮廓；开销如实 |
+| E7 耦合牵制（§5.4 面板） | D1 ✅ / D2 ✅ / D3 ✅ / D4 ✅ | power 走线 0→2→10 → B\* 685→490→295；降功耗 +40%；散热增强零释放（被布线顶住）；耦合域=布线饱和域如实界定 |
+| E8 灵敏度（§5.5 表 X） | S1-S5 / D1-D4 全 ✅ | 一阶误差 ≤0.7%；热绑定→ppl/R_vert、布线饱和→c_pwr 榜首；"改走线非首动，降功耗/提散热真解锁" |
+| EC（内部，不上论文） | V1-V3 ✅ | die 缩放 18 组合零反转，二分前提稳健 |

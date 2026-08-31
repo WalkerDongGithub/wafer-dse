@@ -6,6 +6,18 @@
 
 ---
 
+**v5.30（2026-08-21，§2 新增 (2g) die 侧 μbump 预算——作者：完完整整加回 Die 级模型）**：
+1.  **§2 新增 (2g)**：$\mathbf{M}_{\text{D2D} \to \text{die}}\,\boldsymbol{\ell}_{\text{D2D}} + \mathbf{M}_{\text{I2I} \to \text{die}}\,\boldsymbol{\ell}_{\text{I2I}} + \mathbf{N}_{\text{die}}^{\text{pwr}}(B) \le \mathbf{N}_{\text{die}}^{\text{total}}(B)$——die 侧信号 lane（D2D + I2I 出 die 侧）与电源 μbump 共享 μbump 总量；含 $N^{\text{pwr}}=\lceil P^{\text{peak}}(B)/(V_{dd} I_{\text{bump}}) \rceil$ 与 $N^{\text{total}}=\eta A_{\text{die}}(B)/p^2$ 完整定义（同 §2.8/C1 口径）。
+2.  **§4 C1 改为指向 (2g)**（跨层耦合含义保留：I2I SerDes PHY 挤压 D2D 信号预算），消除"约束只在耦合段"的结构缺陷。
+---
+
+**v5.29（2026-08-21，§2(2d) 修正：布线容量补功耗 lane——作者指出的模型窟窿）**：
+1.  **窟窿**：原 (2d) 布线容量只计信号 lane（$\mathbf{W}\,\mathbf{x} \le \mathbf{C}$），漏了 Power/GND 供电走线占 RDL——布线容量被高估，布线绑定处 $B^*$ 偏乐观。此前"power 走线项"（c_pwr）是对此窟窿的过度参数化尝试（非经书表述），已回退。
+2.  **修正（进经书，与 C1 电源 μbump 同口径）**：(2d) 容量改为 $\mathbf{W}\,\mathbf{x} + \mathbf{W}_{\text{pwr}}\,\mathbf{n}_{\text{wiring}}^{\text{pwr}}(B) \le \mathbf{C}$（信号 lane 与功耗 lane 共享 edge/vert/pad 容量）；新增 (2d') 功耗 lane 定义 $n_{\text{wiring},v}^{\text{pwr}}(B) = \lceil P_{\text{die},v}^{\text{peak}}(B)/(V_{dd}\,I_{\text{metal}}) \rceil$（$P^{\text{peak}}(B)=P_0+\beta_P B$，固定 $B$ 为常数，LP 结构不变）。
+3.  **符号表**：删 $c_{\text{pwr}}$，新增 $I_{\text{metal}}$ / $\mathbf{n}_{\text{wiring}}^{\text{pwr}}(B)$ / $\mathbf{W}_{\text{pwr}}$。
+4.  **影响（如实）**：布线绑定处的 $B^*$ 需在实现后重核——原数据未含功耗 lane，高估布线容量。
+---
+
 **v5.28（2026-08-21，经书/释经拆分）**：
 1.  **v5 定位净化**（作者指令）：v5 只保留 ① 唯一参考符号体系 ② 唯一参考模型标准 ③ 必要符号解释 ④ 必要约束项物理意义。
 2.  **派生内容全部移出**（不删除，各归其位）：求解策略/模型性质讨论 → `notes/MODEL_PROPERTIES.md`；实现对应表、参考文献、power 走线推导细节 → `notes/IMPLEMENTATION_MAP.md`；待定案 → `.dsh/team/decisions.md` 待决项；本修正日志 → 本文件；insight 相关内容 → `notes/INSIGHT_READING.md`。

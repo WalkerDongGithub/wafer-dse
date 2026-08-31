@@ -163,3 +163,43 @@
 | insight 相关内容（落点引用、定案记录） | 从 v5 正文剥离；解读见 `notes/INSIGHT_READING.md` |
 
 **v5 现在剩什么**（经书）：§0 模型对象与物理图像 / §1 符号表 / §2 die 段（2a-2f 约束 + 物理意义） / §3 I2I 段 / §4 跨层耦合 C1-C4 / §5.1 整体结构 / §6 关键假设 / §7 性能模型（7.1-7.5+7.3b）+ 释经指引。测试锚点节号保留（§7.3、§2.8、§7.3b、2a-2f、C1-C4）。
+
+## 🌡️ 热阻网络调研（2026-08-21，LiteratureSearcher thermal-network-survey.md）
+
+**核心结论：不同封装构型 = G 矩阵的参数化不同（粒度 + 热阻参数），但形式同为 G·T=P+b——求解器直接支持，无需改动。**
+- HotSpot：网格 compact R-C，稳态即 G·T=P+b 形式，与我们同构（差异在粒度/分层数）
+- MFIT：die 节点 + 面邻接 + 集总 R_vert，与 AnalyticNetworkBuilder 一致性确认 ✅
+- 能否直接用（die 级粒度）：
+  - FCBGA ✅ 可直接采用（补 Rθjc/TIM/sink 参数）
+  - 2.5D interposer ✅ 可直接采用（设计目标；补横向 R、μbump/C4 R、underfill 系数）
+  - 3D 堆叠 ⚠️ 需改造（多层节点）或早期集总近似"每堆叠一条垂直线链"（条件：纵向热主导）
+  - 晶圆级 ✅ 可直接采用（大网格 + 均匀 g_vert 背面冷却；补横向扩散 R、功率密度上限）
+- **验证阶段建议先试 2 种**：2.5D（现状）+ 晶圆级背面冷却（大网格均匀 g_vert）——只换 config YAML 参数组，不改求解器
+- paper.bib +3（lasance2008ctm/lau2023chiplet/feng2024chiplet2p5d，共 57 条）
+
+## 🌡️ 热建模维度调研（2026-08-21，LiteratureSearcher thermal-modeling-dimensions.md，五维全景）
+
+- **传热机制**：传导（串行 R=Σt/(kA)）/ 对流（自然 5-25、风冷 25-250、水冷 10³-10⁴ W/m²K；翅片 R_conv=1/(h·A_fin·η_fin)）/ 辐射（线性化 h_rad≈4εσT̄³≈6ε，真空/自然对流才不可忽略）——G/b/P 落点各明。
+- **实体层级**：die→TIM→lid→**heatsink（R_spread+R_conv+η_fin，有自身温升的实体，非固定边界）**→case→ambient；heatsink 单节点串联是紧凑模型常态；翅片级多节点仅自然对流/大翅片/多热源需要（η_fin=tanh(mL)/(mL)）。
+- **边界条件核心结论**：固定 T=消元进 b；对流 h=接地 g；热流=源项 P——**heatsink 是节点不是固定边界**（作者三问之一，文献确认）。
+- **3D**：主流每层节点（HotSpot/3D-ICE）；整堆叠集总是纵向热主导时的粗近似（问题：层内不均/TSV 密度/层间横向）。
+- paper.bib +5（incropera/carslaw1959/lee1995spreading/lee2008spread/rogie2018mor，共 62 条）。
+
+## 🧱 YAML 热网络组装器交付（2026-08-21，CodeEngineer，4 提交，run_all 22/22，DomainExpert 验收）
+
+- schema 全景：节点 die/stack/heatsink/boundary；边 face_adjacency/vertical_chain/ground/tsv/hybrid/tim/heatsink_ambient——3D/2.5D 同一结构，散热逻辑配置中可见
+- 组装器 `build_thermal_from_yaml(path) -> ThermalNetwork`（M-矩阵校验，纯构造不接 Model）
+- 3D 双形态（集总 + 展开每层节点，tsv 并联 g=n_vias/r_via）；heatsink 显式三段链（die→tim→heatsink→ambient）
+- test21 五组手算锚点全绿
+
+## 🎯 insight 6 包络不变性：重言式纠正（2026-08-21，EvalDesigner 自纠 + master 认可）
+
+- **问题**：包络 L* 计算不读物理参数（输入仅拓扑+路由+要求），"换物理参数包络不变"是**构造性成立（重言式）**——0 差异实测当经验证据写论文 = 自欺（B 纪律）。
+- **纠正**：图 3 定位改**演示图/首选图**（非证据图）——① 展示"包络一次预解、物理复用"的解耦推论；② 挡"不就是 oblivious 负载因子"攻击（逐链路向量 vs Räcke 全局标量）；③ 0 差异兼作 solver 稳定性回归（test04，是测试非实验）。
+- **新增 C4 对照判据**：同拓扑换物理参数 → **包络逐位相同而 B* 变化 >10%**（"包络不动、B* 动"的解耦可感知演示）。
+- 论文表述："构造保证 + 图 3 展示推论"，不写"实验证明包络不变"。
+
+## 🔪 包络不变性论述全删（2026-08-21，作者二次指令）
+
+作者：包络不变是构造保证（傻子都知道），**全部砍掉**——只留 FigureArtist 的概念图位，不做实验/判据/演示/数字。
+已派：EvalDesigner（删 E5 实验）、DataSteward（删 E5 数据段+附录F，envelope 数据保留为模型输入）、WritingPolisher（删 abstract/s1-intro/s5-evaluation 包络论述，s4-model 保留定义句）、DomainExpert（skeleton §5.2 删、图 3 改概念图、orchestration 落点改）、FigureArtist（图 3=概念图非数据图）。
